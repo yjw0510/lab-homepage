@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { withBasePath } from "@/lib/basePath";
 import { getTimedValue, getViewSpec, type MultiscaleTimingSpec } from "../multiscaleViewSchedule";
 import { getSubsetIndices, type SubsetAwareData } from "../multiscaleViewRuntime";
 import type { ScrollState } from "../scrollState";
@@ -123,7 +124,7 @@ export function MLFFScene({
   void progressRef;
 
   useEffect(() => {
-    fetch("/data/multiscale/mlff/system.json")
+    fetch(withBasePath("/data/multiscale/mlff/system.json"))
       .then((response) => response.json())
       .then((next) => {
         if (Array.isArray(next?.atoms) && Array.isArray(next?.elements) && typeof next?.focusIndex === "number") {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { area as d3Area, curveMonotoneX, line } from "d3-shape";
+import { withBasePath } from "@/lib/basePath";
 import { PlotContainer, PLOT_COLORS } from "./PlotContainer";
 
 interface MetricPoint {
@@ -23,7 +24,7 @@ export function NvtStabilityPlot({ progress, accentColor }: { progress: number; 
   const [data, setData] = useState<MetricPoint[]>(FALLBACK);
 
   useEffect(() => {
-    fetch("/data/multiscale/allatom/metrics.json")
+    fetch(withBasePath("/data/multiscale/allatom/metrics.json"))
       .then((response) => response.json())
       .then((next) => {
         if (!Array.isArray(next?.trajectory)) return;

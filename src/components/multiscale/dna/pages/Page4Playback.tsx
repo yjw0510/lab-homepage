@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
+import { withBasePath } from "@/lib/basePath";
 import { BeadLayer, type BeadLayerHandle } from "../layers/BeadLayer";
 import { BondLayer, type BondLayerHandle } from "../layers/BondLayer";
 import { decodeFloat32 } from "../binaryLoader";
@@ -23,7 +24,7 @@ export function Page4Playback({ assets: _a, progress }: { assets: DNAAssets; pro
   const [bpBeads, setBpBeads] = useState<Float32Array | null>(null);
 
   useEffect(() => {
-    fetch("/data/dna/cg/bp_beads.bin")
+    fetch(withBasePath("/data/dna/cg/bp_beads.bin"))
       .then((r) => r.arrayBuffer())
       .then((buf) => setBpBeads(decodeFloat32(buf)))
       .catch(() => {});

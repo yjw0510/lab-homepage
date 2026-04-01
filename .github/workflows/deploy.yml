@@ -38,6 +38,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_BASE_PATH: /lab-homepage
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4

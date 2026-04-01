@@ -7,6 +7,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, N8AO } from "@react-three/postprocessing";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { withBasePath } from "@/lib/basePath";
 import { DNAPageRouter } from "./dna/DNAPageRouter";
 import { MLFFScene } from "./scenes/MLFFScene";
 import { computeMesoPairCorrelation, type MesoFramesData } from "./data/mesoPairCorrelation";
@@ -46,7 +47,13 @@ const jsonFetchCache = new Map<string, Promise<unknown>>();
 export function cachedJsonFetch<T>(url: string): Promise<T> {
   let promise = jsonFetchCache.get(url);
   if (!promise) {
-    promise = fetch(url).then((r) => r.json());
+    const resolvedUrl = withBasePath(url);
+    promise = fetch(resolvedUrl).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load ${resolvedUrl}: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    });
     jsonFetchCache.set(url, promise);
   }
   return promise as Promise<T>;

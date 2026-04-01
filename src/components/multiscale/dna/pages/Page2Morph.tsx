@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { withBasePath } from "@/lib/basePath";
 import { BeadLayer } from "../layers/BeadLayer";
 import { PairEdgeLayer } from "../layers/PairEdgeLayer";
 import { decodeFloat32 } from "../binaryLoader";
@@ -16,7 +17,7 @@ export function Page2Morph({ assets: _a, progress: _p }: { assets: DNAAssets; pr
   const [bpBeads, setBpBeads] = useState<Float32Array | null>(null);
 
   useEffect(() => {
-    fetch("/data/dna/cg/bp_beads.bin")
+    fetch(withBasePath("/data/dna/cg/bp_beads.bin"))
       .then((r) => r.arrayBuffer())
       .then((buf) => setBpBeads(decodeFloat32(buf)))
       .catch(() => {});

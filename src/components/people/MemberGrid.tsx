@@ -1,7 +1,14 @@
+import Link from "next/link";
 import { getInitials } from "@/lib/utils";
 import type { Person } from "@/types/person";
 
-export function MemberGrid({ members }: { members: Person[] }) {
+export function MemberGrid({
+  members,
+  contactHref,
+}: {
+  members: Person[];
+  contactHref: string;
+}) {
   if (members.length === 0) {
     return (
       <div className="text-center py-12 px-4 rounded-xl bg-card border border-border">
@@ -10,9 +17,9 @@ export function MemberGrid({ members }: { members: Person[] }) {
         </p>
         <p className="text-muted-foreground">
           Interested in joining our lab? Visit the{" "}
-          <a href="/contact" className="text-primary hover:text-primary-light transition-colors">
+          <Link href={contactHref} className="text-primary hover:text-primary-light transition-colors">
             Contact
-          </a>{" "}
+          </Link>{" "}
           page for details on open positions.
         </p>
       </div>

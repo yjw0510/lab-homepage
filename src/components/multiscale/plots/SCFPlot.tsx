@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { scaleLinear, scaleLog } from "d3-scale";
 import { line } from "d3-shape";
+import { withBasePath } from "@/lib/basePath";
 import { PLOT_COLORS, PlotContainer } from "./PlotContainer";
 
 interface ScfSnapshotMeta {
@@ -50,7 +51,7 @@ export function SCFPlot({
   const [data, setData] = useState<ScfData>(FALLBACK);
 
   useEffect(() => {
-    fetch("/data/multiscale/dft/scf.json")
+    fetch(withBasePath("/data/multiscale/dft/scf.json"))
       .then((response) => response.json())
       .then((next) => {
         if (Array.isArray(next?.deltaE) && typeof next?.threshold === "number") {

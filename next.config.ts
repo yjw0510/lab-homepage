@@ -1,6 +1,7 @@
 import { execSync } from "child_process";
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+import { normalizeBasePath } from "./src/lib/basePath";
 
 let localIp = "localhost";
 try {
@@ -9,7 +10,7 @@ try {
 
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/lab-homepage",
+  basePath: normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH),
   allowedDevOrigins: [localIp],
   images: {
     loader: "custom",

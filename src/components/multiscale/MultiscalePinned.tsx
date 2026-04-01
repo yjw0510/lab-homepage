@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Maximize2, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { withBasePath } from "@/lib/basePath";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMounted } from "@/hooks/useMounted";
@@ -228,7 +229,7 @@ export function MultiscalePinned({
 
   // Load DFT SCF snapshots
   useEffect(() => {
-    fetch("/data/multiscale/dft/scf.json")
+    fetch(withBasePath("/data/multiscale/dft/scf.json"))
       .then((response) => response.json())
       .then((next) => {
         if (Array.isArray(next?.snapshots)) {
@@ -247,7 +248,7 @@ export function MultiscalePinned({
 
   // Load RDF bins (tiny: 640 bytes, 80 interleaved r,g pairs)
   useEffect(() => {
-    fetch("/data/dna/rdf/rdf.bin")
+    fetch(withBasePath("/data/dna/rdf/rdf.bin"))
       .then((r) => r.arrayBuffer())
       .then((buf) => {
         const arr = new Float32Array(buf);

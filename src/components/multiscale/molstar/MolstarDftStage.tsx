@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject, RefObject } from "react";
+import { withBasePath } from "@/lib/basePath";
 import type { ScrollState } from "../scrollState";
 import { CHOREOGRAPHY } from "../levelData";
 import { applyMolstarPlacement, computeScheduledPlacement } from "../multiscaleViewRuntime";
@@ -48,6 +49,14 @@ interface FrontierOrbitalData {
   lumoIsosurface: { positive: IsosurfaceMesh; negative: IsosurfaceMesh; isovalue: number };
   orbitalEnergies: { homo: number; lumo: number; homoEV: number; lumoEV: number };
   orbitalLabels: { homo: string; lumo: string };
+}
+
+async function fetchJsonOrThrow<T>(path: string, label: string): Promise<T> {
+  const response = await fetch(withBasePath(path));
+  if (!response.ok) {
+    throw new Error(`Failed to load ${label}: ${response.status} ${response.statusText}`);
+  }
+  return response.json() as Promise<T>;
 }
 
 interface DensitySnapshot {
@@ -573,8 +582,8 @@ export function MolstarDftStage({
         }
         mountedPlugin = plugin;
         const [molecule, densityEvolution] = await Promise.all([
-          fetch("/data/multiscale/dft/molecule.json").then((response) => response.json() as Promise<DftScaffoldData>),
-          fetch("/data/multiscale/dft/density-evolution.json").then((response) => response.json() as Promise<DensityEvolutionData>),
+          fetchJsonOrThrow<DftScaffoldData>("/data/multiscale/dft/molecule.json", "DFT molecule.json"),
+          fetchJsonOrThrow<DensityEvolutionData>("/data/multiscale/dft/density-evolution.json", "DFT density-evolution.json"),
         ]);
         if (cancelled) {
           plugin.dispose();
@@ -657,8 +666,7 @@ export function MolstarDftStage({
 
     frontierRequestedRef.current = true;
     let cancelled = false;
-    void fetch("/data/multiscale/dft/frontier-orbitals.json")
-      .then((response) => response.json() as Promise<FrontierOrbitalData>)
+    void fetchJsonOrThrow<FrontierOrbitalData>("/data/multiscale/dft/frontier-orbitals.json", "DFT frontier-orbitals.json")
       .then((frontier) => {
         if (cancelled || !dataRef.current) return;
         dataRef.current = {

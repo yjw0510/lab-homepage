@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { curveMonotoneX, line } from "d3-shape";
+import { withBasePath } from "@/lib/basePath";
 import { PLOT_COLORS, PlotContainer } from "./PlotContainer";
 
 interface RdfPoint {
@@ -33,7 +34,7 @@ export function BeadRDFPlot({
 
   // Load precomputed g(r) from the actual PBC trajectory
   useEffect(() => {
-    fetch("/data/dna/rdf/rdf.bin")
+    fetch(withBasePath("/data/dna/rdf/rdf.bin"))
       .then((r) => r.arrayBuffer())
       .then((buf) => {
         const arr = new Float32Array(buf);
@@ -45,7 +46,7 @@ export function BeadRDFPlot({
       })
       .catch(() => {});
 
-    fetch("/data/dna/rdf/meta.json")
+    fetch(withBasePath("/data/dna/rdf/meta.json"))
       .then((r) => r.json())
       .then((m) => setMeta(m))
       .catch(() => {});

@@ -1,6 +1,7 @@
 import ExportedImage from "next-image-export-optimizer";
 import { Mail, BookOpen, GraduationCap } from "lucide-react";
 import { ExternalLink } from "@/components/ui/ExternalLink";
+import { BASE_PATH } from "@/lib/basePath";
 import { getInitials } from "@/lib/utils";
 import type { Person } from "@/types/person";
 
@@ -12,6 +13,7 @@ export function PIProfile({ person }: { person: Person }) {
         <div className="w-36 sm:w-48 rounded-xl overflow-hidden flex-shrink-0 border border-border">
           <ExportedImage
             src={person.photo}
+            basePath={BASE_PATH}
             alt={person.name}
             width={192}
             height={256}

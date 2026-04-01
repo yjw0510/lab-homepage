@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { withBasePath } from "@/lib/basePath";
 import { PlotContainer, PLOT_COLORS } from "./PlotContainer";
 
 interface ValidationEnergy {
@@ -27,7 +28,7 @@ export function MinimizationSummaryPlot({ progress, accentColor }: { progress: n
   const [energy, setEnergy] = useState<ValidationEnergy>(FALLBACK);
 
   useEffect(() => {
-    fetch("/data/multiscale/allatom/validation.json")
+    fetch(withBasePath("/data/multiscale/allatom/validation.json"))
       .then((response) => response.json())
       .then((next) => {
         const parsed = next?.checks?.energy;

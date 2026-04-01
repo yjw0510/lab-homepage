@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { line } from "d3-shape";
+import { withBasePath } from "@/lib/basePath";
 import { PlotContainer, PLOT_COLORS } from "./PlotContainer";
 
 interface MetricPoint {
@@ -22,7 +23,7 @@ export function AllAtomEnsemblePlot({ progress, accentColor }: { progress: numbe
   const [highlight, setHighlight] = useState<HighlightPoint | null>(null);
 
   useEffect(() => {
-    fetch("/data/multiscale/allatom/metrics.json")
+    fetch(withBasePath("/data/multiscale/allatom/metrics.json"))
       .then((response) => response.json())
       .then((next) => {
         if (Array.isArray(next?.trajectory)) {

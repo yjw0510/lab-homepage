@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { withBasePath } from "@/lib/basePath";
 import { decodeFloat32 } from "./binaryLoader";
 import type { DNAManifest, AATopology, CGTopology, CGMapping, RDFMeta } from "./types";
 
@@ -10,7 +11,13 @@ const binaryCache = new Map<string, Promise<ArrayBuffer>>();
 function cachedJson<T>(url: string): Promise<T> {
   let p = jsonCache.get(url);
   if (!p) {
-    p = fetch(url).then((r) => r.json());
+    const resolvedUrl = withBasePath(url);
+    p = fetch(resolvedUrl).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load ${resolvedUrl}: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    });
     jsonCache.set(url, p);
   }
   return p as Promise<T>;
@@ -19,7 +26,13 @@ function cachedJson<T>(url: string): Promise<T> {
 function cachedBinary(url: string): Promise<ArrayBuffer> {
   let p = binaryCache.get(url);
   if (!p) {
-    p = fetch(url).then((r) => r.arrayBuffer());
+    const resolvedUrl = withBasePath(url);
+    p = fetch(resolvedUrl).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load ${resolvedUrl}: ${response.status} ${response.statusText}`);
+      }
+      return response.arrayBuffer();
+    });
     binaryCache.set(url, p);
   }
   return p;

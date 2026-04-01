@@ -41,7 +41,7 @@ export default async function PeoplePage({
           <h2 className="text-sm font-semibold text-primary uppercase tracking-widest mb-6">
             {dict.people.labMembers}
           </h2>
-          <MemberGrid members={members} />
+          <MemberGrid members={members} contactHref={`/${lang}/contact`} />
         </div>
       </div>
     </div>

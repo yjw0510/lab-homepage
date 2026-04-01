@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { area as d3Area, curveMonotoneX, line } from "d3-shape";
+import { withBasePath } from "@/lib/basePath";
 import { PLOT_COLORS, PlotContainer } from "./PlotContainer";
 
 interface RDFPoint {
@@ -24,7 +25,7 @@ export function RDFPlot({ progress, accentColor }: { progress: number; accentCol
   const [data, setData] = useState<RDFPoint[]>(FALLBACK);
 
   useEffect(() => {
-    fetch("/data/multiscale/allatom/rdf.json")
+    fetch(withBasePath("/data/multiscale/allatom/rdf.json"))
       .then((response) => response.json())
       .then((next) => {
         const curve = Array.isArray(next) ? next : Array.isArray(next?.curve) ? next.curve : [];
