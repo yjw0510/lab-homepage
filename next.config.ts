@@ -8,9 +8,11 @@ try {
   localIp = execSync("ipconfig getifaddr en0").toString().trim();
 } catch {}
 
+const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
+
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH),
+  ...(basePath ? { basePath } : {}),
   allowedDevOrigins: [localIp],
   images: {
     loader: "custom",
