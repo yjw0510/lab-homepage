@@ -536,19 +536,26 @@ export function MolstarDftStage({
     [activeSnapshotIndex, isMobile, scrollState.step, scrollState.stepProgress, zoomIndex],
   );
 
+  const rebuildingRef = useRef(false);
+
   const rebuildScene = useCallback(async () => {
     const plugin = pluginRef.current;
     const data = dataRef.current;
     if (!plugin || !data) return;
+    if (rebuildingRef.current) return;
+    rebuildingRef.current = true;
+    try {
+      // Save camera before rebuild — plugin.clear() + commit() triggers Molstar auto-fit
+      // which shifts the view when density mesh geometry changes between iterations.
+      const snapshot = plugin.canvas3d?.camera.getSnapshot();
 
-    // Save camera before rebuild — plugin.clear() + commit() triggers Molstar auto-fit
-    // which shifts the view when density mesh geometry changes between iterations.
-    const snapshot = plugin.canvas3d?.camera.getSnapshot();
+      await commitResearchLayers(plugin, buildDftLayers(data, scrollState, phase, activeSnapshotIndex));
 
-    await commitResearchLayers(plugin, buildDftLayers(data, scrollState, phase, activeSnapshotIndex));
-
-    // Restore camera so iteration changes don't shift the view.
-    if (snapshot) plugin.managers.camera.setSnapshot(snapshot, 0);
+      // Restore camera so iteration changes don't shift the view.
+      if (snapshot) plugin.managers.camera.setSnapshot(snapshot, 0);
+    } finally {
+      rebuildingRef.current = false;
+    }
   }, [activeSnapshotIndex, phase, scrollState]);
 
   useEffect(() => {

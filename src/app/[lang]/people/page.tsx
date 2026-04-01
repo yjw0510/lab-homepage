@@ -31,14 +31,14 @@ export default async function PeoplePage({
         />
 
         <div className="mb-16">
-          <h2 className="text-sm font-semibold text-primary uppercase tracking-widest mb-6">
+          <h2 className="text-sm font-semibold text-primary uppercase tracking-widest mb-6 text-center md:text-left">
             {dict.people.pi}
           </h2>
           <PIProfile person={pi} />
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold text-primary uppercase tracking-widest mb-6">
+          <h2 className="text-sm font-semibold text-primary uppercase tracking-widest mb-6 text-center md:text-left">
             {dict.people.labMembers}
           </h2>
           <MemberGrid members={members} contactHref={`/${lang}/contact`} />

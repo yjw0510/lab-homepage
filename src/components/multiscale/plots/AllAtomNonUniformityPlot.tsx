@@ -47,10 +47,10 @@ export function AllAtomNonUniformityPlot({ accentColor }: { progress: number; ac
               typeof entry?.meanWaterDistance === "number" &&
               typeof entry?.hydrationContacts === "number",
           );
-          if (parsed.length >= 5) {
-            const stride = Math.max(1, Math.floor(parsed.length / 5));
-            const sampled = parsed.filter((_: MetricPoint, index: number) => index % stride === 0).slice(0, 5);
-            if (sampled.length >= 5) setData(sampled);
+          if (parsed.length >= 3) {
+            const stride = Math.max(1, Math.floor(parsed.length / 3));
+            const sampled = parsed.filter((_: MetricPoint, index: number) => index % stride === 0).slice(0, 3);
+            if (sampled.length >= 3) setData(sampled);
           }
         }
         if (Array.isArray(next?.highlights)) {
@@ -71,30 +71,24 @@ export function AllAtomNonUniformityPlot({ accentColor }: { progress: number; ac
     return data.map((_, index) => data[(index + rotation) % data.length]);
   }, [data, highlight]);
 
-  const maxContacts = Math.max(1, ...neighborhoods.map((entry) => entry.hydrationContacts));
   const minDistance = Math.min(...neighborhoods.map((entry) => entry.meanWaterDistance));
   const maxDistance = Math.max(...neighborhoods.map((entry) => entry.meanWaterDistance));
   const distanceSpan = Math.max(1e-6, maxDistance - minDistance);
+  const maxContacts = Math.max(1, ...neighborhoods.map((entry) => entry.hydrationContacts));
 
-  // Generate data-driven water positions per snapshot
+  // Generate water positions per neighborhood
   const waterPositions = useMemo(() => {
     return neighborhoods.map((entry, ni) => {
-      const count = Math.max(1, Math.min(5, entry.hydrationContacts));
+      const count = Math.max(2, Math.min(6, entry.hydrationContacts));
       const seed = entry.frame * 137 + ni * 31;
-      const clusterAngle = hashFloat(seed) * Math.PI * 2;
-      // Higher distance → more spread; lower distance → tighter cluster
-      const spread = 0.4 + ((entry.meanWaterDistance - minDistance) / distanceSpan) * 0.8;
-      const shellRadius = 22 + ((entry.meanWaterDistance - minDistance) / distanceSpan) * 14;
-
+      const shellRadius = 20 + ((entry.meanWaterDistance - minDistance) / distanceSpan) * 18;
       return Array.from({ length: count }, (_, i) => {
-        const angle = clusterAngle + (i - (count - 1) / 2) * spread * 0.7;
-        const dist = shellRadius * (0.7 + hashFloat(seed + i * 89) * 0.3);
-        const weight = 1 - (hashFloat(seed + i * 53) * 0.3);
+        const angle = (i / count) * Math.PI * 2 + hashFloat(seed + i * 89) * 0.6;
+        const dist = shellRadius * (0.75 + hashFloat(seed + i * 53) * 0.25);
         return {
           x: Math.cos(angle) * dist,
           y: Math.sin(angle) * dist,
-          r: 2.5 + weight * 2,
-          opacity: 0.35 + weight * 0.45,
+          r: 2.8,
         };
       });
     });
@@ -102,102 +96,145 @@ export function AllAtomNonUniformityPlot({ accentColor }: { progress: number; ac
 
   return (
     <PlotContainer
-      ariaLabel="A short sequence of local neighborhoods showing that one atomistic liquid still produces uneven local environments"
+      ariaLabel="Three local neighborhoods from the same liquid showing uneven local environments"
       aspectRatio={0.8}
       minHeight={250}
       maxHeight={320}
     >
-      {({ height, innerWidth, innerHeight, margin, font }) => {
-        const laneY = margin.top + innerHeight * 0.58;
-        const leftX = margin.left + innerWidth * 0.18;
-        const stepX = innerWidth * 0.2;
-        const visibleNeighborhoods = neighborhoods.slice(0, 4);
+      {({ width, height, innerWidth, innerHeight, margin, font }) => {
+        const centerY = margin.top + innerHeight * 0.5;
+        const visible = neighborhoods.slice(0, 3);
+        const spacing = innerWidth / 3;
+        const startX = margin.left + spacing * 0.5;
+
+        // Unique gradient IDs per instance
+        const gradIds = visible.map((_, i) => `nu-shell-${i}`);
 
         return {
           svg: (
             <g>
-              <line x1={leftX - 12} y1={laneY} x2={leftX + stepX * 3 + 12} y2={laneY} stroke={PLOT_COLORS.grid} strokeDasharray="4,4" strokeWidth={1.2} />
-              {visibleNeighborhoods.map((entry, index) => {
-                const x = leftX + index * stepX;
-                const shellRadius = 22 + ((entry.meanWaterDistance - minDistance) / distanceSpan) * 14;
-                const isHighlight = index === 0;
-                const waters = waterPositions[index] ?? [];
+              <defs>
+                {visible.map((entry, i) => {
+                  const t = (entry.meanWaterDistance - minDistance) / distanceSpan;
+                  const density = entry.hydrationContacts / maxContacts;
+                  return (
+                    <radialGradient key={gradIds[i]} id={gradIds[i]}>
+                      <stop offset="0%" stopColor={accentColor} stopOpacity={0.06 + density * 0.12} />
+                      <stop offset={`${60 + t * 20}%`} stopColor={accentColor} stopOpacity={0.03 + density * 0.06} />
+                      <stop offset="100%" stopColor={accentColor} stopOpacity={0} />
+                    </radialGradient>
+                  );
+                })}
+              </defs>
+
+              {/* Horizontal axis connecting neighborhoods */}
+              <line
+                x1={startX - 8}
+                y1={centerY}
+                x2={startX + spacing * 2 + 8}
+                y2={centerY}
+                stroke={PLOT_COLORS.grid}
+                strokeDasharray="4,4"
+                strokeWidth={1}
+              />
+
+              {visible.map((entry, i) => {
+                const cx = startX + i * spacing;
+                const t = (entry.meanWaterDistance - minDistance) / distanceSpan;
+                const shellRadius = 20 + t * 18;
+                const density = entry.hydrationContacts / maxContacts;
+                const isFirst = i === 0;
+                const waters = waterPositions[i] ?? [];
 
                 return (
-                  <g key={`${entry.phase}-${entry.frame}-${index}`}>
-                    {/* Dashed shell outline */}
+                  <g key={`n-${i}`}>
+                    {/* Filled shell gradient */}
+                    <circle cx={cx} cy={centerY} r={shellRadius + 4} fill={`url(#${gradIds[i]})`} />
+                    {/* Shell outline */}
                     <circle
-                      cx={x}
-                      cy={laneY}
+                      cx={cx}
+                      cy={centerY}
                       r={shellRadius}
                       fill="none"
                       stroke={accentColor}
-                      strokeWidth={1.2}
+                      strokeWidth={1 + density * 0.8}
                       strokeDasharray="3,3"
-                      opacity={isHighlight ? 0.5 : 0.25}
+                      opacity={isFirst ? 0.6 : 0.3}
                     />
-                    {/* Connecting lines from waters to center */}
-                    {waters.map((w, wi) => (
-                      <line
-                        key={`line-${wi}`}
-                        x1={x}
-                        y1={laneY}
-                        x2={x + w.x}
-                        y2={laneY + w.y}
-                        stroke={PLOT_COLORS.text}
-                        strokeWidth={0.8}
-                        opacity={w.opacity * 0.3}
-                      />
-                    ))}
-                    {/* Solute marker (constant small size) */}
-                    <circle cx={x} cy={laneY} r={5} fill={isHighlight ? "#f8fafc" : accentColor} opacity={isHighlight ? 0.95 : 0.7} />
-                    {/* Water dots at data-driven positions */}
+                    {/* Water dots */}
                     {waters.map((w, wi) => (
                       <circle
-                        key={`water-${wi}`}
-                        cx={x + w.x}
-                        cy={laneY + w.y}
+                        key={`w-${wi}`}
+                        cx={cx + w.x}
+                        cy={centerY + w.y}
                         r={w.r}
                         fill={PLOT_COLORS.text}
-                        opacity={w.opacity}
+                        opacity={0.5 + density * 0.3}
                       />
                     ))}
+                    {/* Solute center */}
+                    <circle
+                      cx={cx}
+                      cy={centerY}
+                      r={4.5}
+                      fill={isFirst ? "#f8fafc" : accentColor}
+                      opacity={isFirst ? 0.95 : 0.75}
+                    />
+                    {/* Coordination number label below shell */}
+                    <text
+                      x={cx}
+                      y={centerY + shellRadius + 16}
+                      textAnchor="middle"
+                      fill={PLOT_COLORS.text}
+                      fontSize={font.tick}
+                      opacity={0.78}
+                    >
+                      n={entry.hydrationContacts}
+                    </text>
                   </g>
                 );
               })}
+
+              {/* Gradient arrow: compact → looser */}
+              <defs>
+                <linearGradient id="nu-arrow-grad" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor={accentColor} stopOpacity={0.5} />
+                  <stop offset="100%" stopColor={accentColor} stopOpacity={0.12} />
+                </linearGradient>
+              </defs>
+              <rect
+                x={startX}
+                y={height - margin.bottom * 0.2 - 3}
+                width={spacing * 2}
+                height={2.5}
+                rx={1.2}
+                fill="url(#nu-arrow-grad)"
+              />
             </g>
           ),
           overlays: [
             {
-              x: leftX,
-              y: margin.top + font.annotation * 1.2,
-              text: "same liquid",
-              align: "start",
-              color: PLOT_COLORS.text,
-              fontSize: font.annotation,
-            },
-            {
-              x: leftX + stepX * 3,
-              y: margin.top + font.annotation * 1.2,
-              text: "different local neighborhoods",
-              align: "end",
+              x: width / 2,
+              y: margin.top + font.annotation * 0.6,
+              text: "same liquid, different local neighborhoods",
+              align: "middle",
               color: accentColor,
               fontSize: font.annotation,
             },
             {
-              x: leftX,
-              y: height - font.axisLabel * 1.7,
+              x: startX,
+              y: height - font.axisLabel * 0.6,
               text: "compact",
-              align: "start",
-              color: PLOT_COLORS.axisLabel,
+              align: "middle",
+              color: PLOT_COLORS.text,
               fontSize: font.axisLabel,
             },
             {
-              x: leftX + stepX * 3,
-              y: height - font.axisLabel * 1.7,
+              x: startX + spacing * 2,
+              y: height - font.axisLabel * 0.6,
               text: "looser",
-              align: "end",
-              color: PLOT_COLORS.axisLabel,
+              align: "middle",
+              color: PLOT_COLORS.text,
               fontSize: font.axisLabel,
             },
           ],

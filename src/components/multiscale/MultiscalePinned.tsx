@@ -12,6 +12,9 @@ import { RDFBinSlider, type RdfBin } from "./RDFBinSlider";
 import { VisualStage, type ResearchCameraActions } from "./VisualStage";
 import { RightRail } from "./RightRail";
 import { PaperCard } from "./PaperCard";
+import { MobileBottomSheet, type SheetSnap } from "./MobileBottomSheet";
+import { MobileStatusRow } from "./MobileStatusRow";
+import { MobileViewerToolbar } from "./MobileViewerToolbar";
 import { getScrollState, globalStepFromLevel, LEVELS, type ScrollState } from "./scrollState";
 import { CHOREOGRAPHY } from "./levelData";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
@@ -140,6 +143,10 @@ export function MultiscalePinned({
   const [allAtomLockedTerm, setAllAtomLockedTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomHoveredReadout, setAllAtomHoveredReadout] = useState<AllAtomReadoutId | null>(null);
   const [allAtomLockedReadout, setAllAtomLockedReadout] = useState<AllAtomReadoutId | null>(null);
+
+  // Mobile-only state
+  const [mobileSheetSnap, setMobileSheetSnap] = useState<SheetSnap>("peek");
+  const [cameraMenuOpen, setCameraMenuOpen] = useState(false);
 
   // Derive scrollState from currentStep + animatedProgress
   const scrollState = useMemo(
@@ -302,12 +309,19 @@ export function MultiscalePinned({
   const canGoNext = currentStep < TOTAL_RESEARCH_STEPS - 1;
   const canGoPrev = currentStep > 0;
 
-  const stageStyle = isDesktop
-    ? {
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 1fr) clamp(380px, 30vw, 460px)",
-      }
-    : { display: "grid", gridTemplateRows: "minmax(0, 50vh) minmax(0, 1fr)" };
+  const desktopStageStyle = {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) clamp(380px, 30vw, 460px)",
+  };
+
+  // Auto-fit viewer when sheet snap changes (viewer resizes → re-frame scene)
+  useEffect(() => {
+    if (!isMobile) return;
+    const timer = setTimeout(() => {
+      cameraActionsRef.current?.fit();
+    }, 380);
+    return () => clearTimeout(timer);
+  }, [mobileSheetSnap, isMobile]);
 
   if (!mounted) {
     return <div className="min-h-screen bg-gray-950" />;
@@ -317,19 +331,170 @@ export function MultiscalePinned({
     return <ReducedMotionLayout areas={areas} publications={publications} lang={lang} />;
   }
 
+  // ── Shared RightRail props ──
+  const rightRailProps = {
+    scrollState: effectiveScrollState,
+    level,
+    stepConfig,
+    equationKey: choreography.equationKey,
+    paper: currentPaper,
+    lang,
+    scfActiveIndexOverride: showDftScfSlider ? effectiveScfIndex : undefined,
+    rdfActiveRadius: showRdfSlider ? rdfBins[rdfBinIndex]?.r : undefined,
+    onNext: goNext,
+    onPrev: goPrev,
+    canGoNext,
+    canGoPrev,
+    allAtomActiveTerm: activeAllAtomTerm,
+    onAllAtomTermHover: setAllAtomHoveredTerm,
+    onAllAtomTermLeave: () => setAllAtomHoveredTerm(null),
+    onAllAtomTermToggle: (term: AllAtomForceFieldTerm) => {
+      setAllAtomLockedTerm((current) => (current === term ? null : term));
+    },
+    allAtomActiveReadout: activeAllAtomReadout,
+    onAllAtomReadoutHover: setAllAtomHoveredReadout,
+    onAllAtomReadoutLeave: () => setAllAtomHoveredReadout(null),
+    onAllAtomReadoutToggle: (readout: AllAtomReadoutId) => {
+      setAllAtomLockedReadout((current) => (current === readout ? null : readout));
+    },
+    onStepClick: (localStep: number) => {
+      goToStep(globalStepFromLevel(effectiveScrollState.levelIndex, localStep));
+    },
+  } as const;
+
+  // ── Scene title element (shared) ──
+  const sceneTitle = (
+    <div
+      className={`pointer-events-none absolute z-10 ${
+        isMobile
+          ? "left-4 top-4"
+          : `left-6 sm:left-8 ${isAllAtomLevel ? "top-6 sm:top-8" : "bottom-20"}`
+      }`}
+      data-testid="multiscale-scene-title"
+    >
+      <div className={`${isAllAtomLevel ? "max-w-[28rem] rounded-2xl border border-cyan-400/16 bg-slate-950/54 px-4 py-3 shadow-[0_18px_56px_rgba(0,0,0,0.34)] backdrop-blur-md" : ""}`}>
+        {isAllAtomLevel && (
+          <div className="mb-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-300/78">
+            {level.label[lang as "en" | "ko"] ?? level.label.en}
+          </div>
+        )}
+        <h3
+          className={`font-bold tracking-tight text-white/95 ${
+            isAllAtomLevel
+              ? "text-[1.45rem] leading-tight sm:text-[1.75rem]"
+              : isMobile
+                ? "rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-xl shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md"
+                : "rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-2xl shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md sm:text-3xl"
+          }`}
+        >
+          {stepConfig?.title?.[lang as "en" | "ko"] ?? stepConfig?.title?.en ?? ""}
+        </h3>
+      </div>
+    </div>
+  );
+
+  // ── MOBILE LAYOUT ──
+  if (isMobile) {
+    const scfLabel = showDftScfSlider
+      ? `SCF · ${dftSnapshots[effectiveScfIndex]?.label ?? effectiveScfIndex}`
+      : null;
+    const rdfLabel = showRdfSlider
+      ? `r = ${rdfBins[rdfBinIndex]?.r.toFixed(2)} nm`
+      : null;
+
+    // Viewer bottom matches sheet visible height
+    const viewerBottom =
+      mobileSheetSnap === "peek" ? "120px"
+      : mobileSheetSnap === "half" ? "48%"
+      : "85%";
+
+    return (
+      <div className="relative bg-gray-950 overflow-hidden pt-16" style={{ height: "100vh" }}>
+        {/* Viewer — hero, resizes to stay above sheet */}
+        <div
+          className="absolute inset-x-0 top-16 transition-[bottom] duration-300 ease-out"
+          style={{ bottom: viewerBottom }}
+          data-testid="multiscale-visual-panel"
+        >
+          <VisualStage
+            progressRef={progressRef}
+            scrollState={effectiveScrollState}
+            isMobile={isMobile}
+            autoRotateRef={autoRotateRef}
+            actionsRef={cameraActionsRef}
+            dftManualSnapshotIndex={manualScfIndexActive}
+            rdfBinIndex={rdfBinIndex}
+            allAtomActiveTerm={activeAllAtomTerm}
+            allAtomActiveReadout={activeAllAtomReadout}
+          />
+
+          {sceneTitle}
+
+          <MobileViewerToolbar
+            cameraActionsRef={cameraActionsRef}
+            lang={lang}
+            isOpen={cameraMenuOpen}
+            onToggle={() => setCameraMenuOpen((v) => !v)}
+          />
+        </div>
+
+        {/* Bottom sheet with status row as header */}
+        <MobileBottomSheet
+          snap={mobileSheetSnap}
+          onSnapChange={setMobileSheetSnap}
+          header={
+            <MobileStatusRow
+              scrollState={effectiveScrollState}
+              level={level}
+              canGoNext={canGoNext}
+              canGoPrev={canGoPrev}
+              onNext={goNext}
+              onPrev={goPrev}
+              onStepClick={(localStep) => {
+                goToStep(globalStepFromLevel(effectiveScrollState.levelIndex, localStep));
+              }}
+              onLevelSwitch={goToLevel}
+              lang={lang}
+              scfLabel={scfLabel}
+              rdfLabel={rdfLabel}
+              onChipTap={() => setMobileSheetSnap("half")}
+            />
+          }
+        >
+          <RightRail
+            {...rightRailProps}
+            isMobile
+            variant="sheet"
+            showDftScfSlider={showDftScfSlider}
+            dftSnapshots={dftSnapshots}
+            scfValue={effectiveScfIndex}
+            onScfChange={(nextIndex) => setManualScfIndex(nextIndex)}
+            onScfPointerStart={() => setIsDraggingScf(true)}
+            onScfPointerEnd={() => setIsDraggingScf(false)}
+            showRdfSlider={showRdfSlider}
+            rdfBins={rdfBins}
+            rdfBinIndex={rdfBinIndex}
+            onRdfChange={setRdfBinIndex}
+          />
+        </MobileBottomSheet>
+      </div>
+    );
+  }
+
+  // ── DESKTOP / TABLET LAYOUT (unchanged) ──
   return (
     <div className="bg-gray-950 overflow-hidden pt-16" style={{ height: "100vh" }}>
       <div
         data-testid="multiscale-stage-shell"
         className="h-full overflow-hidden"
-        style={stageStyle}
+        style={desktopStageStyle}
       >
         {/* Visual stage */}
         <div className="relative min-h-0" data-testid="multiscale-visual-panel">
           <VisualStage
             progressRef={progressRef}
             scrollState={effectiveScrollState}
-            isMobile={isMobile}
+            isMobile={false}
             autoRotateRef={autoRotateRef}
             actionsRef={cameraActionsRef}
             dftManualSnapshotIndex={manualScfIndexActive}
@@ -400,9 +565,7 @@ export function MultiscalePinned({
                 <button
                   key={action.key}
                   type="button"
-                  className={`flex items-center justify-center gap-2 border border-white/12 bg-slate-950/78 text-sm font-medium text-white/92 shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-white/22 hover:bg-slate-900/86 ${
-                    "h-11 min-w-11 rounded-2xl px-3"
-                  }`}
+                  className="flex items-center justify-center gap-2 border border-white/12 bg-slate-950/78 text-sm font-medium text-white/92 shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-white/22 hover:bg-slate-900/86 h-11 min-w-11 rounded-2xl px-3"
                   title={action.title}
                   aria-label={action.title}
                   onClick={() => {
@@ -416,48 +579,12 @@ export function MultiscalePinned({
             })}
           </div>
 
-          {/* Scene title overlay */}
-          <div
-            className={`pointer-events-none absolute left-6 z-10 sm:left-8 ${
-              isAllAtomLevel ? "top-6 sm:top-8" : isMobile ? "bottom-16" : "bottom-20"
-            }`}
-            data-testid="multiscale-scene-title"
-          >
-            <div className={`${isAllAtomLevel ? "max-w-[28rem] rounded-2xl border border-cyan-400/16 bg-slate-950/54 px-4 py-3 shadow-[0_18px_56px_rgba(0,0,0,0.34)] backdrop-blur-md" : ""}`}>
-              {isAllAtomLevel && (
-                <div className="mb-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-300/78">
-                  {level.label[lang as "en" | "ko"] ?? level.label.en}
-                </div>
-              )}
-              <h3
-                className={`font-bold tracking-tight text-white/95 ${
-                  isAllAtomLevel
-                    ? "text-[1.45rem] leading-tight sm:text-[1.75rem]"
-                    : "rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-2xl shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md sm:text-3xl"
-                }`}
-              >
-                {stepConfig?.title?.[lang as "en" | "ko"] ?? stepConfig?.title?.en ?? ""}
-              </h3>
-            </div>
-          </div>
+          {sceneTitle}
 
-          {/* Level selector + step navigation (mobile: includes prev/next, desktop: level dots only) */}
+          {/* Level selector (desktop: level dots only) */}
           <div className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 border border-white/10 bg-slate-950/70 shadow-[0_12px_28px_rgba(0,0,0,0.24)] backdrop-blur-md ${
             isAllAtomLevel ? "rounded-2xl px-3.5 py-2" : "rounded-full px-3 py-1.5"
           }`}>
-            {/* Prev button — mobile only */}
-            {isMobile && (
-              <button
-                type="button"
-                disabled={!canGoPrev}
-                onClick={goPrev}
-                className="flex items-center justify-center rounded-full p-1 text-white/80 transition hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label={lang === "ko" ? "이전 단계" : "Previous step"}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            )}
-
             {LEVELS.map((l, i) => (
               <button
                 key={l.id}
@@ -480,24 +607,6 @@ export function MultiscalePinned({
                 </span>
               </button>
             ))}
-
-            {/* Step counter + Next button — mobile only */}
-            {isMobile && (
-              <>
-                <span className="text-xs text-white/50 tabular-nums mx-1">
-                  {effectiveScrollState.step + 1}/{effectiveScrollState.stepCount}
-                </span>
-                <button
-                  type="button"
-                  disabled={!canGoNext}
-                  onClick={goNext}
-                  className="flex items-center justify-center rounded-full p-1 text-white/80 transition hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label={lang === "ko" ? "다음 단계" : "Next step"}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </>
-            )}
           </div>
         </div>
 
@@ -507,34 +616,8 @@ export function MultiscalePinned({
           data-testid="multiscale-right-rail-panel"
         >
           <RightRail
-            scrollState={effectiveScrollState}
-            level={level}
-            stepConfig={stepConfig}
-            equationKey={choreography.equationKey}
-            paper={currentPaper}
-            lang={lang}
-            isMobile={isMobile}
-            scfActiveIndexOverride={showDftScfSlider ? effectiveScfIndex : undefined}
-            rdfActiveRadius={showRdfSlider ? rdfBins[rdfBinIndex]?.r : undefined}
-            onNext={goNext}
-            onPrev={goPrev}
-            canGoNext={canGoNext}
-            canGoPrev={canGoPrev}
-            allAtomActiveTerm={activeAllAtomTerm}
-            onAllAtomTermHover={setAllAtomHoveredTerm}
-            onAllAtomTermLeave={() => setAllAtomHoveredTerm(null)}
-            onAllAtomTermToggle={(term) => {
-              setAllAtomLockedTerm((current) => (current === term ? null : term));
-            }}
-            allAtomActiveReadout={activeAllAtomReadout}
-            onAllAtomReadoutHover={setAllAtomHoveredReadout}
-            onAllAtomReadoutLeave={() => setAllAtomHoveredReadout(null)}
-            onAllAtomReadoutToggle={(readout) => {
-              setAllAtomLockedReadout((current) => (current === readout ? null : readout));
-            }}
-            onStepClick={(localStep) => {
-              goToStep(globalStepFromLevel(effectiveScrollState.levelIndex, localStep));
-            }}
+            {...rightRailProps}
+            isMobile={false}
           />
         </div>
       </div>

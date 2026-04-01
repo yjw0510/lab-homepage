@@ -290,17 +290,7 @@ export function buildSelectedWaterPrimitives(
         color: WHITE,
       })),
     ]),
-    bonds: waters.flatMap((water) =>
-      water.hydrogens.map((hydrogen) => ({
-        kind: "cylinder" as const,
-        start: water.oxygen as [number, number, number],
-        end: hydrogen as [number, number, number],
-        radiusTop: 0.022,
-        radiusBottom: 0.022,
-        radialSegments: 8,
-        color: WHITE,
-      })),
-    ),
+    bonds: [] as Array<{ kind: "cylinder"; start: [number, number, number]; end: [number, number, number]; radiusTop: number; radiusBottom: number; radialSegments: number; color: ColorValue }>,
   };
 }
 
@@ -616,27 +606,10 @@ export function buildAllAtomLayers(
   }
   const soluteBondPrimitives = ghostScaffold ? focusBondPrimitives : [...focusBondPrimitives, ...neighborBondPrimitives, ...scaffoldBondPrimitives];
 
-  const waterBondPrimitives = selectedWaters
-    ? selectedWaters.bonds
-    : displaySnapshot.bonds.flatMap(([left, right]) => {
-        if (!visibleSet.has(left) || !visibleSet.has(right)) return [];
-        const leftResidue = displaySnapshot.residueNames[left] ?? "";
-        const rightResidue = displaySnapshot.residueNames[right] ?? "";
-        const isWaterBond = (leftResidue === "HOH" || leftResidue === "WAT") && (rightResidue === "HOH" || rightResidue === "WAT");
-        if (!isWaterBond) return [];
-        const shortened = shortenBond(displaySnapshot.atoms[left], displaySnapshot.atoms[right], 0.18, 0.18);
-        return [
-          {
-            kind: "cylinder" as const,
-            start: shortened.start,
-            end: shortened.end,
-            radiusTop: 0.022,
-            radiusBottom: 0.022,
-            radialSegments: 8,
-            color: WHITE,
-          },
-        ];
-      });
+  // Water bonds omitted: at low support opacity (10-22%) bonds penetrate
+  // semi-transparent spheres and look unprofessional. Atoms alone convey
+  // the water geometry.
+  const waterBondPrimitives: typeof waterAtomPrimitives = [];
 
   const layers: ResearchLayerSpec[] = [
     {
@@ -699,29 +672,29 @@ export function buildAllAtomLayers(
     })));
   }
 
-  // Ring layers: step 4 (readout page) or non-FF steps with bonded cue. NOT on step 1 — FF term layers handle it.
-  if (step !== 1 && displaySnapshot.stackPlanes && (activeFamily === "bonded" || visuals.bondedCue > 0.02 || (step === 4 && (activeReadout === "packing" || activeReadout === null)))) {
+  // Ring layers: only when "local packing" readout is actively selected (step 4) or bonded cue (step 1 excluded — FF term layers handle it).
+  if (step !== 1 && displaySnapshot.stackPlanes && (activeFamily === "bonded" || visuals.bondedCue > 0.02 || (step === 4 && activeReadout === "packing"))) {
     layers.push(
-      ...buildRingLayers(displaySnapshot, activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 0.9 : step === 4 && activeReadout === null ? 0.38 : visuals.bondedCue).map((layer) => ({
+      ...buildRingLayers(displaySnapshot, activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 0.9 : visuals.bondedCue).map((layer) => ({
         ...layer,
         params: {
           ...(layer.params ?? {}),
-          alpha: Number(layer.params?.alpha ?? 0.18) * (activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : step === 4 && activeReadout === null ? 0.48 : visuals.bondedCue),
-          emissive: Number(layer.params?.emissive ?? 0.12) * (activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : step === 4 && activeReadout === null ? 0.46 : 0.6 + visuals.bondedCue * 0.4),
+          alpha: Number(layer.params?.alpha ?? 0.18) * (activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : visuals.bondedCue),
+          emissive: Number(layer.params?.emissive ?? 0.12) * (activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : 0.6 + visuals.bondedCue * 0.4),
         },
       })),
     );
   }
 
-  // Polar contacts: step 4 (readout page) or non-FF steps with nonbonded cue. NOT on step 1 — FF term layers handle it.
-  if (step !== 1 && displaySnapshot.polarContacts && (activeFamily === "nonbonded" || visuals.nonBondedCue > 0.02 || (step === 4 && (activeReadout === "orientation" || activeReadout === null)))) {
+  // Polar contacts: only when "solvent orientation" readout is actively selected (step 4) or nonbonded cue (step 1 excluded — FF term layers handle it).
+  if (step !== 1 && displaySnapshot.polarContacts && (activeFamily === "nonbonded" || visuals.nonBondedCue > 0.02 || (step === 4 && activeReadout === "orientation"))) {
     layers.push(
       ...buildPolarContacts(displaySnapshot).map((layer) => ({
         ...layer,
         params: {
           ...(layer.params ?? {}),
-          alpha: Number(layer.params?.alpha ?? 0.86) * (activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : step === 4 && activeReadout === null ? 0.44 : visuals.nonBondedCue),
-          emissive: Number(layer.params?.emissive ?? 0.3) * (activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : step === 4 && activeReadout === null ? 0.42 : 0.55 + visuals.nonBondedCue * 0.45),
+          alpha: Number(layer.params?.alpha ?? 0.86) * (activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : visuals.nonBondedCue),
+          emissive: Number(layer.params?.emissive ?? 0.3) * (activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : 0.55 + visuals.nonBondedCue * 0.45),
         },
       })),
     );
@@ -764,17 +737,17 @@ export function computeLayerEmphasis(
     });
   }
 
-  // Aromatic stacking layers
-  const ringAlpha = activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : step === 4 && activeReadout === null ? 0.48 : visuals.bondedCue;
-  const ringEmissive = activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : step === 4 && activeReadout === null ? 0.46 : 0.6 + visuals.bondedCue * 0.4;
+  // Aromatic stacking layers — only visible when packing readout is active
+  const ringAlpha = activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : visuals.bondedCue;
+  const ringEmissive = activeFamily === "bonded" ? 1 : step === 4 && activeReadout === "packing" ? 1.0 : 0.6 + visuals.bondedCue * 0.4;
   result.push(
     { label: "Aromatic Stacking", alpha: 0.18 * ringAlpha, emissive: 0.12 * ringEmissive },
     { label: "Stack Connectors", alpha: 0.82 * ringAlpha, emissive: 0.24 * ringEmissive },
   );
 
-  // Polar contacts
-  const hbAlpha = activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : step === 4 && activeReadout === null ? 0.44 : visuals.nonBondedCue;
-  const hbEmissive = activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : step === 4 && activeReadout === null ? 0.42 : 0.55 + visuals.nonBondedCue * 0.45;
+  // Polar contacts — only visible when orientation readout is active
+  const hbAlpha = activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : visuals.nonBondedCue;
+  const hbEmissive = activeFamily === "nonbonded" ? 1 : step === 4 && activeReadout === "orientation" ? 1.0 : 0.55 + visuals.nonBondedCue * 0.45;
   result.push({
     label: "Hydrogen Bond Contacts",
     alpha: 0.86 * hbAlpha,

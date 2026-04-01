@@ -164,14 +164,16 @@ export function MLFFScene({
     return [focusIdx, ...Array.from(neighborSet)].slice(0, 8);
   }, [activeIndices, focusIdx, neighborSet, system.forceDisplaySelection]);
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
+    timeRef.current += delta;
     const opacity = transitionIn * (1 - transitionOut);
     groupRef.current.scale.setScalar(Math.max(0.01, opacity));
     if (autoRotateRef.current) groupRef.current.rotation.y += 0.0006;
 
     if (packetMeshRef.current && scrollState.step === 3) {
-      const time = state.clock.elapsedTime;
+      const time = timeRef.current;
       const mesh = packetMeshRef.current;
       for (let edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
         const edge = edges[edgeIndex];

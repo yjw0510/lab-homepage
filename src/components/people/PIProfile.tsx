@@ -7,10 +7,10 @@ import type { Person } from "@/types/person";
 
 export function PIProfile({ person }: { person: Person }) {
   return (
-    <div className="flex flex-col md:flex-row gap-6 sm:gap-8 items-start">
+    <div className="flex flex-col md:flex-row gap-6 sm:gap-8 items-center md:items-start">
       {/* Photo or initials fallback */}
       {person.photo ? (
-        <div className="w-36 sm:w-48 rounded-xl overflow-hidden flex-shrink-0 border border-border">
+        <div className="w-36 sm:w-48 rounded-xl overflow-hidden flex-shrink-0 border border-border mx-auto md:mx-0">
           <ExportedImage
             src={person.photo}
             basePath={BASE_PATH}
@@ -24,14 +24,14 @@ export function PIProfile({ person }: { person: Person }) {
           />
         </div>
       ) : (
-        <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 border border-border">
+        <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 border border-border mx-auto md:mx-0">
           <span className="text-4xl text-muted-foreground font-bold">
             {getInitials(person.name)}
           </span>
         </div>
       )}
 
-      <div className="flex-1">
+      <div className="flex-1 text-center md:text-left">
         <h2 className="text-2xl font-bold text-foreground">{person.name}</h2>
         {person.nameKo && (
           <p className="text-muted-foreground mt-0.5">{person.nameKo}</p>
@@ -52,7 +52,7 @@ export function PIProfile({ person }: { person: Person }) {
             <h3 className="text-sm font-semibold text-foreground mb-2">
               Research Interests
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
               {person.researchInterests.map((interest) => (
                 <span
                   key={interest}
@@ -66,7 +66,7 @@ export function PIProfile({ person }: { person: Person }) {
         )}
 
         {/* Links */}
-        <div className="mt-4 flex flex-wrap gap-4 text-sm">
+        <div className="mt-4 flex flex-wrap gap-4 text-sm justify-center md:justify-start">
           {person.email && (
             <a
               href={`mailto:${person.email}`}

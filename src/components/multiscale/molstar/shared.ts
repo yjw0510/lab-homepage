@@ -260,30 +260,43 @@ function createShapeFromLayer(spec: ResearchLayerSpec) {
   );
 }
 
+// Mutex to prevent concurrent tree operations (causes "Node not present" errors)
+let _commitLock: Promise<void> = Promise.resolve();
+
 export async function commitResearchLayers(plugin: PluginLike, layers: ResearchLayerSpec[]) {
-  await plugin.clear();
-  const build = plugin.build();
+  // Wait for any in-flight commit to finish before starting a new one
+  const prev = _commitLock;
+  let release: () => void;
+  _commitLock = new Promise<void>((r) => { release = r; });
+  await prev;
 
-  layers.forEach((layer) => {
-    if (layer.primitives.length === 0) return;
-    const provider = build.toRoot().apply(ResearchMeshProvider3D, {
-      label: layer.label,
-      spec: layer,
+  try {
+    await plugin.clear();
+    const build = plugin.build();
+
+    layers.forEach((layer) => {
+      if (layer.primitives.length === 0) return;
+      const provider = build.toRoot().apply(ResearchMeshProvider3D, {
+        label: layer.label,
+        spec: layer,
+      });
+      const representationParams = {
+        ...PD.getDefaultValues(Mesh.Params),
+        quality: "high",
+        alpha: 1,
+        material: { metalness: 0.04, roughness: 0.6, bumpiness: 0, ...(layer.params?.material as object) },
+        emissive: 0,
+        xrayShaded: false,
+        transparentBackfaces: "on",
+        ...(layer.params ?? {}),
+      };
+      provider.apply(StateTransforms.Representation.ShapeRepresentation3D, representationParams as never);
     });
-    const representationParams = {
-      ...PD.getDefaultValues(Mesh.Params),
-      quality: "high",
-      alpha: 1,
-      material: { metalness: 0.04, roughness: 0.6, bumpiness: 0, ...(layer.params?.material as object) },
-      emissive: 0,
-      xrayShaded: false,
-      transparentBackfaces: "on",
-      ...(layer.params ?? {}),
-    };
-    provider.apply(StateTransforms.Representation.ShapeRepresentation3D, representationParams as never);
-  });
 
-  await build.commit();
+    await build.commit();
+  } finally {
+    release!();
+  }
 }
 
 export interface LayerParamUpdate {

@@ -111,17 +111,17 @@ export function AllAtomEnsemblePlot({ progress, accentColor }: { progress: numbe
           ),
           overlays: [
             {
-              x: margin.left + innerWidth * 0.2,
-              y: margin.top + font.annotation * 1.15,
+              x: margin.left + x(preparationEnd) * 0.5,
+              y: margin.top - font.annotation * 0.4,
               text: "preparation",
               align: "middle",
               color: PLOT_COLORS.text,
               fontSize: font.annotation,
             },
             {
-              x: margin.left + innerWidth * 0.75,
-              y: margin.top + font.annotation * 1.15,
-              text: "prepared thermal window",
+              x: margin.left + x(ensembleStart) + (innerWidth - x(ensembleStart)) * 0.5,
+              y: margin.top - font.annotation * 0.4,
+              text: "thermal window",
               align: "middle",
               color: accentColor,
               fontSize: font.annotation,

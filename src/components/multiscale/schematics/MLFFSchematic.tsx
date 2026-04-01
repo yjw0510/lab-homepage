@@ -1,5 +1,8 @@
 "use client";
 
+// Round to 2 decimals to avoid server/client hydration mismatches
+const R2 = (n: number) => Math.round(n * 100) / 100;
+
 function trimSegment(
   x1: number,
   y1: number,
@@ -16,10 +19,10 @@ function trimSegment(
   const uy = dy / L;
 
   return {
-    x1: x1 + ux * (r1 + pad),
-    y1: y1 + uy * (r1 + pad),
-    x2: x2 - ux * (r2 + pad),
-    y2: y2 - uy * (r2 + pad),
+    x1: R2(x1 + ux * (r1 + pad)),
+    y1: R2(y1 + uy * (r1 + pad)),
+    x2: R2(x2 - ux * (r2 + pad)),
+    y2: R2(y2 - uy * (r2 + pad)),
   };
 }
 

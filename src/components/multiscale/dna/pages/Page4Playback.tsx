@@ -71,9 +71,11 @@ export function Page4Playback({ assets: _a, progress }: { assets: DNAAssets; pro
     displaced.current = nBeads > 0 ? new Float32Array(nBeads * 3) : null;
   }
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!bpBeads || !shakeParams || !displaced.current) return;
-    const t = state.clock.elapsedTime;
+    timeRef.current += delta;
+    const t = timeRef.current;
     const scale = Math.min(1, progressRef.current * 3);
 
     for (let i = 0; i < nBeads; i++) {

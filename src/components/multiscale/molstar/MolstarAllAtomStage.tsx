@@ -111,14 +111,23 @@ export function MolstarAllAtomStage({
   const activeReadoutRef = useRef(activeReadout);
   activeReadoutRef.current = activeReadout;
 
+  const rebuildingRef = useRef(false);
+
   const rebuildScene = useCallback(async (resetCamera = false, nextFrameIndex?: number) => {
     const plugin = pluginRef.current;
     const data = dataRef.current;
     if (!plugin || !data) return;
-    const fi = nextFrameIndex ?? frameTimeRef.current;
-    const layers = buildAllAtomLayers(data, scrollState, phase, activeTermRef.current, activeReadoutRef.current, fi);
-    await commitResearchLayers(plugin, layers);
-    if (resetCamera) applyScheduledCamera(0, effectiveZoomIndex);
+    // Skip if a rebuild is already in progress (prevents queue buildup in RAF loop)
+    if (rebuildingRef.current && !resetCamera) return;
+    rebuildingRef.current = true;
+    try {
+      const fi = nextFrameIndex ?? frameTimeRef.current;
+      const layers = buildAllAtomLayers(data, scrollState, phase, activeTermRef.current, activeReadoutRef.current, fi);
+      await commitResearchLayers(plugin, layers);
+      if (resetCamera) applyScheduledCamera(0, effectiveZoomIndex);
+    } finally {
+      rebuildingRef.current = false;
+    }
   }, [applyScheduledCamera, effectiveZoomIndex, phase, scrollState]);
 
   useEffect(() => {

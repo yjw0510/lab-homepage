@@ -5,11 +5,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PaperCard } from "./PaperCard";
 import { EquationDisplay } from "./equations/EquationDisplay";
 import { PlotSlot } from "./plots/PlotSlot";
+import { DftScfSlider } from "./DftScfSlider";
+import { RDFBinSlider, type RdfBin } from "./RDFBinSlider";
 import type { LevelConfig, ScrollState } from "./scrollState";
 import type { StepConfig } from "./levelData";
 import type { Publication } from "@/types/publication";
 import { ConceptText } from "./ConceptText";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
+
+interface ScfSnapshotMeta {
+  index: number;
+  iteration: number;
+  label: string;
+}
 
 export function RightRail({
   scrollState,
@@ -34,6 +42,17 @@ export function RightRail({
   onAllAtomReadoutLeave,
   onAllAtomReadoutToggle,
   onStepClick,
+  variant = "rail",
+  showDftScfSlider,
+  dftSnapshots,
+  scfValue,
+  onScfChange,
+  onScfPointerStart,
+  onScfPointerEnd,
+  showRdfSlider,
+  rdfBins,
+  rdfBinIndex,
+  onRdfChange,
 }: {
   scrollState: ScrollState;
   level: LevelConfig;
@@ -57,14 +76,25 @@ export function RightRail({
   onAllAtomReadoutLeave?: () => void;
   onAllAtomReadoutToggle?: (readout: AllAtomReadoutId) => void;
   onStepClick: (localStep: number) => void;
+  // Sheet variant props
+  variant?: "rail" | "sheet";
+  showDftScfSlider?: boolean;
+  dftSnapshots?: ScfSnapshotMeta[];
+  scfValue?: number;
+  onScfChange?: (index: number) => void;
+  onScfPointerStart?: () => void;
+  onScfPointerEnd?: () => void;
+  showRdfSlider?: boolean;
+  rdfBins?: RdfBin[];
+  rdfBinIndex?: number;
+  onRdfChange?: (index: number) => void;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevStepRef = useRef<string>("");
   const isAllAtomLevel = level.id === "allatom";
-  // Always pass all configured terms so the grouped sub-equations maintain constant height.
-  // The hoveredTerm prop handles visual emphasis without layout shift.
   const equationActiveTerms = stepConfig.activeTerms;
+  const isSheet = variant === "sheet";
 
   // Fade transition on step change + reset scroll position
   useEffect(() => {
@@ -80,7 +110,6 @@ export function RightRail({
           railRef.current.style.transform = "translateY(0)";
         }
       });
-      // Reset scrollable content to top on step change
       if (scrollRef.current) scrollRef.current.scrollTop = 0;
     }
   }, [scrollState.level, scrollState.step]);
@@ -89,46 +118,54 @@ export function RightRail({
     <div
       data-testid="multiscale-right-rail"
       className={`flex h-full min-h-0 flex-col ${
-        isMobile ? "justify-start px-4 py-2" : "justify-start px-6 py-8 pt-10"
+        isSheet
+          ? "justify-start px-4 py-2"
+          : isMobile
+            ? "justify-start px-4 py-2"
+            : "justify-start px-6 py-8 pt-10"
       }`}
     >
       <div ref={railRef} className="flex min-h-0 flex-1 flex-col">
-        {/* Level badge */}
-        <div className={`flex items-center gap-2 flex-shrink-0 ${isMobile ? "mb-2" : "mb-3"}`}>
-          <div
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: level.color }}
-          />
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: level.color }}>
-            {level.label[lang as "en" | "ko"] ?? level.label.en}
-          </span>
-          <span className="text-xs text-gray-500 ml-1">{level.scale[lang as "en" | "ko"] ?? level.scale.en}</span>
-        </div>
-
-        {/* Step indicator — clickable */}
-        <div className={`flex gap-1 flex-shrink-0 ${isMobile ? "mb-2" : "mb-4"}`}>
-          {Array.from({ length: scrollState.stepCount }, (_, i) => (
-            <button
-              key={i}
-              type="button"
-              className="h-1.5 rounded-full flex-1 transition-colors duration-300 cursor-pointer hover:opacity-80"
-              style={{
-                backgroundColor:
-                  i < scrollState.step
-                    ? level.color
-                    : i === scrollState.step
-                      ? `${level.color}80`
-                      : "var(--muted)",
-              }}
-              onClick={() => onStepClick(i)}
-              aria-label={`${lang === "ko" ? "단계" : "Step"} ${i + 1} / ${scrollState.stepCount}`}
+        {/* Level badge — rail only (sheet has it in status row) */}
+        {!isSheet && (
+          <div className={`flex items-center gap-2 flex-shrink-0 ${isMobile ? "mb-2" : "mb-3"}`}>
+            <div
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: level.color }}
             />
-          ))}
-        </div>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: level.color }}>
+              {level.label[lang as "en" | "ko"] ?? level.label.en}
+            </span>
+            <span className="text-xs text-gray-500 ml-1">{level.scale[lang as "en" | "ko"] ?? level.scale.en}</span>
+          </div>
+        )}
+
+        {/* Step indicator — rail only */}
+        {!isSheet && (
+          <div className={`flex gap-1 flex-shrink-0 ${isMobile ? "mb-2" : "mb-4"}`}>
+            {Array.from({ length: scrollState.stepCount }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                className="h-1.5 rounded-full flex-1 transition-colors duration-300 cursor-pointer hover:opacity-80"
+                style={{
+                  backgroundColor:
+                    i < scrollState.step
+                      ? level.color
+                      : i === scrollState.step
+                        ? `${level.color}80`
+                        : "var(--muted)",
+                }}
+                onClick={() => onStepClick(i)}
+                aria-label={`${lang === "ko" ? "단계" : "Step"} ${i + 1} / ${scrollState.stepCount}`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Equation — fixed, non-scrolling */}
         {stepConfig.showEquation !== false && (
-          <div className={`flex-shrink-0 ${isMobile ? "mb-2" : "mb-4"}`}>
+          <div className={`flex-shrink-0 ${isSheet ? "mb-2" : isMobile ? "mb-2" : "mb-4"}`}>
             <EquationDisplay
               equationKey={equationKey}
               activeTerms={equationActiveTerms}
@@ -143,6 +180,34 @@ export function RightRail({
           </div>
         )}
 
+        {/* Inline SCF slider — sheet only */}
+        {isSheet && showDftScfSlider && dftSnapshots && dftSnapshots.length > 1 && onScfChange && (
+          <div className="mb-3 flex-shrink-0 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3" style={{ touchAction: "pan-x" }}>
+            <DftScfSlider
+              snapshots={dftSnapshots}
+              value={scfValue ?? 0}
+              lang={lang}
+              onChange={onScfChange}
+              onPointerStart={onScfPointerStart ?? (() => {})}
+              onPointerEnd={onScfPointerEnd ?? (() => {})}
+              inline
+            />
+          </div>
+        )}
+
+        {/* Inline RDF slider — sheet only */}
+        {isSheet && showRdfSlider && rdfBins && rdfBins.length > 1 && onRdfChange && (
+          <div className="mb-3 flex-shrink-0 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3" style={{ touchAction: "pan-x" }}>
+            <RDFBinSlider
+              bins={rdfBins}
+              value={rdfBinIndex ?? 0}
+              lang={lang}
+              onChange={onRdfChange}
+              inline
+            />
+          </div>
+        )}
+
         {/* Scrollable content area: concept text + plot + paper card */}
         <div
           ref={scrollRef}
@@ -152,7 +217,7 @@ export function RightRail({
             <ConceptText
               text={stepConfig.concept[lang as "en" | "ko"] ?? stepConfig.concept.en}
               lang={lang}
-              className={`text-gray-300 leading-[1.72] ${isMobile ? "text-[0.98rem]" : "text-[1.05rem]"}`}
+              className={`text-gray-300 leading-[1.72] ${isMobile || isSheet ? "text-[0.98rem]" : "text-[1.05rem]"}`}
             />
           </div>
 
@@ -188,34 +253,36 @@ export function RightRail({
         </div>
       </div>
 
-      {/* Navigation bar — desktop only (mobile nav is in viewer overlay) */}
-      {!isMobile && (
-        <div className="mt-3 flex-shrink-0 border-t border-white/8 pt-3 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            disabled={!canGoPrev}
-            onClick={onPrev}
-            className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label={lang === "ko" ? "이전 단계" : "Previous step"}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>{lang === "ko" ? "이전" : "Prev"}</span>
-          </button>
+      {/* Navigation bar — desktop only (sheet has nav in MobileStatusRow) */}
+      {!isSheet && !isMobile && (
+        <div className="mt-3 flex-shrink-0 border-t border-white/8 pt-3">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              disabled={!canGoPrev}
+              onClick={onPrev}
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label={lang === "ko" ? "이전 단계" : "Previous step"}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>{lang === "ko" ? "이전" : "Prev"}</span>
+            </button>
 
-          <span className="text-sm text-white/60 tabular-nums">
-            {scrollState.step + 1} / {scrollState.stepCount}
-          </span>
+            <span className="text-sm text-white/60 tabular-nums">
+              {scrollState.step + 1} / {scrollState.stepCount}
+            </span>
 
-          <button
-            type="button"
-            disabled={!canGoNext}
-            onClick={onNext}
-            className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label={lang === "ko" ? "다음 단계" : "Next step"}
-          >
-            <span>{lang === "ko" ? "다음" : "Next"}</span>
-            <ChevronRight className="h-4 w-4" />
-          </button>
+            <button
+              type="button"
+              disabled={!canGoNext}
+              onClick={onNext}
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label={lang === "ko" ? "다음 단계" : "Next step"}
+            >
+              <span>{lang === "ko" ? "다음" : "Next"}</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>

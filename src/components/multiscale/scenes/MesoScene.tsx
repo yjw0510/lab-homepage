@@ -259,13 +259,15 @@ export function MesoScene({
     return neighborPhase > 0 && distance <= activeShellRadius;
   });
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
+    timeRef.current += delta;
     const opacity = transitionIn * (1 - transitionOut);
     groupRef.current.scale.setScalar(Math.max(0.01, opacity));
     if (autoRotateRef.current) groupRef.current.rotation.y += 0.001;
 
-    const time = state.clock.elapsedTime;
+    const time = timeRef.current;
     beadMeshRefs.current.forEach((mesh, index) => {
       if (!mesh) return;
       const base = showCorrelationOverlay ? (correlationDisplayVecs[index] ?? beadVecs[index]) : beadVecs[index];

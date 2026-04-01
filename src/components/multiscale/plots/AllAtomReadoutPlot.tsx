@@ -176,7 +176,7 @@ export function AllAtomReadoutPlot({
                           key={`${track.label}-${point.phase}-${point.frame}-${index}`}
                           cx={x(index)}
                           cy={rowY}
-                          r={3 + normalized * 6 + (isHighlight ? 1.8 : 0) + (isActive ? 1.2 : 0)}
+                          r={2 + normalized * 3.5 + (isHighlight ? 1.4 : 0) + (isActive ? 0.8 : 0)}
                           fill={isHighlight ? "#f8fafc" : track.color}
                           opacity={dotOpacity}
                           stroke={isHighlight ? track.color : "none"}

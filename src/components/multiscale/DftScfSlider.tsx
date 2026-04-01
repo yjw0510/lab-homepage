@@ -22,6 +22,7 @@ export function DftScfSlider({
   onChange,
   onPointerStart,
   onPointerEnd,
+  inline,
 }: {
   snapshots: ScfSnapshotMeta[];
   value: number;
@@ -29,6 +30,7 @@ export function DftScfSlider({
   onChange: (nextIndex: number) => void;
   onPointerStart: () => void;
   onPointerEnd: () => void;
+  inline?: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [trackWidth, setTrackWidth] = useState(0);
@@ -63,7 +65,10 @@ export function DftScfSlider({
   if (snapshots.length <= 1) return null;
 
   return (
-    <div className="absolute bottom-24 left-1/2 z-10 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md">
+    <div className={inline
+      ? "px-0 py-0"
+      : "absolute bottom-24 left-1/2 z-10 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md"
+    }>
       <div className="mb-3 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.14em] text-white/65">
         <span>{lang === "ko" ? "SCF 진행" : "SCF Progress"}</span>
         <span className="text-white/85">

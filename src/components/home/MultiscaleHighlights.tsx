@@ -74,13 +74,13 @@ export function MultiscaleHighlights({
                   )}
 
                   {/* Text */}
-                  <div className="w-full md:w-1/2">
+                  <div className="w-full md:w-1/2 text-center md:text-left">
                     {area.scale && (
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-3">
                         {area.scale}
                       </span>
                     )}
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
                       <div style={{ color: area.color }}>
                         {getMultiscaleIcon(area.icon, "w-6 h-6")}
                       </div>

@@ -67,9 +67,11 @@ function ReferenceBox({
   const ref = useRef<THREE.LineSegments>(null);
   const geometry = useMemo(() => new THREE.EdgesGeometry(new THREE.BoxGeometry(lengths[0], lengths[1], lengths[2])), [lengths]);
 
-  useFrame((state) => {
+  const tRef = useRef(0);
+  useFrame((_, delta) => {
     if (!ref.current) return;
-    const scale = 1 + Math.sin(state.clock.elapsedTime * 1.2) * 0.012;
+    tRef.current += delta;
+    const scale = 1 + Math.sin(tRef.current * 1.2) * 0.012;
     ref.current.scale.setScalar(scale);
   });
 
@@ -90,12 +92,14 @@ function TrailPackets({
   const ref = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame((state) => {
+  const tRef = useRef(0);
+  useFrame((_, delta) => {
     const mesh = ref.current;
     if (!mesh) return;
+    tRef.current += delta;
     trails.forEach((trail, trailIndex) => {
       if (trail.points.length < 2) return;
-      const phase = (state.clock.elapsedTime * 0.16 + trailIndex * 0.21) % 1;
+      const phase = (tRef.current * 0.16 + trailIndex * 0.21) % 1;
       const scaled = phase * (trail.points.length - 1);
       const left = Math.floor(scaled);
       const right = Math.min(trail.points.length - 1, left + 1);
@@ -134,7 +138,9 @@ function CueDots({
   const anchor = useMemo(() => cueAnchor(snapshot), [snapshot]);
   const refs = useRef<Array<THREE.Mesh | null>>([]);
 
-  useFrame((state) => {
+  const tRef = useRef(0);
+  useFrame((_, delta) => {
+    tRef.current += delta;
     refs.current.forEach((mesh, index) => {
       const cue = cues[index];
       if (!mesh || !cue) return;
@@ -142,7 +148,7 @@ function CueDots({
       const dy = cue.point[1] - anchor[1];
       const dz = cue.point[2] - anchor[2];
       const radialPhase = Math.sqrt(dx * dx + dy * dy + dz * dz) * 0.24;
-      const scale = 1 + Math.sin(state.clock.elapsedTime * 2.0 - radialPhase) * 0.08 * (cue.weight ?? 1);
+      const scale = 1 + Math.sin(tRef.current * 2.0 - radialPhase) * 0.08 * (cue.weight ?? 1);
       mesh.scale.setScalar(scale);
     });
   });
@@ -540,11 +546,13 @@ function FFTermOverlay({
   const [data, setData] = useState<{ atoms: number[][]; elements: string[]; charges: number[] } | null>(null);
 
   // Version-gated with 30Hz throttle for smooth motion without excessive React churn
-  useFrame(({ clock }) => {
+  const tRef = useRef(0);
+  useFrame((_, delta) => {
+    tRef.current += delta;
     const current = displayAtomsRef.current;
     if (!current || current === lastDataRef.current) return;
-    if (clock.elapsedTime - lastUpdateRef.current < 0.033) return;
-    lastUpdateRef.current = clock.elapsedTime;
+    if (tRef.current - lastUpdateRef.current < 0.033) return;
+    lastUpdateRef.current = tRef.current;
     lastDataRef.current = current;
     setData(current);
   });

@@ -2,6 +2,10 @@
 
 type Pt = { x: number; y: number };
 
+// Round to 2 decimals to avoid server/client hydration mismatches from
+// floating-point precision differences between Node.js and browsers.
+const R2 = (n: number) => Math.round(n * 100) / 100;
+
 function mulberry32(seed: number) {
   let t = seed >>> 0;
   return function () {
@@ -29,9 +33,9 @@ function makeAtomGroup(center: Pt, idx: number) {
     const a = (Math.PI * 2 * i) / atomCount + (rand() - 0.5) * 0.35;
     const rr = orbit + (rand() - 0.5) * 2.5;
     atoms.push({
-      cx: center.x + rr * Math.cos(a),
-      cy: center.y + rr * Math.sin(a),
-      r: 3.2 + rand() * 1.2,
+      cx: R2(center.x + rr * Math.cos(a)),
+      cy: R2(center.y + rr * Math.sin(a)),
+      r: R2(3.2 + rand() * 1.2),
       fill: ATOM_PALETTE[i % ATOM_PALETTE.length],
     });
   }
