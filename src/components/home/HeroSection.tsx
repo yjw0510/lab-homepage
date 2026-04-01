@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { ArrowDown } from "lucide-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMounted } from "@/hooks/useMounted";
@@ -59,18 +60,18 @@ export function HeroSection({
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <a
+          <Link
             href={`/${lang}/research-topics`}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary-light transition-colors"
           >
             {dict.home.exploreMultiscale}
-          </a>
-          <a
+          </Link>
+          <Link
             href={`/${lang}/contact`}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-muted transition-colors"
           >
             {dict.home.joinLab}
-          </a>
+          </Link>
         </div>
       </div>
 
