@@ -1,0 +1,50 @@
+{
+  "sceneId": "meso.M1_atoms",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "atom-count-min",
+      "count": 1476,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.027534,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.578246,
+      "y": 0.565612,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.027534,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.008399,
+      "passed": true
+    },
+    {
+      "type": "edge-density-min",
+      "density": 0.000544,
+      "passed": false
+    },
+    {
+      "type": "component-count-max",
+      "components": 24,
+      "passed": true
+    }
+  ]
+}

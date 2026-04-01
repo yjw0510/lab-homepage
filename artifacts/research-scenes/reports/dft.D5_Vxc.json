@@ -1,0 +1,36 @@
+{
+  "sceneId": "dft.D5_Vxc",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "atom-count-min",
+      "count": 58,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.024054,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.437792,
+      "y": 0.827644,
+      "passed": false
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.000169,
+      "passed": false
+    }
+  ]
+}

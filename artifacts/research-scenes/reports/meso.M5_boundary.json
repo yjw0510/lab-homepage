@@ -1,0 +1,50 @@
+{
+  "sceneId": "meso.M5_boundary",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 8000,
+      "passed": false
+    },
+    {
+      "type": "reference-index-present",
+      "referenceIndex": 3926,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.028812,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.52424,
+      "y": 0.644068,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.028812,
+      "passed": false
+    },
+    {
+      "type": "color-presence",
+      "fraction": 1.1e-05,
+      "passed": false
+    },
+    {
+      "type": "component-count-max",
+      "components": 34,
+      "passed": true
+    }
+  ]
+}

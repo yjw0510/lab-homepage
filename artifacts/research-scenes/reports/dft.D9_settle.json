@@ -1,0 +1,36 @@
+{
+  "sceneId": "dft.D9_settle",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "dft-final-density-nonempty",
+      "vertexCount": 262528,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.285303,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.532135,
+      "y": 0.512747,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.285303,
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,1140 @@
+{
+  "checklist": "/Users/yjw0510/Desktop/projects/lab_homepage/docs/research-scene-checklist.yaml",
+  "artifacts": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes",
+  "generatedAt": "2026-03-24T02:08:39.374Z",
+  "passed": true,
+  "scenes": [
+    {
+      "sceneId": "meso.M1_atoms",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 34,
+          "passed": true
+        },
+        {
+          "type": "dna-local-bonded-segment",
+          "backboneBonds": 32,
+          "rungBonds": 17,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.041006,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.479604,
+          "y": 0.656633,
+          "passed": true
+        },
+        {
+          "type": "edge-density-min",
+          "density": 0.012746,
+          "passed": true
+        },
+        {
+          "type": "component-count-max",
+          "components": 23,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "meso.M2_hulls",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "mapping-coverage-min",
+          "fraction": 1.0,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.176011,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.420442,
+          "y": 0.554796,
+          "passed": true
+        },
+        {
+          "type": "edge-density-min",
+          "density": 0.008987,
+          "passed": true
+        },
+        {
+          "type": "component-count-max",
+          "components": 27,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "meso.M3_beads",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "dna-local-bonded-segment",
+          "backboneBonds": 32,
+          "rungBonds": 17,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.189972,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.434735,
+          "y": 0.545074,
+          "passed": true
+        },
+        {
+          "type": "component-count-max",
+          "components": 42,
+          "passed": true
+        },
+        {
+          "type": "edge-density-min",
+          "density": 0.013944,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "meso.M4_fullCG",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 34,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.038606,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.486839,
+          "y": 0.683561,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.038606,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "meso.M5_boundary",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 231,
+          "passed": true
+        },
+        {
+          "type": "reference-index-present",
+          "referenceIndex": 476,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.051522,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.493158,
+          "y": 0.619628,
+          "passed": true
+        },
+        {
+          "type": "component-count-max",
+          "components": 33,
+          "passed": true
+        },
+        {
+          "type": "edge-density-max",
+          "density": 0.000545,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "meso.M6_settle",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 2304,
+          "passed": true
+        },
+        {
+          "type": "dna-duplex-count-min",
+          "duplexCount": 12,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.228616,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.548799,
+          "y": 0.483847,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.228616,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A1_transition",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 444,
+          "passed": true
+        },
+        {
+          "type": "residue-count-min",
+          "count": 576,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.071579,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.41848,
+          "y": 0.582555,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.071579,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A2_bonds",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 151,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.09775,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.460697,
+          "y": 0.533247,
+          "passed": true
+        },
+        {
+          "type": "edge-density-min",
+          "density": 0.025921,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A3_angles",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "heavy-angle-count-min",
+          "angleCount": 28,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.111932,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.470785,
+          "y": 0.512349,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.002077,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A4_dihedrals",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "dihedral-labels-present",
+          "dihedralCount": 64,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.124525,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.459642,
+          "y": 0.537214,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.002185,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.001094,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A5_nonbonded",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 151,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.121213,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.470782,
+          "y": 0.539305,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.121213,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A6_hbonds",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "polar-contact-count-min",
+          "polarContacts": 46,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.082707,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.463473,
+          "y": 0.565614,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.001002,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A7_hydration",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 86,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.35919,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.499586,
+          "y": 0.514466,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.35919,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "allatom.A8_settle",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "residue-count-min",
+          "count": 576,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.04891,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.355037,
+          "y": 0.542865,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.04891,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L1_clouds",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 154,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.103684,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.499102,
+          "y": 0.558044,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.103684,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L2_neighborhoods",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "focus-index-valid",
+          "focusIndex": 0,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.15228,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.502851,
+          "y": 0.54292,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.002121,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L3_graph",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 45,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.105056,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.505535,
+          "y": 0.556419,
+          "passed": true
+        },
+        {
+          "type": "edge-density-min",
+          "density": 0.030519,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L4_energies",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 45,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.13071,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.500037,
+          "y": 0.540345,
+          "passed": true
+        },
+        {
+          "type": "component-count-max",
+          "components": 28,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L5_forces",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "nonzero-force-count-min",
+          "count": 8,
+          "passed": true
+        },
+        {
+          "type": "arrow-direction-std-min",
+          "stdDeg": 37.6925,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.233173,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.504626,
+          "y": 0.525814,
+          "passed": true
+        },
+        {
+          "type": "arrow-orientation-spread",
+          "stdDeg": 52.4182,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L6_comparison",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "nonzero-force-count-min",
+          "count": 8,
+          "passed": true
+        },
+        {
+          "type": "arrow-direction-std-min",
+          "stdDeg": 37.6925,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.289336,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.508894,
+          "y": 0.51046,
+          "passed": true
+        },
+        {
+          "type": "arrow-orientation-spread",
+          "stdDeg": 53.5695,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "mlff.L7_settle",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "missing": [],
+          "passed": true
+        },
+        {
+          "type": "subset-size-min",
+          "count": 154,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.110291,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.499354,
+          "y": 0.555969,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.110291,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D1_transition",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "atom-count-min",
+          "count": 24,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.082839,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.497256,
+          "y": 0.56326,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.082839,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D2_kinetic",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "atom-count-min",
+          "count": 24,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.196324,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.539722,
+          "y": 0.519831,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.196324,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D3_Vext",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "atom-count-min",
+          "count": 24,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.087582,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.540865,
+          "y": 0.569803,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.087582,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D4_Hartree",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "atom-count-min",
+          "count": 24,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.401069,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.529815,
+          "y": 0.487336,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.058479,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D5_Vxc",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "atom-count-min",
+          "count": 24,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.187849,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.46926,
+          "y": 0.549863,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.002017,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D6_density",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "dft-residual-fixed-isovalue",
+          "baseline": 0.00050302,
+          "maxDeviation": 0.0,
+          "passed": true
+        },
+        {
+          "type": "dft-residual-area-ratio-min",
+          "ratio": 0.042997,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.397701,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.542677,
+          "y": 0.527306,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.397701,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D7_bands",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "dft-homo-nonempty",
+          "vertexCount": 432828,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.53738,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.422488,
+          "y": 0.518181,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.038781,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.20245,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D8_dos",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "dft-lumo-nonempty",
+          "vertexCount": 432260,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.354278,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.476691,
+          "y": 0.527942,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.018349,
+          "passed": true
+        },
+        {
+          "type": "color-presence",
+          "fraction": 0.157645,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sceneId": "dft.D9_settle",
+      "passed": true,
+      "captureError": null,
+      "numericChecks": [
+        {
+          "type": "metadata-present",
+          "skipped": true,
+          "reason": "subset metadata is not used for Mol* DFT assets",
+          "passed": true
+        },
+        {
+          "type": "dft-final-density-nonempty",
+          "vertexCount": 262528,
+          "passed": true
+        }
+      ],
+      "imageChecks": [
+        {
+          "type": "occupancy",
+          "fraction": 0.285303,
+          "passed": true
+        },
+        {
+          "type": "centroid",
+          "x": 0.532135,
+          "y": 0.512747,
+          "passed": true
+        },
+        {
+          "type": "occupancy",
+          "fraction": 0.285303,
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

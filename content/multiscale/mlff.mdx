@@ -1,0 +1,51 @@
+---
+title: "Machine Learning Force Fields"
+shortDescription: "Neural network potentials with quantum-level accuracy at classical MD speeds, applied to water, electrolytes, and reactive systems"
+shortDescriptionKo: "물, 전해질, 반응계를 위해 양자 수준 정확도를 고전 MD 속도로 달성하는 신경망 퍼텐셜"
+icon: "Brain"
+color: "#8b5cf6"
+order: 3
+scale: "~1 – 10 nm (ab initio accuracy)"
+contentKo: |
+  ## 개요
+
+  분자 시뮬레이션에서 역장(force field)은 원자 사이의 인력과 척력을 기술하는 수학적 모형으로, 모든 힘, 궤적, 예측 물성을 결정한다. 고전 역장은 실험 데이터에 맞춘 단순한 방정식을 사용하여 평가 속도는 빠르지만 근사적이다. 양자역학 계산은 훨씬 정확하지만 큰 시스템이나 긴 시뮬레이션에 비용이 과다하다. 머신러닝 역장(MLFF)은 이 사이를 잇는다: 양자역학 데이터로 훈련한 신경망이 양자에 가까운 정확도로 원자 간 힘을 예측하되 계산 비용은 크게 줄어든다. DeePMD, NequIP, MACE 등의 MLFF 아키텍처를 개발·적용하여, 양자 계산에는 너무 크고 고전 근사에는 너무 민감한 계, 특히 전해질 용액 내 물과 극한 환경의 반응 화학을 연구한다.
+
+  ## 현재 연구
+
+  - **물 확산 이상 현상**: 염수 용액에서 물 분자가 용존 이온 종류에 따라 어떻게 다르게 이동하는지 매핑. 고전 역장으로는 구별되지 않지만 양자 데이터로 훈련한 머신러닝 모형은 정확히 재현하는 효과
+  - **유전 완화**: 액체 물의 전기 분극이 마이크로파에서 적외선까지의 진동 전기장에 어떻게 응답하는지, 신경망 예측과 고전 역장 결과를 비교
+  - **초임계수 반응 화학**: 374 °C, 22 MPa 이상의 물에서 유기 분자가 분해·재결합되는 과정 추적. 표준 역장으로는 결합의 절단과 형성을 기술할 수 없는 조건
+  - **능동 학습과 전이성**: 어떤 양자역학 계산을 수행할지 효율적으로 선택하는 전략 개발. 결과 역장이 온도와 화학 조성에 걸쳐 안정적으로 일반화되도록 함
+
+  ## 방법론
+
+  밀도범함수이론(DFT) 양자역학 참조 데이터로 MLFF를 훈련하며, 물리적 대칭을 만족하는 신경망 아키텍처를 사용한다. 분자를 회전하거나 이동해도 예측이 변하지 않는다. 희귀 사건의 관찰을 가속하는 향상된 표본추출 기법과 결합하면 양자에 가까운 정확도로 나노초 규모의 시뮬레이션을 수행할 수 있다.
+
+  ## 관련 논문
+
+  - Yu et al., *Science Advances* (2024), MLFF를 이용한 물 확산 이상 현상
+  - Ryu et al., *J. Mol. Liquids* (2024), 물의 유전 완화
+  - Ryu et al., *J. Chem. Inf. Model.* (2025), 초임계수 내 아세트산 반응
+---
+
+## Overview
+
+In molecular simulation, a force field is the mathematical model that describes how atoms attract and repel each other; it determines every force, every trajectory, and every predicted property. Classical force fields use simple equations fitted to experimental data: fast to evaluate, but approximate. Quantum-mechanical calculations are far more accurate but too expensive for large systems or long simulation times. Machine learning force fields (MLFFs) bridge this gap: neural networks trained on quantum-mechanical data learn to predict interatomic forces with near-quantum accuracy at a small fraction of the computational cost. We develop and apply MLFF architectures (DeePMD, NequIP, MACE) to study systems that are too large for quantum calculations and too sensitive to classical approximations, particularly water in electrolyte solutions and reactive chemistry in extreme environments.
+
+## Current Focus
+
+- **Water diffusion anomalies**: Mapping how water molecules move differently near different dissolved ions in salt solutions, effects that classical force fields fail to distinguish but that machine learning models trained on quantum data reproduce accurately
+- **Dielectric relaxation**: How liquid water's electrical polarization responds to oscillating electric fields across the microwave-to-infrared spectrum, comparing neural network predictions to classical force field results
+- **Reactive chemistry in supercritical water**: Tracking how organic molecules break apart and recombine in water heated above 374 °C and pressurized above 22 MPa, conditions where standard force fields cannot describe bond breaking and formation
+- **Active learning and transferability**: Developing strategies for efficiently selecting which quantum-mechanical calculations to run, so that the resulting force field generalizes reliably across temperatures and chemical compositions
+
+## Methods
+
+We train MLFFs on quantum-mechanical reference data from density functional theory (DFT) calculations using neural network architectures that respect physical symmetries; predictions remain unchanged when the molecule is rotated or translated. Combined with enhanced sampling techniques that accelerate the observation of rare events, these force fields reach nanosecond simulation time scales with near-quantum accuracy.
+
+## Related Publications
+
+- Yu et al., *Science Advances* (2024), Water diffusion anomalies via MLFF
+- Ryu et al., *J. Mol. Liquids* (2024), Dielectric relaxation of water
+- Ryu et al., *J. Chem. Inf. Model.* (2025), Acetic acid in supercritical water

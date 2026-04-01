@@ -1,0 +1,36 @@
+{
+  "sceneId": "dft.D4_Hartree",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "atom-count-min",
+      "count": 58,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.025188,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.42796,
+      "y": 0.830282,
+      "passed": false
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.000788,
+      "passed": false
+    }
+  ]
+}

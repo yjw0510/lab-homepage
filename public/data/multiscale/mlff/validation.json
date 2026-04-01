@@ -1,0 +1,227 @@
+{
+  "level": "mlff",
+  "passed": true,
+  "checks": {
+    "bondLengths": {
+      "passed": true,
+      "count": 4330,
+      "min": 0.9572,
+      "max": 0.9572,
+      "failures": []
+    },
+    "nonbondedContacts": {
+      "passed": true,
+      "nearest": [
+        {
+          "atoms": [
+            2286,
+            2324
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.3741,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            4691,
+            5694
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3766,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            716,
+            4461
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3786,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1395,
+            5282
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.3797,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            2285,
+            5916
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3818,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1352,
+            2992
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3822,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            83,
+            4237
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3825,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1777,
+            4202
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.3825,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            290,
+            1929
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3828,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            3466,
+            3575
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.385,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            2244,
+            5951
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.3882,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            554,
+            2139
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3907,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1552,
+            3110
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.3907,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            440,
+            5283
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3909,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            5542,
+            5570
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.3914,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            4490,
+            5488
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.3919,
+          "minimum": 1.15
+        }
+      ],
+      "failures": []
+    },
+    "energy": {
+      "passed": true,
+      "forceRms": 1751.558631,
+      "maxForceRms": 1800.0,
+      "forceP95": 2672.967181,
+      "maxForceP95": 3000.0,
+      "forceMax": 3855.7215,
+      "maxForceMax": 8000.0,
+      "potentialEnergyKJMol": 87764.600173
+    },
+    "trajectorySelection": {
+      "passed": true,
+      "selectedFrame": 0,
+      "totalFrames": 1,
+      "minimumEquilibratedFrame": 0
+    }
+  }
+}

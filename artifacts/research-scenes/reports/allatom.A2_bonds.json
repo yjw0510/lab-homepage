@@ -1,0 +1,35 @@
+{
+  "sceneId": "allatom.A2_bonds",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 13728,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.2311,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.462208,
+      "y": 0.491337,
+      "passed": true
+    },
+    {
+      "type": "edge-density-min",
+      "density": 0.031001,
+      "passed": true
+    }
+  ]
+}

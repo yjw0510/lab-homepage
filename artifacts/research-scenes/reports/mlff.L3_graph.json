@@ -1,0 +1,35 @@
+{
+  "sceneId": "mlff.L3_graph",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 45,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.33857,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.49957,
+      "y": 0.517071,
+      "passed": true
+    },
+    {
+      "type": "edge-density-min",
+      "density": 0.030617,
+      "passed": true
+    }
+  ]
+}

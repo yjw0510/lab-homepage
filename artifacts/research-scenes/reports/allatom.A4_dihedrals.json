@@ -1,0 +1,40 @@
+{
+  "sceneId": "allatom.A4_dihedrals",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 438,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.229532,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.460668,
+      "y": 0.525529,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.002662,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.001456,
+      "passed": true
+    }
+  ]
+}

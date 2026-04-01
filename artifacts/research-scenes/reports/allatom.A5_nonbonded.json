@@ -1,0 +1,35 @@
+{
+  "sceneId": "allatom.A5_nonbonded",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "polar-contact-count-min",
+      "polarContacts": 833,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.315953,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.466981,
+      "y": 0.517371,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.0,
+      "passed": false
+    }
+  ]
+}

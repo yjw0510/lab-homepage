@@ -1,0 +1,55 @@
+{
+  "sceneId": "meso.M2_hulls",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "atom-count-min",
+      "count": 1476,
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 8000,
+      "passed": false
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.030858,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.528848,
+      "y": 0.533552,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.030858,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.00024,
+      "passed": false
+    },
+    {
+      "type": "edge-density-min",
+      "density": 0.000669,
+      "passed": false
+    },
+    {
+      "type": "component-count-max",
+      "components": 28,
+      "passed": true
+    }
+  ]
+}

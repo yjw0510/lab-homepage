@@ -1,0 +1,35 @@
+{
+  "sceneId": "allatom.A6_hbonds",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 2844,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.130323,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.458366,
+      "y": 0.529076,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.001061,
+      "passed": true
+    }
+  ]
+}

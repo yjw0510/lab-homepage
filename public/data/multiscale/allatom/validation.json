@@ -1,0 +1,261 @@
+{
+  "level": "allatom",
+  "passed": true,
+  "checks": {
+    "residueCounts": {
+      "passed": true,
+      "expected": {
+        "CAF": 12,
+        "HOH": 600
+      },
+      "observed": {
+        "CAF": 12,
+        "HOH": 600
+      }
+    },
+    "bondLengths": {
+      "passed": true,
+      "count": 1500,
+      "min": 0.9571,
+      "max": 1.543,
+      "failures": []
+    },
+    "nonbondedContacts": {
+      "passed": true,
+      "nearest": [
+        {
+          "atoms": [
+            716,
+            824
+          ],
+          "elements": [
+            "H",
+            "H"
+          ],
+          "distance": 1.5169,
+          "minimum": 1.1
+        },
+        {
+          "atoms": [
+            1422,
+            1639
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.5434,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            181,
+            458
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.5617,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1947,
+            2036
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.5771,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1842,
+            2056
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.5877,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            873,
+            1193
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.5899,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            691,
+            1410
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.5998,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1317,
+            1943
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.601,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1798,
+            1839
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.6052,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            654,
+            1255
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.6073,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            171,
+            967
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.6137,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            747,
+            1138
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.6146,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1278,
+            1325
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.623,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            825,
+            1522
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.6309,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1875,
+            2053
+          ],
+          "elements": [
+            "O",
+            "H"
+          ],
+          "distance": 1.6357,
+          "minimum": 1.15
+        },
+        {
+          "atoms": [
+            1130,
+            1269
+          ],
+          "elements": [
+            "H",
+            "O"
+          ],
+          "distance": 1.6363,
+          "minimum": 1.15
+        }
+      ],
+      "failures": []
+    },
+    "energy": {
+      "passed": true,
+      "forceRms": 1061.398801,
+      "maxForceRms": 1800.0,
+      "forceP95": 1852.759455,
+      "maxForceP95": 2200.0,
+      "forceMax": 3919.881421,
+      "maxForceMax": 8000.0,
+      "potentialEnergyKJMol": -32879.85876
+    },
+    "trajectorySelection": {
+      "passed": true,
+      "selectedFrame": 260,
+      "totalFrames": 261,
+      "minimumEquilibratedFrame": 104
+    },
+    "densitySanity": {
+      "passed": true,
+      "finalDensity": 1.02816,
+      "targetRange": [
+        0.95,
+        1.055
+      ]
+    },
+    "compression": {
+      "passed": true,
+      "volumeRatioFinalToInitial": 0.60284
+    },
+    "nvtStability": {
+      "passed": true,
+      "densityStd": 0.0,
+      "maxDensityStd": 0.03
+    },
+    "productionVisibility": {
+      "passed": true,
+      "maxCaffeineNeighbors": 3,
+      "maxPackingScore": 0.36694,
+      "maxHydrationContacts": 6
+    }
+  }
+}

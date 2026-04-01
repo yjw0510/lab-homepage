@@ -1,0 +1,106 @@
+{
+  "nav": {
+    "home": "홈",
+    "multiscale": "멀티스케일",
+    "publications": "논문",
+    "people": "구성원",
+    "cv": "이력서",
+    "news": "소식",
+    "funding": "연구비",
+    "contact": "연락처",
+    "topics": "연구 주제"
+  },
+  "topics": {
+    "title": "연구 주제",
+    "subtitle": "연구 분야별 주제 개요 및 관련 논문"
+  },
+  "home": {
+    "exploreMultiscale": "연구 분야 보기",
+    "joinLab": "연구실 참여",
+    "recentPublications": "최근 논문",
+    "recentPublicationsSubtitle": "최근 발표한 주요 연구",
+    "viewAllPublications": "전체 논문 보기",
+    "labNews": "연구실 소식",
+    "labNewsSubtitle": "Yu Lab 최신 소식",
+    "allNews": "소식 전체 보기"
+  },
+  "multiscale": {
+    "title": "멀티스케일",
+    "subtitle": "분자동역학, 머신러닝 역장, 조대화 시뮬레이션, 양자화학 기반 소프트 물질·용액 화학 연구",
+    "learnMore": "자세히 보기"
+  },
+  "publications": {
+    "title": "논문",
+    "subtitle": "게재 논문 및 프리프린트",
+    "filterByYear": "연도별 필터",
+    "filterByTag": "태그별 필터",
+    "allYears": "전체 연도",
+    "allTags": "전체 태그",
+    "noResults": "선택한 필터에 해당하는 논문이 없다.",
+    "preprint": "프리프린트"
+  },
+  "people": {
+    "title": "구성원",
+    "subtitle": "연구실 구성원",
+    "pi": "연구책임자",
+    "labMembers": "연구실 구성원",
+    "noMembers": "새 구성원 곧 공지 예정"
+  },
+  "news": {
+    "title": "소식",
+    "subtitle": "연구실 최신 소식",
+    "noNews": "아직 소식이 없다."
+  },
+  "funding": {
+    "title": "연구비",
+    "subtitle": "연구비 현황",
+    "active": "진행 중",
+    "completed": "완료",
+    "noGrants": "연구비 정보 곧 업데이트 예정"
+  },
+  "contact": {
+    "title": "연락처",
+    "subtitle": "연구실 연락처",
+    "location": "위치",
+    "email": "이메일",
+    "office": "연구실"
+  },
+  "cv": {
+    "title": "이력서",
+    "subtitle": "학력 및 경력 사항",
+    "education": "학력",
+    "experience": "경력",
+    "awards": "수상",
+    "publications": "주요 논문",
+    "skills": "기술",
+    "professional": "학회 활동"
+  },
+  "recruitment": {
+    "title": "연구실 참여 안내",
+    "msPhdLabel": "석사 / 박사과정",
+    "msPhdStatus": "곧 모집 예정",
+    "postdocLabel": "박사후연구원",
+    "postdocStatus": "곧 모집 예정",
+    "undergradLabel": "학부 연구생",
+    "undergradStatus": "지원 환영, 언제든 연락 가능",
+    "howToApply": "지원 방법",
+    "howToApplyText": "CV와 간단한 연구 관심사를 아래 이메일로 보내면 된다:",
+    "fields": "지원 분야",
+    "fieldsText": "화학, 화학공학, 물리학, 컴퓨터과학 등"
+  },
+  "footer": {
+    "quickLinks": "바로가기",
+    "contact": "연락처",
+    "allRights": "All rights reserved."
+  },
+  "common": {
+    "backTo": "돌아가기:"
+  },
+  "site": {
+    "name": "Yu Lab",
+    "fullName": "다중스케일 분자 전산화학 연구실",
+    "university": "아주대학교",
+    "departments": "프런티어과학학부 / 화학과",
+    "description": "아주대학교 전산화학 연구실. 분자 시뮬레이션과 머신러닝 역장을 통해 나노입자 자기조립, 물 동역학, 고분자 역학을 연구한다."
+  }
+}

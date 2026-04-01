@@ -1,0 +1,41 @@
+{
+  "sceneId": "dft.D7_bands",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "dft-homo-nonempty",
+      "vertexCount": 432828,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.53738,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.422488,
+      "y": 0.518181,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.038781,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.20245,
+      "passed": true
+    }
+  ]
+}

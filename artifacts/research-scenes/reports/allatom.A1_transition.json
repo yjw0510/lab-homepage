@@ -1,0 +1,40 @@
+{
+  "sceneId": "allatom.A1_transition",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 13728,
+      "passed": true
+    },
+    {
+      "type": "residue-count-min",
+      "count": 1728,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.283922,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.366764,
+      "y": 0.516489,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.283922,
+      "passed": true
+    }
+  ]
+}

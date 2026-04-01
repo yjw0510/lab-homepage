@@ -1,0 +1,35 @@
+{
+  "sceneId": "allatom.A8_settle",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "residue-count-min",
+      "count": 1728,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.131925,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.293514,
+      "y": 0.447037,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.131925,
+      "passed": true
+    }
+  ]
+}

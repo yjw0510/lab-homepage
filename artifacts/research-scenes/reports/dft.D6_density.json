@@ -1,0 +1,42 @@
+{
+  "sceneId": "dft.D6_density",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "dft-residual-fixed-isovalue",
+      "baseline": 0.00050302,
+      "maxDeviation": 0.0,
+      "passed": true
+    },
+    {
+      "type": "dft-residual-area-ratio-min",
+      "ratio": 0.042997,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.397701,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.542677,
+      "y": 0.527306,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.397701,
+      "passed": true
+    }
+  ]
+}

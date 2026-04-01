@@ -1,0 +1,53 @@
+---
+title: "Mesoscale Simulation"
+shortDescription: "Coarse-grained molecular dynamics (DPD, MARTINI, Kremer-Grest) for soft matter self-assembly at experimentally relevant scales."
+shortDescriptionKo: "실험적 길이·시간 스케일에서 소프트 물질 자기조립을 다루는 조대화 분자동역학 (DPD, MARTINI, Kremer-Grest)"
+icon: "Layers"
+color: "#f59e0b"
+order: 1
+scale: "~10 nm – 1 μm"
+contentKo: |
+  ## 개요
+
+  메조스케일 시뮬레이션은 정확하지만 계산 비용이 높은 원자 수준 방법과, 물질을 균일한 연속체로 다루는 연속체 모형 사이를 잇는다. 조대화 분자동역학에서는 여러 원자를 하나의 상호작용점으로 표현하여 계산 비용을 줄이고, 수백만 입자의 마이크로초 규모 시뮬레이션을 수행할 수 있다. 이 영역에서 고분자 코팅 나노입자가 질서 배열을 형성하고, 블록 공중합체가 주기적 나노구조를 이루며, 하이드로겔 네트워크가 팽윤·변형되며, 산란 실험(SAXS)과 전자현미경(TEM)으로 관측하는 것과 직접 비교할 수 있다.
+
+  ## 현재 연구
+
+  - **나노입자 자기조립**: 접합 사슬의 수, 길이, 구조에 따라 고분자 코팅 나노입자가 어떤 결정 구조로 배열되는지 예측
+  - **병솔형 고분자 접합**: 분지형 고분자를 나노입자에 접합하여 코팅의 대칭을 깨고 입자를 2차원 질서 패턴으로 유도하는 과정 규명
+  - **고분자 브러시 고갈 상호작용**: 고분자 브러시 층이 그 안에 삽입된 단백질과 입자에 가하는 힘 측정. 생체막 조직화에 관련
+  - **하이드로겔 역학**: 단순화된 분자 모형을 사용한 폴리아크릴아마이드 하이드로겔의 강성과 팽윤 거동 예측
+
+  ## 방법론
+
+  전원자 시뮬레이션 및 실험 산란·현미경 데이터(SAXS, TEM, AFM)와 비교 검증한 조대화 모형을 개발·적용한다. 이 모형은 수백만 상호작용점을 포함하는 계의 마이크로초 규모 시뮬레이션을 수행한다.
+
+  ## 관련 논문
+
+  - Yu et al., *Advanced Science* (2024), 접합 고분자의 이중 영역 배좌
+  - Kim et al., *Langmuir* (2025), 병솔형 고분자에 의한 나노입자 조립
+  - Rho et al., *ACS Appl. Mater. Interfaces* (2025), MARTINI를 이용한 하이드로겔 탄성
+  - Yu et al., *Chemical Physics Reviews* (2025), 리뷰: 구조화 거대분자의 자기조립
+---
+
+## Overview
+
+Mesoscale simulations bridge the gap between atomistic methods (accurate but computationally expensive) and continuum models that treat materials as smooth, featureless media. In coarse-grained molecular dynamics, groups of atoms are represented as single interaction sites, reducing the computational cost enough to simulate systems of millions of particles over microsecond time scales. This is the range where polymer-coated nanoparticles organize into ordered arrays, block copolymers form periodic nanostructures, and hydrogel networks swell and deform, processes directly comparable to what scattering experiments (SAXS) and electron microscopy (TEM) observe.
+
+## Current Focus
+
+- **Nanoparticle self-assembly**: Predicting how polymer-coated nanoparticles organize into different crystal structures depending on the number, length, and architecture of the grafted chains
+- **Bottlebrush polymer conjugation**: How attaching a branched polymer to a nanoparticle breaks the coating's symmetry and directs particles into two-dimensional ordered patterns
+- **Polymer brush depletion interactions**: Measuring the forces that polymer brush layers exert on proteins and particles embedded within them, relevant to biological membrane organization
+- **Hydrogel mechanics**: Predicting the stiffness and swelling behavior of polyacrylamide hydrogels using simplified molecular models
+
+## Methods
+
+We develop and validate coarse-grained models against all-atom simulations and experimental scattering and microscopy data (SAXS, TEM, AFM). These models simulate systems of millions of interaction sites over microsecond timescales.
+
+## Related Publications
+
+- Yu et al., *Advanced Science* (2024), Two-regime conformation of grafted polymers
+- Kim et al., *Langmuir* (2025), Bottlebrush-driven nanoparticle assembly
+- Rho et al., *ACS Appl. Mater. Interfaces* (2025), Hydrogel elasticity via MARTINI
+- Yu et al., *Chemical Physics Reviews* (2025), Review: self-assembly of architected macromolecules

@@ -1,0 +1,35 @@
+{
+  "sceneId": "mlff.L4_energies",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 45,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.310488,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.516815,
+      "y": 0.525701,
+      "passed": true
+    },
+    {
+      "type": "component-count-max",
+      "components": 29,
+      "passed": true
+    }
+  ]
+}

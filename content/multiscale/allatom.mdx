@@ -1,0 +1,53 @@
+---
+title: "All-Atom Molecular Dynamics"
+shortDescription: "Simulations that track every atom individually, capturing molecular-level detail in glass-forming liquids, polymer systems, and ion dissolution that simplified models cannot resolve"
+shortDescriptionKo: "개별 원자를 모두 추적하는 시뮬레이션으로, 단순화된 모형이 분해하지 못하는 유리 형성 액체, 고분자계, 이온 용해의 분자 수준 세부 구조를 포착"
+icon: "Atom"
+color: "#06b6d4"
+order: 2
+scale: "~1 – 10 nm"
+contentKo: |
+  ## 개요
+
+  전원자 분자동역학은 시스템 내 모든 원자(물 분자, 이온, 결합 모두)를 추적하며 물리적 힘, 즉 결합 상호작용, 전기적 인력과 척력, 약한 반데르발스 인력 아래에서 원자들이 어떻게 이동하는지 계산한다. 원자를 단순화된 비드로 묶는 조대화 시뮬레이션과 달리, 전원자 모형은 과냉각 액체의 국소 구조 비균일성, 고분자 질서화의 동역학, 물 속 이온 용해의 단계별 메커니즘 등을 분해하는 데 필요한 완전한 분자 세부 구조를 보존한다.
+
+  ## 현재 연구
+
+  - **유리의 능동 미시유변학**: 모형 금속 유리를 관통하는 단일 나노 규모 탐침의 마찰력 측정. 이 마찰력이 유리 전이를 반영하며 벌크 측정으로는 볼 수 없는 물질 내부의 국소 역학적 차이를 드러냄
+  - **블록 공중합체 질서화 경로**: 무질서 고분자 용융체가 육방 원통 배열로 조직되는 과정 추적. 원통이 형성되었으나 정렬되지 않은 일시적 중간 상태 포함
+  - **이온 용해 메커니즘**: Al³⁺ 같은 금속 이온의 배위 껍질에 물 분자가 협동적으로 진입하는 과정 추적. 접근 순서와 기하가 용해 경로를 결정함을 규명
+  - **조대화 모형의 전원자 검증**: 전원자 궤적에서 얻은 구조·동역학 참조 측정량이 단순화된 조대화 모형의 교정 기준 제공
+
+  ## 방법론
+
+  이 페이지의 시각화는 물에 녹인 카페인의 명시적 용매 궤적을 사용하여 전원자 MD의 핵심 개념을 예시한다: 원자 표현 방식, 힘장 항이 실제로 어떻게 보이는지, 국소 분자 구조가 장소에 따라 어떻게 달라지는지, 주기 경계 조건이 어떻게 작동하는지. 이 궤적은 하나의 예시이며, 이 개념들은 액체나 용액의 모든 전원자 시뮬레이션에 적용된다.
+
+  ## 관련 논문
+
+  - Yu et al., *Science Advances* (2020), 금속 유리의 능동 미시유변학
+  - Madanchi et al., *Soft Matter* (2021), 유리의 마찰 동역학
+  - Seo et al., *Soft Matter* (2020), 원통형 마이크로상 분리
+  - Kim et al., *J. Phys. Chem. Lett.* (2024), Al³⁺ 용해
+---
+
+## Overview
+
+All-atom molecular dynamics tracks every atom in a system, including every water molecule, every ion, and every bond, and calculates how they move under physical forces: bonding interactions, electrical attractions and repulsions, and weak van der Waals attractions. Unlike coarse-grained simulations that group atoms into simplified beads, all-atom models preserve the full molecular detail needed to resolve phenomena such as local structural heterogeneity in supercooled liquids, the kinetics of polymer ordering, and the step-by-step mechanism of ion dissolution in water.
+
+## Current Focus
+
+- **Active microrheology of glasses**: Pulling a single nanoscale probe through a model metallic glass and measuring the friction force it encounters. This friction encodes the glass transition and reveals local mechanical differences within the material that bulk measurements cannot see
+- **Block copolymer ordering pathways**: Following how a disordered polymer melt organizes into hexagonally packed cylinders, including transient intermediate states where cylinders have formed but not yet aligned
+- **Ion dissolution mechanisms**: Tracking how water molecules cooperatively enter the coordination shell of dissolving metal ions such as Al³⁺, revealing that the sequence and geometry of approach determine the dissolution pathway
+- **Atomistic validation of coarse-grained models**: Providing reference structural and dynamical measurements from all-atom trajectories as calibration targets for the lab's simplified coarse-grained models
+
+## Methods
+
+The interactive visualizations on this page use an explicit-solvent trajectory of caffeine dissolved in water to illustrate core all-atom MD concepts: how atoms are represented, what force-field terms look like in practice, how local molecular structure varies from place to place, and how periodic boundary conditions work. The trajectory is one example; these concepts apply to any all-atom simulation of a liquid or solution.
+
+## Related Publications
+
+- Yu et al., *Science Advances* (2020), Active microrheology of metallic glass
+- Madanchi et al., *Soft Matter* (2021), Friction dynamics in glass
+- Seo et al., *Soft Matter* (2020), Cylindrical microphase separation
+- Kim et al., *J. Phys. Chem. Lett.* (2024), Al³⁺ dissolution

@@ -1,0 +1,35 @@
+{
+  "sceneId": "mlff.L2_neighborhoods",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "focus-index-valid",
+      "focusIndex": 0,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.792799,
+      "passed": false
+    },
+    {
+      "type": "centroid",
+      "x": 0.497044,
+      "y": 0.510302,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.011525,
+      "passed": true
+    }
+  ]
+}

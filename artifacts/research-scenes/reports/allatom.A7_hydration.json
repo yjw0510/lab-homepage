@@ -1,0 +1,35 @@
+{
+  "sceneId": "allatom.A7_hydration",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 438,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.079915,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.380076,
+      "y": 0.540422,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.079915,
+      "passed": true
+    }
+  ]
+}

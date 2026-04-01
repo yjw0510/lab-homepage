@@ -1,0 +1,239 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --background: hsl(220, 20%, 97%);
+  --foreground: hsl(220, 20%, 10%);
+  --primary: hsl(185, 80%, 35%);
+  --primary-light: hsl(185, 80%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(220, 20%, 10%);
+  --muted: hsl(220, 15%, 92%);
+  --muted-foreground: hsl(220, 10%, 40%);
+  --border: hsl(220, 15%, 88%);
+  --accent: hsl(185, 80%, 95%);
+  --accent-foreground: hsl(185, 80%, 25%);
+  --surface-raised: hsl(0, 0%, 100%);
+  --surface-sunken: hsl(220, 15%, 94%);
+
+  /* Schematic structural colors */
+  --sch-ink: #334155;
+  --sch-muted: #64748b;
+  --sch-bond: #2B2D42;
+  --sch-carbon: #6b7280;
+
+  /* Plot colors */
+  --plot-axis: #64748b;
+  --plot-label: #475569;
+  --plot-grid: #cbd5e1;
+  --plot-text: #64748b;
+  --plot-dot: #475569;
+  --plot-dim: #94a3b8;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: hsl(220, 25%, 7%);
+  --foreground: hsl(220, 10%, 90%);
+  --primary: hsl(185, 72%, 48%);
+  --primary-light: hsl(185, 72%, 58%);
+  --primary-foreground: hsl(220, 25%, 7%);
+  --card: hsl(220, 25%, 11%);
+  --card-foreground: hsl(220, 10%, 90%);
+  --muted: hsl(220, 20%, 16%);
+  --muted-foreground: hsl(220, 10%, 60%);
+  --border: hsl(220, 15%, 25%);
+  --accent: hsl(185, 60%, 14%);
+  --accent-foreground: hsl(185, 72%, 58%);
+  --surface-raised: hsl(220, 22%, 14%);
+  --surface-sunken: hsl(220, 28%, 5%);
+
+  /* Schematic structural colors — flipped for dark bg */
+  --sch-ink: #cbd5e1;
+  --sch-muted: #94a3b8;
+  --sch-bond: #94a3b8;
+  --sch-carbon: #9ca3af;
+
+  /* Plot colors */
+  --plot-axis: #57606b;
+  --plot-label: #c8d0db;
+  --plot-grid: #3d4450;
+  --plot-text: #b2bcc8;
+  --plot-dot: #f8fafc;
+  --plot-dim: #6f7a89;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --font-sans: var(--font-pretendard);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Scrollbar styling for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+/* Research scroll animations */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes signal {
+  0% { opacity: 0; stroke-dashoffset: 200; }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-signal {
+  stroke-dasharray: 200;
+  animation: signal 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scale-in,
+  .animate-fade-in,
+  .animate-pulse-slow,
+  .animate-signal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scroll reveal for research sections */
+.multiscale-reveal,
+.multiscale-card-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.multiscale-reveal.visible,
+.multiscale-card-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ruby term annotations (KR/EN) — superscript style */
+.term-ruby {
+  display: inline;
+}
+
+.term-ruby rt {
+  display: inline;
+  vertical-align: super;
+  font-size: 0.62em;
+  line-height: 0;
+  margin-left: 1px;
+  letter-spacing: 0.01em;
+  color: currentColor;
+  opacity: 0.6;
+  font-weight: 500;
+}
+
+.term-ruby rp {
+  display: none;
+}
+
+/* Hide scrollbar for mobile nav */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+.multiscale-molstar,
+.multiscale-molstar .msp-plugin,
+.multiscale-molstar .msp-layout-standard,
+.multiscale-molstar .msp-layout-static,
+.multiscale-molstar .msp-viewport,
+.multiscale-molstar canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.multiscale-molstar .msp-viewport {
+  background: #050510;
+}
+
+.multiscale-molstar .msp-layout-standard .msp-layout-top,
+.multiscale-molstar .msp-layout-standard .msp-layout-left,
+.multiscale-molstar .msp-layout-standard .msp-layout-right,
+.multiscale-molstar .msp-layout-standard .msp-layout-bottom {
+  display: none;
+}
+
+.multiscale-molstar .msp-no-webgl {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: radial-gradient(circle at top, rgba(17, 24, 39, 0.92), rgba(5, 5, 16, 0.98));
+  color: rgba(241, 245, 249, 0.9);
+  text-align: center;
+}
+
+.multiscale-molstar .msp-no-webgl a {
+  color: #60a5fa;
+}

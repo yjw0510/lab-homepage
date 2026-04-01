@@ -1,0 +1,24 @@
+{
+  "level": "meso",
+  "passed": true,
+  "checks": {
+    "mesoGeometry": {
+      "passed": true,
+      "duplexCount": 8,
+      "bpPerDuplex": 96,
+      "beadCount": 1536,
+      "minCenterDistance": 3.7218
+    },
+    "dnaTopology": {
+      "passed": true,
+      "duplexCount": 8,
+      "expectedRungBonds": 768,
+      "rungBonds": 768,
+      "expectedBackboneBonds": 1520,
+      "backboneBonds": 1520,
+      "isolatedBeads": 0,
+      "crossDuplexBonds": 0,
+      "twoStrandsPerDuplex": true
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "sceneId": "mlff.L5_forces",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "nonzero-force-count-min",
+      "count": 8,
+      "passed": true
+    },
+    {
+      "type": "arrow-direction-std-min",
+      "stdDeg": 37.6925,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.563496,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.506732,
+      "y": 0.506197,
+      "passed": true
+    },
+    {
+      "type": "arrow-orientation-spread",
+      "stdDeg": 51.9994,
+      "passed": true
+    }
+  ]
+}

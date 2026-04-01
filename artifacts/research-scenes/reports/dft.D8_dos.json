@@ -1,0 +1,41 @@
+{
+  "sceneId": "dft.D8_dos",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "dft-lumo-nonempty",
+      "vertexCount": 432260,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.354278,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.476691,
+      "y": 0.527942,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.018349,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.157645,
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "sceneId": "dft.D2_kinetic",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "atom-count-min",
+      "count": 58,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.024386,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.433942,
+      "y": 0.828378,
+      "passed": false
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.024386,
+      "passed": true
+    }
+  ]
+}

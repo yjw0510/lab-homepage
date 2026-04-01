@@ -1,0 +1,35 @@
+{
+  "sceneId": "mlff.L1_clouds",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 154,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.374531,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.505119,
+      "y": 0.519795,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.374531,
+      "passed": false
+    }
+  ]
+}

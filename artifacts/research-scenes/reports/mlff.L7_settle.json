@@ -1,0 +1,35 @@
+{
+  "sceneId": "mlff.L7_settle",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 154,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.361388,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.50728,
+      "y": 0.514333,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.361388,
+      "passed": false
+    }
+  ]
+}

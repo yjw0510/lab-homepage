@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-03-31T14:07:18.321Z",
+  "baseUrl": "http://localhost:3000",
+  "route": "/ko/research",
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "scenes": [
+    {
+      "sceneId": "allatom.A1_resolution",
+      "level": "allatom",
+      "stepIndex": 0,
+      "stepProgress": 0.5075000000000001,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A1_resolution.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A1_resolution.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A1_resolution.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A1_resolution.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A1_resolution.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A1_resolution.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/traces/allatom.A1_resolution.zip",
+      "debugState": {
+        "level": "allatom",
+        "levelIndex": 1,
+        "step": 0,
+        "stepCount": 5,
+        "levelProgress": 0.15999999999999995,
+        "stepProgress": 0.7999999999999997,
+        "masterProgress": 0.2518518518518518
+      },
+      "captureError": null
+    },
+    {
+      "sceneId": "allatom.A2_forcefield",
+      "level": "allatom",
+      "stepIndex": 1,
+      "stepProgress": 0.5625,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A2_forcefield.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A2_forcefield.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A2_forcefield.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A2_forcefield.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A2_forcefield.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A2_forcefield.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/traces/allatom.A2_forcefield.zip",
+      "debugState": {
+        "level": "allatom",
+        "levelIndex": 1,
+        "step": 1,
+        "stepCount": 5,
+        "levelProgress": 0.35999999999999993,
+        "stepProgress": 0.7999999999999996,
+        "masterProgress": 0.28888888888888886
+      },
+      "captureError": null
+    },
+    {
+      "sceneId": "allatom.A3_nonuniformity",
+      "level": "allatom",
+      "stepIndex": 2,
+      "stepProgress": 0.485,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A3_nonuniformity.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A3_nonuniformity.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A3_nonuniformity.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A3_nonuniformity.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A3_nonuniformity.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A3_nonuniformity.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/traces/allatom.A3_nonuniformity.zip",
+      "debugState": {
+        "level": "allatom",
+        "levelIndex": 1,
+        "step": 2,
+        "stepCount": 5,
+        "levelProgress": 0.5600000000000003,
+        "stepProgress": 0.8000000000000016,
+        "masterProgress": 0.32592592592592595
+      },
+      "captureError": null
+    },
+    {
+      "sceneId": "allatom.A4_ensemble",
+      "level": "allatom",
+      "stepIndex": 3,
+      "stepProgress": 0.4116666666666666,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A4_ensemble.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A4_ensemble.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A4_ensemble.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A4_ensemble.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A4_ensemble.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A4_ensemble.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/traces/allatom.A4_ensemble.zip",
+      "debugState": {
+        "level": "allatom",
+        "levelIndex": 1,
+        "step": 3,
+        "stepCount": 5,
+        "levelProgress": 0.7600000000000002,
+        "stepProgress": 0.8000000000000012,
+        "masterProgress": 0.362962962962963
+      },
+      "captureError": null
+    },
+    {
+      "sceneId": "allatom.A5_readout",
+      "level": "allatom",
+      "stepIndex": 4,
+      "stepProgress": 0.46,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A5_readout.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A5_readout.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/still/allatom.A5_readout.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A5_readout.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A5_readout.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/motion/allatom.A5_readout.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/research-scenes/traces/allatom.A5_readout.zip",
+      "debugState": {
+        "level": "allatom",
+        "levelIndex": 1,
+        "step": 4,
+        "stepCount": 5,
+        "levelProgress": 0.9600000000000002,
+        "stepProgress": 0.8000000000000007,
+        "masterProgress": 0.4
+      },
+      "captureError": null
+    }
+  ]
+}

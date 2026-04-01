@@ -1,0 +1,35 @@
+{
+  "sceneId": "allatom.A3_angles",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 13728,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.302906,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.457131,
+      "y": 0.507076,
+      "passed": true
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.0,
+      "passed": false
+    }
+  ]
+}

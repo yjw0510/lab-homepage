@@ -1,0 +1,106 @@
+{
+  "nav": {
+    "home": "Home",
+    "multiscale": "Multiscale",
+    "publications": "Publications",
+    "people": "People",
+    "cv": "CV",
+    "news": "News",
+    "funding": "Funding",
+    "contact": "Contact",
+    "topics": "Research Topics"
+  },
+  "topics": {
+    "title": "Research Topics",
+    "subtitle": "Thematic overview of our research directions and associated publications."
+  },
+  "home": {
+    "exploreMultiscale": "Explore Research",
+    "joinLab": "Join Our Lab",
+    "recentPublications": "Recent Publications",
+    "recentPublicationsSubtitle": "Selected recent work from our group.",
+    "viewAllPublications": "View all publications",
+    "labNews": "Lab News",
+    "labNewsSubtitle": "Latest updates from Yu Lab.",
+    "allNews": "All news"
+  },
+  "multiscale": {
+    "title": "Multiscale",
+    "subtitle": "Molecular dynamics, machine learning force fields, coarse-grained simulation, and quantum chemistry applied to soft matter and solution chemistry.",
+    "learnMore": "Learn more"
+  },
+  "publications": {
+    "title": "Publications",
+    "subtitle": "Peer-reviewed journal articles and preprints.",
+    "filterByYear": "Filter by Year",
+    "filterByTag": "Filter by Tag",
+    "allYears": "All Years",
+    "allTags": "All Tags",
+    "noResults": "No publications match the current filters.",
+    "preprint": "Preprint"
+  },
+  "people": {
+    "title": "People",
+    "subtitle": "Current lab members.",
+    "pi": "Principal Investigator",
+    "labMembers": "Lab Members",
+    "noMembers": "New members will be announced soon."
+  },
+  "news": {
+    "title": "News",
+    "subtitle": "Latest updates from our lab.",
+    "noNews": "No news yet."
+  },
+  "funding": {
+    "title": "Funding",
+    "subtitle": "Research grants and funding.",
+    "active": "Active",
+    "completed": "Completed",
+    "noGrants": "Funding information will be updated soon."
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Office location and contact information.",
+    "location": "Location",
+    "email": "Email",
+    "office": "Office"
+  },
+  "cv": {
+    "title": "Curriculum Vitae",
+    "subtitle": "Academic background and qualifications.",
+    "education": "Education",
+    "experience": "Experience",
+    "awards": "Awards",
+    "publications": "Selected Publications",
+    "skills": "Technical Skills",
+    "professional": "Professional Activities"
+  },
+  "recruitment": {
+    "title": "Join Our Lab",
+    "msPhdLabel": "MS / PhD Students",
+    "msPhdStatus": "TBA (Opening soon)",
+    "postdocLabel": "Postdoctoral Researchers",
+    "postdocStatus": "TBA (Opening soon)",
+    "undergradLabel": "Undergraduate Researchers",
+    "undergradStatus": "Welcome, contact us anytime",
+    "howToApply": "How to apply",
+    "howToApplyText": "Send your CV and a brief statement of research interests to:",
+    "fields": "Fields",
+    "fieldsText": "Chemistry, Chemical Engineering, Physics, Computer Science, etc."
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "allRights": "All rights reserved."
+  },
+  "common": {
+    "backTo": "Back to"
+  },
+  "site": {
+    "name": "Yu Lab",
+    "fullName": "Multiscale Molecular Computational Chemistry Lab",
+    "university": "Ajou University",
+    "departments": "School of Frontier Sciences / Department of Chemistry",
+    "description": "Computational chemistry lab at Ajou University studying nanoparticle self-assembly, water dynamics, and polymer mechanics through molecular simulation and machine learning force fields."
+  }
+}

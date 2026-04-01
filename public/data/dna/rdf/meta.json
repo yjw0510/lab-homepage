@@ -1,0 +1,16 @@
+{
+  "shellRadii": [
+    0.33000001311302185,
+    0.75
+  ],
+  "nBins": 206,
+  "maxRadius": 12.329999923706055,
+  "referenceIndex": 3926,
+  "boxDimensions": [
+    24.6513,
+    24.6513,
+    24.6513
+  ],
+  "nFrames": 500,
+  "nBeads": 8000
+}

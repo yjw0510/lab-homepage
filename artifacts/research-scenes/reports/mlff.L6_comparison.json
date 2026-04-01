@@ -1,0 +1,40 @@
+{
+  "sceneId": "mlff.L6_comparison",
+  "passed": true,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "nonzero-force-count-min",
+      "count": 8,
+      "passed": true
+    },
+    {
+      "type": "arrow-direction-std-min",
+      "stdDeg": 37.6925,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.244312,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.505572,
+      "y": 0.531281,
+      "passed": true
+    },
+    {
+      "type": "arrow-orientation-spread",
+      "stdDeg": 53.935,
+      "passed": true
+    }
+  ]
+}

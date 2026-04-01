@@ -1,0 +1,45 @@
+{
+  "sceneId": "meso.M6_settle",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 8000,
+      "passed": false
+    },
+    {
+      "type": "dna-duplex-count-min",
+      "duplexCount": 100,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.028681,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.510952,
+      "y": 0.66337,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.028681,
+      "passed": false
+    },
+    {
+      "type": "component-count-max",
+      "components": 31,
+      "passed": true
+    }
+  ]
+}

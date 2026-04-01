@@ -1,0 +1,36 @@
+{
+  "sceneId": "dft.D1_transition",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "skipped": true,
+      "reason": "subset metadata is not used for Mol* DFT assets",
+      "passed": true
+    },
+    {
+      "type": "atom-count-min",
+      "count": 58,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.019655,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.476975,
+      "y": 0.849812,
+      "passed": false
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.019655,
+      "passed": true
+    }
+  ]
+}

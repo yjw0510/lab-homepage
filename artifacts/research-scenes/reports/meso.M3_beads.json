@@ -1,0 +1,55 @@
+{
+  "sceneId": "meso.M3_beads",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 8000,
+      "passed": false
+    },
+    {
+      "type": "dna-duplex-count-min",
+      "duplexCount": 100,
+      "passed": true
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.029879,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.470723,
+      "y": 0.559694,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.029879,
+      "passed": false
+    },
+    {
+      "type": "color-presence",
+      "fraction": 0.007639,
+      "passed": true
+    },
+    {
+      "type": "edge-density-min",
+      "density": 0.000596,
+      "passed": false
+    },
+    {
+      "type": "component-count-max",
+      "components": 28,
+      "passed": true
+    }
+  ]
+}

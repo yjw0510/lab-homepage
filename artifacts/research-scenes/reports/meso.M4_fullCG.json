@@ -1,0 +1,40 @@
+{
+  "sceneId": "meso.M4_fullCG",
+  "passed": false,
+  "captureError": null,
+  "numericChecks": [
+    {
+      "type": "metadata-present",
+      "missing": [],
+      "passed": true
+    },
+    {
+      "type": "subset-size-min",
+      "count": 8000,
+      "passed": false
+    }
+  ],
+  "imageChecks": [
+    {
+      "type": "occupancy",
+      "fraction": 0.030809,
+      "passed": true
+    },
+    {
+      "type": "centroid",
+      "x": 0.618379,
+      "y": 0.558355,
+      "passed": true
+    },
+    {
+      "type": "occupancy",
+      "fraction": 0.030809,
+      "passed": false
+    },
+    {
+      "type": "component-count-max",
+      "components": 23,
+      "passed": true
+    }
+  ]
+}
