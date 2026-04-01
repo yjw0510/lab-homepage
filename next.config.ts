@@ -9,6 +9,7 @@ try {
 
 const nextConfig: NextConfig = {
   output: "export",
+  basePath: "/lab-homepage",
   allowedDevOrigins: [localIp],
   images: {
     loader: "custom",
