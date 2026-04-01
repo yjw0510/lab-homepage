@@ -42,3 +42,8 @@ next-env.d.ts
 
 # local private files (not tracked by git)
 /local/
+
+# Claude Code configuration (local only)
+CLAUDE.md
+AGENTS.md
+/.claude/
