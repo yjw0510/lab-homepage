@@ -60,7 +60,7 @@ export function HeroSection({
 
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href={`/${lang}/multiscale`}
+            href={`/${lang}/research-topics`}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary-light transition-colors"
           >
             {dict.home.exploreMultiscale}
