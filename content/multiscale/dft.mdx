@@ -1,7 +1,7 @@
 ---
-title: "Quantum Chemistry (DFT)"
-shortDescription: "First-principles electronic structure calculations that supply reference data for machine learning force fields and validate coarse-grained models"
-shortDescriptionKo: "머신러닝 역장의 참조 데이터를 생성하고 조대화 모형을 검증하는 제일원리 전자구조 계산"
+title: "First-Principles Calculations (DFT)"
+shortDescription: "Rigorously computing electronic structure at the quantum-mechanical level to obtain properties such as band gaps, and to determine interatomic interactions and molecular geometries with the highest fidelity"
+shortDescriptionKo: "양자역학 수준에서 전자구조를 엄밀하게 계산하여 밴드 갭과 같은 유용한 전자구조적 성질을 얻어내고 원자간 상호작용 및 분자의 구조를 가장 엄격하게 얻는데 사용한다"
 icon: "Orbit"
 color: "#f97316"
 order: 4
@@ -9,33 +9,33 @@ scale: "~0.1 – 1 nm"
 contentKo: |
   ## 개요
 
-  밀도범함수이론(DFT)은 경험적 매개변수에 의존하지 않고 양자역학의 기본 방정식으로 분자·물질 내 전자의 거동을 계산한다. DFT를 사용하여 머신러닝 역장 훈련용 참조 데이터를 생성하고, 단순한 모형이 포착하지 못하는 전자적 효과를 연구한다: 초임계수에서의 결합 절단과 형성, 이온과 주변 물 분자의 배위, 액체와 고체를 결합시키는 분자 간 약한 인력(분산 상호작용) 등이 해당된다. 조대화 모형의 검증에서도 DFT가 정확도 기준이 된다.
+  밀도범함수이론(DFT)은 경험적 매개변수에 의존하지 않고 양자역학의 기본 방정식으로 분자·물질 내 전자의 거동을 계산한다. DFT를 사용하여 머신러닝 역장 훈련용 참조 데이터를 생성하고, 단순한 모형이 포착하지 못하는 전자적 효과를 연구한다: 초임계수에서의 결합 절단과 형성, 이온과 주변 물 분자의 배위, 액체와 고체를 결합시키는 분자 간 약한 인력(분산 상호작용) 등이 해당된다.
 
   ## 현재 연구
 
   - **참조 데이터 생성**: 머신러닝 역장 훈련 데이터셋 구축을 위한 체계적 양자역학 계산. 수용액계, 전해질, 유기 분자 포함
   - **반응계 전자구조**: 초임계수 환경에서 화학 결합이 끊어지고 형성되는 과정 연구. 반응 중 전자 재배열이 고전 역장을 부적합하게 만드는 영역
-  - **벤치마킹**: 일상적 사용에는 비용이 과다하지만 핵심 시험계에 확정적 참조값을 제공하는 고정확도 양자화학 방법(결합 클러스터 이론, 섭동 이론)에 대해 머신러닝 역장을 검증
+  - **벤치마킹**: 일상적 사용에는 비용이 과다하지만 핵심 시험계에 확정적 참조값을 제공하는 고정확도 ab initio 방법(결합 클러스터 이론, 섭동 이론)에 대해 머신러닝 역장을 검증
   - **용매화 열역학**: 이온이 물에 녹을 때 방출·흡수되는 에너지와 물 분자의 배열 계산. 전해질 화학 이해의 기본량
 
   ## 방법론
 
   두 가지 상보적 전산 접근을 사용한다. 벌크 액체와 고체-액체 계면 같은 주기계에는 평면파 DFT 코드(VASP, Quantum ESPRESSO)를, 분자 수준 계산에는 국소 기저 코드(Gaussian, ORCA)를 사용한다. 양쪽 모두 분산 보정(D3, D4, TS), 즉 표준 DFT 근사가 과소평가하는 경향이 있는 분자 간 약한 장거리 인력을 보정하는 경험적 보정항을 포함한다.
 
-  ## 다중스케일 체계에서의 역할
+  ## 멀티스케일 체계에서의 역할
 
   DFT가 생성한 참조 데이터는 DFT → MLFF → All-atom MD → CG-MD/DPD 순서로 시뮬레이션 계층 전체에 전파된다.
 ---
 
 ## Overview
 
-Density functional theory (DFT) calculates the behavior of electrons in molecules and materials from the fundamental equations of quantum mechanics, without relying on empirical parameters. We use DFT to generate the reference data that trains our machine learning force fields, and to study electronic effects that simpler models cannot capture: bond breaking and formation in supercritical water, how ions coordinate with surrounding water molecules, and the weak attractive forces (dispersion interactions) between molecules that hold liquids and solids together. DFT is also the accuracy benchmark against which we validate our coarse-grained models.
+Density functional theory (DFT) calculates the behavior of electrons in molecules and materials from the fundamental equations of quantum mechanics, without relying on empirical parameters. We use DFT to generate the reference data that trains our machine learning force fields, and to study electronic effects that simpler models cannot capture: bond breaking and formation in supercritical water, how ions coordinate with surrounding water molecules, and the weak attractive forces (dispersion interactions) between molecules that hold liquids and solids together.
 
 ## Current Focus
 
 - **Reference data generation**: Systematic quantum-mechanical calculations to build training datasets for machine learning force fields, covering aqueous systems, electrolytes, and organic molecules
 - **Electronic structure of reactive systems**: Studying how chemical bonds break and form in supercritical water environments, where the rearrangement of electrons during reaction makes classical force fields inadequate
-- **Benchmarking**: Validating machine learning force fields against high-accuracy quantum chemistry methods (coupled-cluster theory, perturbation theory) that are too expensive for routine use but provide definitive reference values for critical test cases
+- **Benchmarking**: Validating machine learning force fields against high-accuracy ab initio methods (coupled-cluster theory, perturbation theory) that are too expensive for routine use but provide definitive reference values for critical test cases
 - **Solvation thermodynamics**: Calculating how much energy is released or absorbed when ions dissolve in water and how water molecules arrange around them, fundamental quantities for understanding electrolyte chemistry
 
 ## Methods

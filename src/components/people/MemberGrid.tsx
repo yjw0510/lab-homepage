@@ -5,23 +5,16 @@ import type { Person } from "@/types/person";
 export function MemberGrid({
   members,
   contactHref,
+  noMembersText,
 }: {
   members: Person[];
   contactHref: string;
+  noMembersText: string;
 }) {
   if (members.length === 0) {
     return (
       <div className="text-center py-12 px-4 rounded-xl bg-card border border-border">
-        <p className="text-lg font-medium text-foreground mb-2">
-          We are recruiting!
-        </p>
-        <p className="text-muted-foreground">
-          Interested in joining our lab? Visit the{" "}
-          <Link href={contactHref} className="text-primary hover:text-primary-light transition-colors">
-            Contact
-          </Link>{" "}
-          page for details on open positions.
-        </p>
+        <p className="text-muted-foreground">{noMembersText}</p>
       </div>
     );
   }

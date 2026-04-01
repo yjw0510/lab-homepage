@@ -41,7 +41,9 @@ export function HeroSection({
     <section className="relative h-[85vh] min-h-[480px] sm:min-h-[600px] flex items-center justify-center overflow-hidden bg-background">
       {mounted &&
         (isMobile ? (
-          <AtomSimulation particleCount={20} interactive={false} />
+          <div className="absolute inset-0">
+            <AtomSimulation particleCount={20} interactive={false} />
+          </div>
         ) : (
           <MoleculeHero />
         ))}
@@ -59,7 +61,7 @@ export function HeroSection({
           {dict.site.description}
         </p>
 
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="mt-8 flex flex-col items-center sm:flex-row gap-4 justify-center">
           <Link
             href={`/${lang}/research-topics`}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary-light transition-colors"

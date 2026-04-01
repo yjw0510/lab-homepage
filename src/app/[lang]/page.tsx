@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: "Yu Lab | Multiscale Molecular Computational Chemistry",
     description:
       "Computational chemistry research lab at Ajou University studying molecular phenomena across scales.",
-    url: "https://yulab.com",
+    url: "https://yu-mmcc.org",
     type: "website",
   },
 };

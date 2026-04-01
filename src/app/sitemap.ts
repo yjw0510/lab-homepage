@@ -4,7 +4,7 @@ import { getAllPublications } from "@/lib/publications";
 
 export const dynamic = "force-static";
 
-const BASE_URL = "https://yulab.com";
+const BASE_URL = "https://yu-mmcc.org";
 const locales = ["en", "ko"];
 
 export default function sitemap(): MetadataRoute.Sitemap {

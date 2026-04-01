@@ -44,29 +44,8 @@ export function PIProfile({ person }: { person: Person }) {
           <span className="block">{person.university}</span>
         </div>
 
-        <p className="mt-4 text-foreground leading-relaxed">{person.bio}</p>
-
-        {/* Research interests */}
-        {person.researchInterests && (
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold text-foreground mb-2">
-              Research Interests
-            </h3>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-              {person.researchInterests.map((interest) => (
-                <span
-                  key={interest}
-                  className="px-3 py-1 text-sm rounded-full bg-accent text-accent-foreground"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Links */}
-        <div className="mt-4 flex flex-wrap gap-4 text-sm justify-center md:justify-start">
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm justify-center md:justify-start">
           {person.email && (
             <a
               href={`mailto:${person.email}`}

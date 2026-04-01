@@ -16,7 +16,6 @@ const navKeyMap: Record<string, keyof Dictionary["nav"]> = {
   "/research-topics": "topics",
   "/publications": "publications",
   "/people": "people",
-  "/cv": "cv",
   "/news": "news",
   "/funding": "funding",
   "/contact": "contact",

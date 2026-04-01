@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Yu Lab",
   fullName: "Multiscale Molecular Computational Chemistry Lab",
-  nameKo: "다중스케일 분자 전산화학 연구실",
+  nameKo: "멀티스케일 분자 전산화학 연구실",
   university: "Ajou University",
   universityKo: "아주대학교",
   departments: [
@@ -9,8 +9,8 @@ export const siteConfig = {
     { name: "Department of Chemistry", nameKo: "화학과" },
   ],
   description:
-    "Computational chemistry lab at Ajou University studying nanoparticle self-assembly, water dynamics, and polymer mechanics through molecular simulation and machine learning force fields.",
-  url: "https://yulab.com",
+    "Multiscale physical chemistry of solutions and nanomaterials through machine learning and computational simulation",
+  url: "https://yu-mmcc.org",
   email: "jiwoongs1492@ajou.ac.kr",
   location: {
     building: "Woncheon Hall 218",

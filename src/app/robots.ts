@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://yulab.com/sitemap.xml",
+    sitemap: "https://yu-mmcc.org/sitemap.xml",
   };
 }
