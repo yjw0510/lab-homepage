@@ -58,9 +58,9 @@ Classical molecular simulations model water as rigid charged particles connected
 The same approach reveals unexpected mechanisms in ion dissolution. When trivalent aluminum ions dissolve, the entering water molecule arrives not from the nearest surrounding water layer but from farther out, guided by a synchronized motion of already-coordinated molecules. We also study how water responds to electromagnetic radiation across the microwave-to-terahertz spectrum, and how organic molecules decompose in supercritical water, water above 374 °C and 22 MPa where it becomes a medium capable of breaking down organic waste through radical chemistry.`,
     descriptionKo: `물은 수동적인 용매가 아니다. 이온이 녹으면 수소결합 네트워크, 즉 액체 물에 특이한 성질을 부여하는 물 분자 사이의 약한 인력 그물을 재조직한다. 이 재조직은 물의 열전도, 용질 이동 속도, 전기장에 대한 응답을 바꾼다. 그 효과는 이온마다 다르다. 어떤 이온은 국소 물 질서를 강화하고 분자 운동을 늦추는 반면, 어떤 이온은 질서를 흐트러뜨리며 운동을 빠르게 하기도 한다.
 
-고전적 분자 시뮬레이션은 물을 스프링으로 연결된 강체 점전하로 다루는데, 여러 목적에 유용하지만 실험과 맞는 수준에서 염 종류 간 차이를 구별하지 못한다. 양자역학 계산으로 훈련해 분자 상호작용을 예측하는 전산 모형인 신경망 역장은 염 종류에 따른 물 수송의 실험적 차이를 재현하고, 그 차이가 물 분자의 배열이 아니라 움직임에서 비롯됨을 밝혀낸다. 서로 다른 이온 주변의 정적 구조는 거의 동일하지만, 동역학은 질적으로 다르다.
+고전적 분자 시뮬레이션은 물을 스프링으로 연결된 강체 점전하로 다루는데, 여러 목적에 유용하지만 실험과 맞는 수준에서 염 종류 간 차이를 구별하지 못한다. 양자역학 계산으로 훈련해 분자 상호작용을 예측하는 전산 모형인 신경망 역장은 염 종류에 따른 물 수송의 실험적 차이를 재현하고, 그 차이가 물 분자의 움직임에서 비롯됨을 밝혀낸다. 서로 다른 이온 주변의 정적 구조는 거의 동일하지만, 동역학은 질적으로 다르다.
 
-같은 접근으로 이온 용해의 예상치 못한 메커니즘도 드러난다. 3가 알루미늄 이온이 용해될 때, 들어오는 물 분자는 가장 가까운 물 층이 아니라 더 먼 곳에서, 이미 배위된 분자의 동기화된 운동에 이끌려 도달한다. 마이크로파에서 테라헤르츠까지의 전자기 복사에 대한 물의 응답, 그리고 초임계수(374 °C, 22 MPa 이상에서 라디칼 화학으로 유기 폐기물을 분해할 수 있는 매체)에서의 유기 분자 분해도 연구한다.`,
+같은 접근으로 이온 용해의 예상치 못한 메커니즘도 드러난다. 3가 알루미늄 이온이 용해될 때, 들어오는 물 분자는 가장 가까운 물 층을 건너뛰고 더 먼 곳에서, 이미 배위된 분자의 동기화된 운동에 이끌려 도달한다. 마이크로파에서 테라헤르츠까지의 전자기 복사에 대한 물의 응답, 그리고 초임계수(374 °C, 22 MPa 이상에서 라디칼 화학으로 유기 폐기물을 분해할 수 있는 매체)에서의 유기 분자 분해도 연구한다.`,
     icon: "Droplets",
     color: "#3b82f6",
     gridSpan: [1, 1],
@@ -161,7 +161,7 @@ PLGA-PEG-PLGA 삼중블록 공중합체 기반 온도감응성 하이드로겔�
 - **Ab initio explanation of operando conditions**: Most quantum-mechanical simulations assume zero temperature and vacuum, conditions far from reality. We use first-principles calculations to model chemical processes under the temperatures, pressures, and electric fields present during actual device operation.
 - **Surface reactions at liquid metal interfaces**: Studying reactivity at the boundary between liquid metals and their environment, relevant to heterogeneous catalysis, corrosion, and emerging liquid metal battery technologies.`,
     descriptionKo: `- **HfO₂ 강유전 스위칭**: 하프늄 산화물은 외부 전기장으로 전기 분극을 반전시킬 수 있는 강유전 물질로, 나노 규모 스위치처럼 작동한다. 기존 메모리 커패시터 유전체의 대체재이자 뉴로모픽(뇌 모사) 컴퓨팅 소자 후보로 검토되고 있으며, 이 분극 스위칭의 분자 수준 메커니즘을 연구한다.
-- **구속 환경에서의 그로투스 메커니즘**: 물 속 양성자는 온전한 분자로 이동하는 대신 수소결합 사슬을 따라 호핑으로 이동할 수 있는데, 이 릴레이 과정을 그로투스 메커니즘이라 한다. 물이 나노미터 규모 채널에 구속될 때 이 수송이 어떻게 변하는지 연구한다. 연료전지 막과 생물학적 이온 채널에 직결되는 문제이다.
+- **구속 환경에서의 그로투스 메커니즘**: 물 속 양성자는 수소결합 사슬을 따라 호핑으로 이동할 수 있다. 분자 하나가 통째로 움직이지 않고 결합을 따라 양성자만 차례로 전달되는 릴레이 과정이며, 이를 그로투스 메커니즘이라 한다. 물이 나노미터 규모 채널에 구속될 때 이 수송이 어떻게 변하는지 연구한다. 연료전지 막과 생물학적 이온 채널에 직결되는 문제이다.
 - **기계학습 조대화 힘장**: 상세한 원자 수준 시뮬레이션에서 단순화된 입자 간 상호작용을 직접 학습하는 신경망 모형 개발. 원자 수준 물리의 정확도를 유지하면서 더 큰 시스템을 더 긴 시간에 걸쳐 시뮬레이션할 수 있게 한다.
 - **작동 조건의 제일원리 설명**: 대부분의 양자역학 시뮬레이션은 0 K 진공을 가정하며, 이는 현실과 동떨어진 조건이다. 제일원리 계산으로 실제 소자 작동 중의 온도, 압력, 전기장 하에서 일어나는 화학 과정을 모형화한다.
 - **액체 금속 계면에서의 표면 반응**: 액체 금속과 주변 환경 사이 경계에서의 반응성 연구. 비균일 촉매, 부식, 신규 액체 금속 배터리 기술과 맞닿아 있다.`,
