@@ -39,7 +39,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         title: { en: "Coarse-Graining", ko: "조대화" },
         concept: {
           en: "Coarse-graining replaces groups of atoms with simplified particles called beads, each representing a cluster of atoms that move together. The colored envelopes on screen show how local chemical structure maps onto these beads: the fine atomic detail is compressed, but the overall chain connectivity and shape are preserved. Coarse-graining is not a loss of information so much as a deliberate change of resolution. By discarding fast atomic vibrations that do not affect large-scale structure, the model becomes efficient enough to simulate the slow, collective organization that matters at mesoscopic length scales. The steps that follow illustrate this idea through dissipative particle dynamics (DPD), one of several coarse-grained frameworks used in this lab alongside MARTINI and Kremer-Grest models.",
-          ko: "조대화란 함께 움직이는 원자 묶음을 비드(bead)라 부르는 단순화된 입자 하나로 치환하는 것이다. 화면에서 각 비드를 감싸는 색이 입혀진 외피는 국소적 화학 구조가 비드 하나로 어떻게 대응되는지를 나타낸다. 원자 수준의 세부 구조는 압축되지만 사슬의 연결 관계와 전체 형태는 그대로 남는다. 조대화가 정보를 잃는 것은 아니다. 해상도를 의도적으로 낮추는 것이다. 대규모 구조에 영향을 주지 않는 빠른 원자 진동을 생략함으로써, 메조스케일에서 중요한 느린 집단적 배열을 효율적으로 시뮬레이션할 수 있다. 이어지는 단계들은 이 개념을 소산 입자 동역학(DPD)을 통해 설명하는데, DPD는 이 연구실에서 MARTINI, Kremer-Grest 모형과 함께 사용하는 여러 조대화 체계 중 하나이다.",
+          ko: "조대화란 함께 움직이는 원자 묶음을 비드(bead)라 부르는 단순화된 입자 하나로 치환하는 것이다. 화면에서 각 비드를 감싸는 색이 입혀진 외피는 국소적 화학 구조가 비드 하나로 어떻게 대응되는지를 나타낸다. 원자 수준의 세부 구조는 압축되지만 사슬의 연결 관계와 전체 형태는 그대로 남는다. 조대화가 정보를 잃는 것은 아니다. 해상도를 의도적으로 낮추는 것이다. 대규모 구조에 영향을 주지 않는 빠른 원자 진동을 생략함으로써, 메조스케일에서 중요한 느린 집단적 배열을 효율적으로 시뮬레이션할 수 있다. 이어지는 단계들은 소산 입자 동역학(DPD)을 예로 들어 이 개념을 풀어낸다. DPD는 이 연구실에서 MARTINI, Kremer-Grest 모형과 함께 쓰는 여러 조대화 체계 중 하나이다.",
         },
         plotType: null,
         paperSlug: null,
@@ -127,7 +127,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         title: { en: "Force-Field Philosophy", ko: "힘장의 철학" },
         concept: {
           en: "The atomistic trajectory is not governed by a storyboard but by a classical potential. Bonded terms (stretching, bending, torsion) keep chemically meaningful geometry intact, while non-bonded terms (van der Waals attraction, electrostatic repulsion) decide how molecules pack, repel, and orient around each other. All terms are evaluated together at every time step. Atomistic motion is best understood through this energy decomposition: each force has a physical origin, and the trajectory emerges from their combined action.",
-          ko: "전원자 궤적은 미리 짜인 장면이 아니라 고전 퍼텐셜에 의해 결정된다. 결합항(신축, 굽힘, 비틀림)은 화학적으로 의미 있는 기하 구조를 유지하고, 비결합항(반데르발스 인력, 정전기적 반발)은 분자들이 어떻게 밀집하고, 밀어내고, 서로에 대해 배향하는지를 결정한다. 모든 항은 매 시간 단계마다 함께 평가된다. 전원자 운동은 이 에너지 분해를 통해 이해할 수 있다. 각 힘에는 물리적 기원이 있고, 궤적은 그 힘들의 결합된 작용으로부터 나온다.",
+          ko: "전원자 궤적을 좌우하는 것은 미리 짜인 장면이 아니라 고전 퍼텐셜이다. 결합항(신축, 굽힘, 비틀림)은 화학적으로 의미 있는 기하 구조를 유지하고, 비결합항(반데르발스 인력, 정전기적 반발)은 분자들이 어떻게 밀집하고, 밀어내고, 서로를 향해 배향하는지를 결정한다. 모든 항은 매 시간 단계마다 함께 평가된다. 전원자 운동은 이러한 에너지 분해로 이해된다. 각 힘에는 물리적 기원이 있고, 궤적은 그 힘들이 함께 작용한 결과로 나타난다.",
         },
         plotType: "allatomForceField",
         paperSlug: null,
@@ -184,7 +184,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         title: { en: "Learned Potential", ko: "학습된 퍼텐셜" },
         concept: {
           en: "A classical force field assigns interactions by type: one equation for bonds, another for angles, another for non-bonded contacts. A machine learning force field takes a different approach. It learns a single mapping from local atomic geometry to quantum-derived energy and force values, without separating the contribution by category. The input is geometry; the output is a potential energy surface trained on quantum-mechanical reference data. Atomistic resolution is preserved, but the fixed analytic forms of classical force fields are replaced with a trainable local representation.",
-          ko: "고전 역장은 상호작용을 유형별로 지정한다. 결합에 하나의 방정식, 각도에 다른 방정식, 비결합 접촉에 또 다른 방정식을 쓴다. 머신러닝 역장은 다른 접근을 취한다. 기여를 유형별로 분리하지 않고, 국소적 원자 기하 구조로부터 양자역학 기반의 에너지와 힘 값으로의 단일 매핑을 학습한다. 입력은 기하 구조이고 출력은 양자역학 참조 데이터로 훈련된 퍼텐셜 에너지면이다. 전원자 해상도는 유지하되, 고전 역장의 고정된 해석적 함수 형태를 학습 가능한 국소 표현으로 대체한다.",
+          ko: "고전 역장은 상호작용을 유형별로 지정한다. 결합에 하나의 방정식, 각도에 다른 방정식, 비결합 접촉에 또 다른 방정식을 쓴다. 머신러닝 역장은 방식이 다르다. 기여를 유형별로 나누지 않고, 국소적 원자 기하 구조에서 양자역학 기반의 에너지와 힘 값으로 이어지는 단일 매핑을 학습한다. 입력은 기하 구조이고 출력은 양자역학 참조 데이터로 훈련된 퍼텐셜 에너지면이다. 전원자 해상도는 유지하되, 고전 역장의 고정된 해석적 함수 형태를 학습 가능한 국소 표현으로 대체한다.",
         },
         plotType: null,
         paperSlug: null,
@@ -290,7 +290,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         title: { en: "Nuclear Attraction", ko: "핵 인력" },
         concept: {
           en: "The external potential $V_{\\mathrm{ext}}$ is the attraction exerted by the nuclei on the electrons. It is fixed directly by the molecular geometry and nuclear charges. Move the atoms, and this term changes with them. That is why electronic structure and molecular geometry are tightly coupled in first-principles calculations.",
-          ko: "외부 퍼텐셜 $V_{\\mathrm{ext}}$는 원자핵이 전자에 가하는 인력이다. 분자 기하 구조와 핵 전하에 의해 직접 정해진다. 원자 위치를 바꾸면 이 항도 함께 바뀐다. 제일원리 계산에서 전자 구조와 분자 기하 구조가 강하게 결합되어 있는 이유이다.",
+          ko: "외부 퍼텐셜 $V_{\\mathrm{ext}}$는 원자핵이 전자에 가하는 인력이다. 분자 기하 구조와 핵 전하가 이 값을 직접 정한다. 원자 위치를 바꾸면 이 항도 함께 바뀐다. 제일원리 계산에서 전자 구조와 분자 기하 구조가 강하게 결합되어 있는 이유이다.",
         },
         plotType: null,
         paperSlug: null,

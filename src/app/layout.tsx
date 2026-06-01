@@ -44,7 +44,7 @@ export default function RootLayout({
       className={`${pretendard.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col bg-background text-foreground break-keep">
         <Script
           id="theme-init"
           strategy="beforeInteractive"
