@@ -37,8 +37,9 @@ export function MobileBottomSheet({ snap, onSnapChange, header, children }: Prop
     const ro = new ResizeObserver(([entry]) => {
       setContainerH(entry.contentRect.height);
     });
+    // ResizeObserver delivers an initial callback on observe(), which
+    // performs the first measurement.
     ro.observe(parent);
-    setContainerH(parent.getBoundingClientRect().height);
     return () => ro.disconnect();
   }, []);
 
@@ -107,7 +108,7 @@ export function MobileBottomSheet({ snap, onSnapChange, header, children }: Prop
   return (
     <motion.div
       ref={sheetRef}
-      className="absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-2xl border-t border-white/10 bg-[#050913] shadow-[0_-8px_32px_rgba(0,0,0,0.4)]"
+      className="dark absolute inset-x-0 bottom-0 z-20 flex flex-col border-t border-border-strong bg-surface-sunken shadow-[0_-8px_32px_oklch(14%_0.014_268_/_0.24)]"
       style={{
         height: containerH ? `${sheetH}px` : `${FULL_RATIO * 100}vh`,
         y,
@@ -129,7 +130,7 @@ export function MobileBottomSheet({ snap, onSnapChange, header, children }: Prop
         className="flex-shrink-0 cursor-grab active:cursor-grabbing"
       >
         <div className="flex justify-center pt-2 pb-1">
-          <div className="h-1 w-9 rounded-full bg-white/25" />
+          <div className="h-[2px] w-10 bg-border-strong" />
         </div>
         {header}
       </div>

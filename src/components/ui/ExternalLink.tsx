@@ -16,12 +16,12 @@ export function ExternalLink({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "inline-flex items-center gap-1 text-primary hover:text-primary-light transition-colors",
+        "inline-flex items-center gap-1 text-accent-ink underline decoration-[1px] underline-offset-[3px] transition-colors hover:text-primary",
         className
       )}
     >
       {children}
-      <ExternalLinkIcon className="w-3.5 h-3.5" />
+      <ExternalLinkIcon className="h-3.5 w-3.5" strokeWidth={1.75} />
     </a>
   );
 }

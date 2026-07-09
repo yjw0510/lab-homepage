@@ -1,47 +1,61 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
-import { formatDate, getCategoryColor } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import type { NewsItem } from "@/types/news";
 
-export function LabNews({ news, lang, dict }: { news: NewsItem[]; lang: string; dict: { home: { labNews: string; labNewsSubtitle: string; allNews: string } } }) {
-  return (
-    <section className="py-12 sm:py-20 px-4">
-      <div className="max-w-6xl mx-auto">
-        <SectionHeading title={dict.home.labNews} subtitle={dict.home.labNewsSubtitle} />
+export function LabNews({
+  news,
+  lang,
+  dict,
+}: {
+  news: NewsItem[];
+  lang: string;
+  dict: { home: { labNews: string; labNewsSubtitle: string; allNews: string } };
+}) {
+  if (news.length === 0) return null;
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  return (
+    <section className="py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
+        <SectionHeading
+          title={dict.home.labNews}
+          subtitle={dict.home.labNewsSubtitle}
+        />
+
+        <div>
           {news.map((item) => (
             <div
               key={item.slug}
-              className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-all"
+              className="grid grid-cols-12 gap-x-6 gap-y-2 border-t border-border py-5"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <Badge className={getCategoryColor(item.category)}>
+              {/* Margin column: mono date + category */}
+              <div className="col-span-12 sm:col-span-3">
+                <p className="type-mono-meta text-[12px] text-muted-foreground">
+                  {formatDate(item.date, lang)}
+                </p>
+                <p className="type-mono-meta mt-0.5 text-[12px] text-muted-foreground">
                   {item.category}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(item.date)}
-                </span>
+                </p>
               </div>
-              <h3 className="font-semibold text-foreground mb-2">
-                {(lang === "ko" && item.titleKo) ? item.titleKo : item.title}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {(lang === "ko" && item.summaryKo) ? item.summaryKo : item.summary}
-              </p>
+
+              <div className="col-span-12 min-w-0 sm:col-span-9">
+                <h3 className="font-[600] text-foreground">
+                  {lang === "ko" && item.titleKo ? item.titleKo : item.title}
+                </h3>
+                <p className="mt-1 max-w-[34rem] break-keep text-sm leading-relaxed text-muted-foreground">
+                  {lang === "ko" && item.summaryKo ? item.summaryKo : item.summary}
+                </p>
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-8 text-center">
+        <div className="border-t border-border pt-5">
           <Link
             href={`/${lang}/news`}
-            className="inline-flex items-center gap-2 text-primary hover:text-primary-light font-medium transition-colors"
+            className="inline-flex min-h-11 items-center text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
           >
             {dict.home.allNews}
-            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

@@ -56,8 +56,8 @@ function ReducedMotionLayout({
   lang: string;
 }) {
   return (
-    <div className="bg-gray-950 min-h-screen">
-      <div className="h-[40vh] flex items-center justify-center bg-gradient-to-b from-[#050510] to-gray-950">
+    <div className="bg-[#050510] min-h-screen">
+      <div className="h-[40vh] flex items-center justify-center bg-[#050510]">
         <div className="text-center px-4">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
             {lang === "ko" ? "다중 스케일 분자 시뮬레이션" : "Multiscale Molecular Simulation"}
@@ -72,11 +72,11 @@ function ReducedMotionLayout({
           const pubs = publications[area.slug] || [];
           return (
             <section key={area.slug}>
-              <h2 className="text-3xl font-bold mb-4" style={{ color: LEVELS[i]?.color }}>
+              <h2 className="text-3xl font-bold mb-4 text-white/95">
                 {area.title}
               </h2>
               {area.scale && (
-                <span className="inline-block px-3 py-1 rounded-full text-xs bg-white/10 text-gray-300 mb-4">
+                <span className="type-mono-meta mb-4 inline-block border border-white/15 px-3 py-1 text-xs text-white/70">
                   {area.scale}
                 </span>
               )}
@@ -89,7 +89,6 @@ function ReducedMotionLayout({
                     <PaperCard
                       key={pub.slug}
                       publication={pub}
-                      accentColor={LEVELS[i]?.color || "#888"}
                       lang={lang}
                     />
                   ))}
@@ -324,7 +323,7 @@ export function MultiscalePinned({
   }, [mobileSheetSnap, isMobile]);
 
   if (!mounted) {
-    return <div className="min-h-screen bg-gray-950" />;
+    return <div className="min-h-screen bg-[#050510]" />;
   }
 
   if (reducedMotion) {
@@ -372,9 +371,9 @@ export function MultiscalePinned({
       }`}
       data-testid="multiscale-scene-title"
     >
-      <div className={`${isAllAtomLevel ? "max-w-[28rem] rounded-2xl border border-cyan-400/16 bg-slate-950/54 px-4 py-3 shadow-[0_18px_56px_rgba(0,0,0,0.34)] backdrop-blur-md" : ""}`}>
+      <div className={`${isAllAtomLevel ? "max-w-[28rem] border border-white/12 bg-[#050510]/85 px-4 py-3" : ""}`}>
         {isAllAtomLevel && (
-          <div className="mb-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-300/78">
+          <div className="type-mono-meta mb-1 text-[0.68rem] text-white/60">
             {level.label[lang as "en" | "ko"] ?? level.label.en}
           </div>
         )}
@@ -383,8 +382,8 @@ export function MultiscalePinned({
             isAllAtomLevel
               ? "text-[1.45rem] leading-tight sm:text-[1.75rem]"
               : isMobile
-                ? "rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-xl shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md"
-                : "rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-2xl shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md sm:text-3xl"
+                ? "border border-white/10 bg-[#050510]/85 px-3 py-2 text-xl"
+                : "border border-white/10 bg-[#050510]/85 px-4 py-3 text-2xl sm:text-3xl"
           }`}
         >
           {stepConfig?.title?.[lang as "en" | "ko"] ?? stepConfig?.title?.en ?? ""}
@@ -409,7 +408,7 @@ export function MultiscalePinned({
       : "85%";
 
     return (
-      <div className="relative bg-gray-950 overflow-hidden pt-16" style={{ height: "100vh" }}>
+      <div className="relative bg-[#050510] overflow-hidden pt-16" style={{ height: "100vh" }}>
         {/* Viewer — hero, resizes to stay above sheet */}
         <div
           className="absolute inset-x-0 top-16 transition-[bottom] duration-300 ease-out"
@@ -483,7 +482,7 @@ export function MultiscalePinned({
 
   // ── DESKTOP / TABLET LAYOUT (unchanged) ──
   return (
-    <div className="bg-gray-950 overflow-hidden pt-16" style={{ height: "100vh" }}>
+    <div className="bg-[#050510] overflow-hidden pt-16" style={{ height: "100vh" }}>
       <div
         data-testid="multiscale-stage-shell"
         className="h-full overflow-hidden"
@@ -565,7 +564,7 @@ export function MultiscalePinned({
                 <button
                   key={action.key}
                   type="button"
-                  className="flex items-center justify-center gap-2 border border-white/12 bg-slate-950/78 text-sm font-medium text-white/92 shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-white/22 hover:bg-slate-900/86 h-11 min-w-11 rounded-2xl px-3"
+                  className="flex h-11 min-w-11 items-center justify-center gap-2 border border-white/12 bg-[#050510]/85 px-3 text-sm font-medium text-white/92 transition hover:border-white/25 hover:bg-white/10"
                   title={action.title}
                   aria-label={action.title}
                   onClick={() => {
@@ -582,24 +581,24 @@ export function MultiscalePinned({
           {sceneTitle}
 
           {/* Level selector (desktop: level dots only) */}
-          <div className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 border border-white/10 bg-slate-950/70 shadow-[0_12px_28px_rgba(0,0,0,0.24)] backdrop-blur-md ${
-            isAllAtomLevel ? "rounded-2xl px-3.5 py-2" : "rounded-full px-3 py-1.5"
+          <div className={`absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 border border-white/10 bg-[#050510]/85 ${
+            isAllAtomLevel ? "px-3.5 py-2" : "px-3 py-1.5"
           }`}>
             {LEVELS.map((l, i) => (
               <button
                 key={l.id}
-                className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs transition-all"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs transition-all"
                 style={{
-                  backgroundColor: i === effectiveScrollState.levelIndex ? `${l.color}24` : "transparent",
-                  color: i === effectiveScrollState.levelIndex ? l.color : "#7a7a87",
+                  backgroundColor: i === effectiveScrollState.levelIndex ? "rgba(255,255,255,0.08)" : "transparent",
+                  color: i === effectiveScrollState.levelIndex ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.45)",
                   borderWidth: 1,
-                  borderColor: i === effectiveScrollState.levelIndex ? `${l.color}40` : "transparent",
+                  borderColor: i === effectiveScrollState.levelIndex ? "rgba(255,255,255,0.25)" : "transparent",
                 }}
                 aria-label={`Jump to ${l.label.en} level`}
                 onClick={() => goToLevel(i)}
               >
                 <div
-                  className="h-2.5 w-2.5 rounded-full"
+                  className="h-2 w-2"
                   style={{ backgroundColor: l.color, opacity: i === effectiveScrollState.levelIndex ? 1 : 0.45 }}
                 />
                 <span className={i === effectiveScrollState.levelIndex ? "inline" : "hidden sm:inline"}>
@@ -612,7 +611,7 @@ export function MultiscalePinned({
 
         {/* Right Rail */}
         <div
-          className="min-h-0 border-t border-white/6 xl:border-l xl:border-white/6 xl:border-t-0 bg-[#050913]"
+          className="min-h-0 border-t border-white/6 xl:border-l xl:border-white/6 xl:border-t-0 bg-[#050510]"
           data-testid="multiscale-right-rail-panel"
         >
           <RightRail

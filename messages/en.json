@@ -15,7 +15,7 @@
   },
   "home": {
     "exploreMultiscale": "Explore Research",
-    "joinLab": "Join Our Lab",
+    "joinLab": "Join the lab",
     "recentPublications": "Recent Publications",
     "recentPublicationsSubtitle": "Selected recent work from our group.",
     "viewAllPublications": "View all publications",
@@ -52,7 +52,7 @@
   },
   "funding": {
     "title": "Funding",
-    "subtitle": "Research grants and funding.",
+    "subtitle": "Research grants.",
     "active": "Active",
     "completed": "Completed",
     "noGrants": "Funding information will be updated soon."
@@ -77,13 +77,13 @@
   "recruitment": {
     "title": "Join Our Lab",
     "msPhdLabel": "MS / PhD Students",
-    "msPhdStatus": "TBA (Opening soon)",
+    "msPhdStatus": "Opening soon",
     "postdocLabel": "Postdoctoral Researchers",
-    "postdocStatus": "TBA (Opening soon)",
+    "postdocStatus": "Opening soon",
     "undergradLabel": "Undergraduate Researchers",
     "undergradStatus": "Applications welcome year-round",
     "howToApply": "How to apply",
-    "howToApplyText": "Before you write, please look through our research and read at least one of our papers. Then share, in a few sentences, which topic or paper interested you and how it connects to what you want to work on, and attach your CV. Send these to:",
+    "howToApplyText": "Before you write to us, please look through our research and read at least one of our papers. Then share, in a few sentences, which topic or paper interested you and how it connects to what you want to work on, and attach your CV. Send these to:",
     "fields": "Fields",
     "fieldsText": "Chemistry, Chemical Engineering, Physics, Computer Science, etc."
   },
@@ -99,7 +99,7 @@
     "name": "Yu Lab",
     "fullName": "Multiscale Molecular Computational Chemistry Lab",
     "university": "Ajou University",
-    "departments": "School of Frontier Sciences / Department of Chemistry",
+    "departments": "School of Frontier Sciences · Department of Chemistry",
     "description": "Multiscale physical chemistry of solutions and nanomaterials through machine learning and computational simulation"
   }
 }

@@ -43,7 +43,7 @@ export default function SimulationVideo({
         <figure className={className}>
           <button
             onClick={() => setIsPlaying(true)}
-            className="relative w-full aspect-video rounded-lg overflow-hidden bg-card border border-border group cursor-pointer"
+            className="relative w-full aspect-video overflow-hidden bg-card border border-border group cursor-pointer"
             aria-label={`Play ${title}`}
           >
             <img
@@ -55,7 +55,7 @@ export default function SimulationVideo({
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-colors group-hover:bg-black/40">
-              <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center transition-transform group-hover:scale-110">
+              <div className="flex h-16 w-16 items-center justify-center bg-foreground/90 flex items-center justify-center transition-transform group-hover:scale-110">
                 <Play className="w-7 h-7 text-primary-foreground ml-1" />
               </div>
             </div>
@@ -71,7 +71,7 @@ export default function SimulationVideo({
 
     return (
       <figure className={className}>
-        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-card border border-border">
+        <div className="relative w-full aspect-video overflow-hidden bg-card border border-border">
           <iframe
             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
             title={title}
@@ -92,7 +92,7 @@ export default function SimulationVideo({
   // Self-hosted video
   return (
     <figure className={className}>
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-card border border-border">
+      <div className="relative w-full aspect-video overflow-hidden bg-card border border-border">
         <video
           src={src}
           poster={poster}

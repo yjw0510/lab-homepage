@@ -11,10 +11,10 @@ export interface LevelConfig {
 }
 
 export const LEVELS: LevelConfig[] = [
-  { id: "meso", label: { en: "Mesoscale", ko: "메조스케일" }, color: "#f59e0b", steps: 6, scale: { en: "~10 nm – 1 μm", ko: "~10 nm – 1 μm" } },
-  { id: "allatom", label: { en: "All-Atom", ko: "전원자" }, color: "#06b6d4", steps: 5, scale: { en: "~1 – 10 nm", ko: "~1 – 10 nm" } },
-  { id: "mlff", label: { en: "MLFF", ko: "MLFF" }, color: "#8b5cf6", steps: 7, scale: { en: "~1 – 10 nm (ab initio)", ko: "~1 – 10 nm (제일원리 수준)" } },
-  { id: "dft", label: { en: "Ab-initio", ko: "제일원리" }, color: "#f97316", steps: 9, scale: { en: "~0.1 – 1 nm", ko: "~0.1 – 1 nm" } },
+  { id: "meso", label: { en: "Mesoscale", ko: "메조스케일" }, color: "#f59e0b", steps: 6, scale: { en: "10 nm - 1 μm", ko: "10 nm - 1 μm" } },
+  { id: "allatom", label: { en: "All-Atom", ko: "전원자" }, color: "#06b6d4", steps: 5, scale: { en: "1-10 nm", ko: "1-10 nm" } },
+  { id: "mlff", label: { en: "MLFF", ko: "MLFF" }, color: "#8b5cf6", steps: 7, scale: { en: "1-10 nm (ab initio)", ko: "1-10 nm (제일원리 수준)" } },
+  { id: "dft", label: { en: "Ab-initio", ko: "제일원리" }, color: "#f97316", steps: 9, scale: { en: "0.1-1 nm", ko: "0.1-1 nm" } },
 ];
 
 const TOTAL_STEPS = LEVELS.reduce((sum, l) => sum + l.steps, 0);

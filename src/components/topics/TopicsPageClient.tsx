@@ -4,13 +4,13 @@ import { useState, useRef } from "react";
 import type { ResearchTopic } from "@/types/topic";
 import type { Publication } from "@/types/publication";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { BentoGrid } from "./BentoGrid";
+import { TopicIndex } from "./BentoGrid";
 import { PaperOverview } from "./PaperOverview";
 import { TopicDrawer } from "./TopicDrawer";
 import { BezierOverlay } from "./BezierOverlay";
 import { TopicSidebar } from "./TopicSidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { cn } from "@/lib/utils";
 
 interface Props {
   topics: ResearchTopic[];
@@ -31,26 +31,31 @@ export function TopicsPageClient({
   const [hoveredPubSlug, setHoveredPubSlug] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const isWideScreen = useMediaQuery("(min-width: 1400px)");
-
-  const activeTopic = activeTopicId
-    ? topics.find((t) => t.id === activeTopicId) ?? null
-    : null;
+  const hasSidebar = useMediaQuery("(min-width: 1024px)");
 
   return (
-    <div className="py-16 px-4">
-      <div className="max-w-5xl mx-auto">
-        <SectionHeading
-          title={dict.topics?.title ?? "Research Topics"}
-          subtitle={
-            dict.topics?.subtitle ??
-            "Thematic overview of our research directions and associated publications."
-          }
-        />
+    <div className="px-6 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        {/* Masthead: display title + subtitle over a double rule */}
+        <header className="mb-14 sm:mb-20">
+          <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
+            {dict.topics?.title ?? "Research Topics"}
+          </h1>
+          <p className="mt-4 max-w-[34rem] leading-relaxed text-muted-foreground">
+            {dict.topics?.subtitle ??
+              "Thematic overview of our research directions and associated publications."}
+          </p>
+          <div className="mt-8 border-t border-border-strong pt-[3px]">
+            <div className="border-t border-border" />
+          </div>
+        </header>
 
-        <div ref={containerRef} className="relative">
-          {isWideScreen && (
-            <div className="absolute -left-[156px] top-0 w-[140px] h-full">
+        <div
+          ref={containerRef}
+          className={cn("relative", hasSidebar && "grid grid-cols-12 gap-x-8")}
+        >
+          {hasSidebar && (
+            <aside className="col-span-3">
               <div className="sticky top-20">
                 <TopicSidebar
                   topics={topics}
@@ -60,23 +65,26 @@ export function TopicsPageClient({
                   onTopicClick={setActiveTopicId}
                 />
               </div>
-            </div>
+            </aside>
           )}
 
-          <BentoGrid
-            topics={topics}
-            paperCounts={paperCounts}
-            lang={lang}
-            onTopicClick={setActiveTopicId}
-          />
+          <div className={cn(hasSidebar && "col-span-9")}>
+            <TopicIndex
+              topics={topics}
+              paperCounts={paperCounts}
+              lang={lang}
+              activeTopicId={activeTopicId}
+              onTopicClick={setActiveTopicId}
+            />
 
-          <PaperOverview
-            publications={publications}
-            topics={topics}
-            lang={lang}
-            hoveredPubSlug={hoveredPubSlug}
-            onPubHover={setHoveredPubSlug}
-          />
+            <PaperOverview
+              publications={publications}
+              topics={topics}
+              lang={lang}
+              hoveredPubSlug={hoveredPubSlug}
+              onPubHover={setHoveredPubSlug}
+            />
+          </div>
 
           {isDesktop && (
             <BezierOverlay

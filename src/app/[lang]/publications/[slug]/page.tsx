@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getAllPublications, getPublication } from "@/lib/publications";
 import { ExternalLink } from "@/components/ui/ExternalLink";
-import { getTagColor } from "@/lib/utils";
 import {
   parseMarkdownSections,
   renderMarkdownBody,
@@ -49,72 +48,76 @@ export default async function PublicationDetailPage({
   const sections = parseMarkdownSections(pub.content || "");
 
   return (
-    <div className="py-16 px-4">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href={`/${lang}/publications`}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {dict.common.backTo} {dict.nav.publications}
-        </Link>
+    <div className="py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
+        <div className="max-w-3xl">
+          <Link
+            href={`/${lang}/publications`}
+            className="type-mono-meta inline-flex min-h-11 items-center gap-1.5 text-[12.5px] text-accent-ink transition-colors hover:text-primary"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {dict.common.backTo} {dict.nav.publications}
+          </Link>
 
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
-          {pub.title}
-        </h1>
+          <h1 className="type-display mt-6 text-[26px] text-foreground sm:text-4xl">
+            {pub.title}
+          </h1>
 
-        <p className="mt-3 text-muted-foreground">
-          <AuthorList authors={pub.authors} firstAuthors={pub.firstAuthors} correspondingAuthors={pub.correspondingAuthors} />
-        </p>
+          <p className="mt-5 leading-relaxed text-muted-foreground">
+            <AuthorList
+              authors={pub.authors}
+              firstAuthors={pub.firstAuthors}
+              correspondingAuthors={pub.correspondingAuthors}
+            />
+          </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-          <span className="font-semibold text-primary">{pub.journal}</span>
-          {pub.volume && (
-            <span className="text-muted-foreground">
-              Vol. {pub.volume}
-              {pub.issue ? `, No. ${pub.issue}` : ""}
-              {pub.pages ? `, pp. ${pub.pages}` : ""}
-            </span>
-          )}
-          <span className="text-muted-foreground">({pub.year})</span>
-          {pub.impactFactor && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-medium">
-              IF: {pub.impactFactor}
-            </span>
-          )}
-          {pub.doi && (
-            <ExternalLink href={`https://doi.org/${pub.doi}`}>
-              DOI
-            </ExternalLink>
-          )}
-        </div>
+          {/* Double rule closes the title block (content-page masthead) */}
+          <div className="mt-8 h-[3px] border-y border-border-strong" aria-hidden="true" />
 
-        {pub.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {pub.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`inline-flex px-2.5 py-1 text-xs rounded-full text-white ${getTagColor(tag)}`}
-              >
-                {tag}
-              </span>
+          {/* Metadata block */}
+          <div className="mt-6 border-b border-border pb-4 pt-1">
+            <p className="type-mono-meta flex flex-wrap items-baseline gap-x-4 gap-y-1.5 text-[12.5px] text-muted-foreground">
+              <span className="font-[500] text-foreground">{pub.journal}</span>
+              {pub.volume && (
+                <span>
+                  Vol. {pub.volume}
+                  {pub.issue ? `, No. ${pub.issue}` : ""}
+                  {pub.pages ? `, pp. ${pub.pages}` : ""}
+                </span>
+              )}
+              <span>{pub.year}</span>
+              {pub.doi && (
+                <ExternalLink
+                  href={`https://doi.org/${pub.doi}`}
+                  className="text-[12.5px]"
+                >
+                  {pub.doi}
+                </ExternalLink>
+              )}
+            </p>
+            {pub.tags.length > 0 && (
+              <p className="type-mono-meta mt-2 text-[11px] text-muted-foreground">
+                {pub.tags.map((tag) => `[${tag}]`).join(" ")}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-10">
+            {sections.map((section) => (
+              <section key={section.title} className="mb-10">
+                <h2 className="type-heading text-lg text-foreground">
+                  {section.title}
+                </h2>
+                <div
+                  className={`mt-4 leading-relaxed text-muted-foreground ${
+                    lang === "ko" ? "max-w-[36rem]" : "max-w-[65ch]"
+                  }`}
+                >
+                  {renderMarkdownBody(section.body)}
+                </div>
+              </section>
             ))}
           </div>
-        )}
-
-        <div className="border-t border-border my-8" />
-
-        <div className="prose prose-lg dark:prose-invert max-w-none">
-          {sections.map((section) => (
-            <div key={section.title} className="mb-8">
-              <h2 className="text-xl font-semibold text-foreground mb-4">
-                {section.title}
-              </h2>
-              <div className="text-muted-foreground leading-relaxed">
-                {renderMarkdownBody(section.body)}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

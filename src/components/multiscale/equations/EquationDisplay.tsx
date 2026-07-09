@@ -92,7 +92,7 @@ export function EquationDisplay({
 
   return (
     <div
-      className="p-3 rounded-lg bg-white/5 border border-white/10"
+      className="border border-white/10 bg-white/5 p-3"
       aria-label={eqSet.main.ariaLabel}
     >
       {/* Main equation */}
@@ -106,7 +106,7 @@ export function EquationDisplay({
           {groupedSubs.map((sub) => (
             <div
               key={sub.termId}
-              className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-2 text-sm text-gray-400"
+              className="border border-white/8 bg-white/[0.03] px-2.5 py-2 text-sm text-white/60"
               aria-label={sub.ariaLabel}
             >
               <div className="flex flex-wrap items-baseline gap-x-0.5">

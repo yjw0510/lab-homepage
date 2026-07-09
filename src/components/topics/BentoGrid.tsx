@@ -1,61 +1,66 @@
 "use client";
 
-import { useRef } from "react";
 import type { ResearchTopic } from "@/types/topic";
-import { TopicCard } from "./TopicCard";
-import { useGSAP } from "@/hooks/useGSAP";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { TopicRow } from "./TopicCard";
 
 interface Props {
   topics: ResearchTopic[];
   paperCounts: Record<string, number>;
   lang: string;
+  activeTopicId: string | null;
   onTopicClick: (id: string) => void;
 }
 
-export function BentoGrid({ topics, paperCounts, lang, onTopicClick }: Props) {
-  const gridRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = useReducedMotion();
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-
-  useGSAP(
-    (gsap) => {
-      if (reducedMotion || !gridRef.current) return;
-      gsap.from("[data-topic-card]", {
-        y: 40,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: gridRef.current,
-          start: "top 85%",
-        },
-      });
-    },
-    [reducedMotion],
-  );
+/** Ledger index of research topics. Replaces the bento grid.
+ * Research topics get the group heading; the misc and future singletons are
+ * self-titled rows, so they continue the same ledger without duplicate
+ * headers ("기타" above a row titled "기타"). */
+export function TopicIndex({
+  topics,
+  paperCounts,
+  lang,
+  activeTopicId,
+  onTopicClick,
+}: Props) {
+  const research = topics.filter((t) => (t.kind ?? "research") === "research");
+  const others = topics.filter((t) => (t.kind ?? "research") !== "research");
 
   return (
-    <div
-      ref={gridRef}
-      className="grid gap-4 mb-12"
-      style={{
-        gridTemplateColumns: isDesktop ? "repeat(3, 1fr)" : "1fr",
-        gridAutoRows: isDesktop ? "minmax(180px, auto)" : "auto",
-      }}
-    >
-      {topics.map((topic) => (
-        <TopicCard
-          key={topic.id}
-          topic={topic}
-          paperCount={paperCounts[topic.id] ?? 0}
-          lang={lang}
-          isDesktop={isDesktop}
-          onClick={() => onTopicClick(topic.id)}
-        />
-      ))}
+    <div className="mb-16 sm:mb-20">
+      <section>
+        <h2 className="type-heading flex items-baseline border-t border-border-strong pt-4 text-[21px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+          {lang === "ko" ? "연구 분야" : "Research areas"}
+        </h2>
+        <div className="mt-4">
+          {research.map((topic) => (
+            <TopicRow
+              key={topic.id}
+              topic={topic}
+              paperCount={paperCounts[topic.id] ?? 0}
+              lang={lang}
+              isOpen={activeTopicId === topic.id}
+              onClick={() => onTopicClick(topic.id)}
+            />
+          ))}
+        </div>
+      </section>
+      {others.length > 0 && (
+        <section className="mt-12">
+          <div className="border-t border-border-strong" />
+          <div className="mt-4">
+            {others.map((topic) => (
+              <TopicRow
+                key={topic.id}
+                topic={topic}
+                paperCount={paperCounts[topic.id] ?? 0}
+                lang={lang}
+                isOpen={activeTopicId === topic.id}
+                onClick={() => onTopicClick(topic.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

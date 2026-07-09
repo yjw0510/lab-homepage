@@ -108,7 +108,7 @@ export function PlotContainer({
 
   return (
     <div
-      className={`rounded-2xl p-3 border border-border/40 bg-muted/20 shadow-[inset_0_1px_0_rgba(0,0,0,0.03)] dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] ${className ?? ""}`}
+      className={`border border-border/40 bg-muted/20 p-3 dark:border-white/10 dark:bg-white/[0.045] ${className ?? ""}`}
       role="img"
       aria-label={ariaLabel}
     >

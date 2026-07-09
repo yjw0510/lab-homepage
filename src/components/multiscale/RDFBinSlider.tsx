@@ -49,19 +49,19 @@ export function RDFBinSlider({
 
   return (
     <div className={inline
-      ? "px-0 py-0"
-      : "absolute bottom-24 left-1/2 z-10 w-[min(480px,calc(100%-3rem))] -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md"
+      ? "dark"
+      : "dark absolute bottom-24 left-1/2 z-10 w-[min(480px,calc(100%-3rem))] -translate-x-1/2 border border-border-strong bg-surface-raised px-4 py-3"
     }>
       {/* Header + readout */}
-      <div className="mb-3 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.14em] text-white/65">
+      <div className="type-mono-meta mb-3 flex items-center justify-between text-[11px] text-muted-foreground">
         <span>{lang === "ko" ? "RDF 반경" : "RDF Radius"}</span>
         {bin && (
-          <span className="flex gap-3 text-white/85">
+          <span className="flex gap-3 text-foreground">
             <span>
-              <span className="text-white/50">r</span> = {bin.r.toFixed(2)} nm
+              <span className="text-muted-foreground">r</span> = {bin.r.toFixed(2)} nm
             </span>
             <span>
-              <span className="text-white/50">g(r)</span> = {bin.g.toFixed(2)}
+              <span className="text-muted-foreground">g(r)</span> = {bin.g.toFixed(2)}
             </span>
           </span>
         )}
@@ -84,12 +84,12 @@ export function RDFBinSlider({
         <div ref={trackRef} className="relative h-7">
           {/* Background rail */}
           <div
-            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10"
+            className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-border-strong"
             style={{ left: `${THUMB_R}px`, right: `${THUMB_R}px` }}
           />
           {/* Fill */}
           <div
-            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-cyan-500"
+            className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-primary"
             style={{
               left: `${THUMB_R}px`,
               width: `${Math.max(0, currentX - THUMB_R)}px`,
@@ -97,7 +97,7 @@ export function RDFBinSlider({
           />
           {/* Thumb */}
           <div
-            className="absolute top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500"
+            className="absolute top-1/2 h-5 w-[3px] -translate-x-1/2 -translate-y-1/2 bg-primary"
             style={{ left: `${currentX}px` }}
           />
         </div>

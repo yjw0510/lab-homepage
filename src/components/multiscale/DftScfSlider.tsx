@@ -66,12 +66,12 @@ export function DftScfSlider({
 
   return (
     <div className={inline
-      ? "px-0 py-0"
-      : "absolute bottom-24 left-1/2 z-10 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.32)] backdrop-blur-md"
+      ? "dark"
+      : "dark absolute bottom-24 left-1/2 z-10 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 border border-border-strong bg-surface-raised px-4 py-3"
     }>
-      <div className="mb-3 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.14em] text-white/65">
+      <div className="type-mono-meta mb-3 flex items-center justify-between text-[11px] text-muted-foreground">
         <span>{lang === "ko" ? "SCF 진행" : "SCF Progress"}</span>
-        <span className="text-white/85">
+        <span className="text-foreground">
           {snapshots[value]?.label ?? snapshots[value]?.iteration ?? value}
         </span>
       </div>
@@ -96,24 +96,24 @@ export function DftScfSlider({
         {/* Custom visible track */}
         <div ref={trackRef} className="relative h-7">
           <div
-            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10"
+            className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-border-strong"
             style={{ left: `${THUMB_R}px`, right: `${THUMB_R}px` }}
           />
           <div
-            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-orange-500"
+            className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-primary"
             style={{
               left: `${THUMB_R}px`,
               width: `${Math.max(0, currentX - THUMB_R)}px`,
             }}
           />
           <div
-            className="absolute top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500"
+            className="absolute top-1/2 h-5 w-[3px] -translate-x-1/2 -translate-y-1/2 bg-primary"
             style={{ left: `${currentX}px` }}
           />
         </div>
 
         {/* Ticks + labels from the same coordinate model */}
-        <div className="relative mt-3 h-10 text-[10px]">
+        <div className="type-mono-meta relative mt-3 h-10 text-[11px]">
           {ticks.map(({ snapshot, index, x }) => {
             const active = index === value;
             return (
@@ -127,12 +127,12 @@ export function DftScfSlider({
                 style={{ left: `${x}px` }}
               >
                 <div className="flex flex-col items-center gap-1">
-                  <span className={`h-2 w-2 rounded-full ${active ? "bg-orange-400" : "bg-white/30"}`} />
+                  <span className={`h-2 w-[2px] ${active ? "bg-primary" : "bg-border-strong"}`} />
                   <span
                     className={
                       active
-                        ? "rounded-md bg-white/8 px-2 py-1 text-white/90"
-                        : "px-2 py-1 text-white/55"
+                        ? "bg-muted px-1.5 py-0.5 text-foreground"
+                        : "px-1.5 py-0.5 text-muted-foreground"
                     }
                   >
                     {snapshot.iteration === 0 ? (lang === "ko" ? "초기" : "Init") : snapshot.iteration}

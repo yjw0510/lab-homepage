@@ -105,7 +105,8 @@ export function RightRail({
       railRef.current.style.transform = "translateY(8px)";
       requestAnimationFrame(() => {
         if (railRef.current) {
-          railRef.current.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+          railRef.current.style.transition =
+            "opacity var(--dur-med) var(--ease-ledger), transform var(--dur-med) var(--ease-ledger)";
           railRef.current.style.opacity = "1";
           railRef.current.style.transform = "translateY(0)";
         }
@@ -117,7 +118,7 @@ export function RightRail({
   return (
     <div
       data-testid="multiscale-right-rail"
-      className={`flex h-full min-h-0 flex-col ${
+      className={`dark flex h-full min-h-0 flex-col ${
         isSheet
           ? "justify-start px-4 py-2"
           : isMobile
@@ -126,39 +127,41 @@ export function RightRail({
       }`}
     >
       <div ref={railRef} className="flex min-h-0 flex-1 flex-col">
-        {/* Level badge — rail only (sheet has it in status row) */}
+        {/* Level readout — rail only (sheet has it in status row) */}
         {!isSheet && (
-          <div className={`flex items-center gap-2 flex-shrink-0 ${isMobile ? "mb-2" : "mb-3"}`}>
-            <div
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: level.color }}
-            />
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: level.color }}>
+          <div className={`flex items-baseline gap-2.5 flex-shrink-0 ${isMobile ? "mb-2" : "mb-3"}`}>
+            <span className="type-mono-meta text-xs text-foreground">
               {level.label[lang as "en" | "ko"] ?? level.label.en}
             </span>
-            <span className="text-xs text-gray-500 ml-1">{level.scale[lang as "en" | "ko"] ?? level.scale.en}</span>
+            <span className="type-mono-meta text-[11px] text-muted-foreground">
+              {level.scale[lang as "en" | "ko"] ?? level.scale.en}
+            </span>
           </div>
         )}
 
         {/* Step indicator — rail only */}
         {!isSheet && (
-          <div className={`flex gap-1 flex-shrink-0 ${isMobile ? "mb-2" : "mb-4"}`}>
+          <div className={`flex gap-1 flex-shrink-0 ${isMobile ? "mb-1" : "mb-3"}`}>
             {Array.from({ length: scrollState.stepCount }, (_, i) => (
               <button
                 key={i}
                 type="button"
-                className="h-1.5 rounded-full flex-1 transition-colors duration-300 cursor-pointer hover:opacity-80"
-                style={{
-                  backgroundColor:
-                    i < scrollState.step
-                      ? level.color
-                      : i === scrollState.step
-                        ? `${level.color}80`
-                        : "var(--muted)",
-                }}
+                className="group flex h-6 flex-1 cursor-pointer items-center"
                 onClick={() => onStepClick(i)}
                 aria-label={`${lang === "ko" ? "단계" : "Step"} ${i + 1} / ${scrollState.stepCount}`}
-              />
+              >
+                <span
+                  className="h-[2px] w-full transition-colors duration-300 group-hover:opacity-80"
+                  style={{
+                    backgroundColor:
+                      i === scrollState.step
+                        ? "var(--primary)"
+                        : i < scrollState.step
+                          ? "var(--border-strong)"
+                          : "var(--border)",
+                  }}
+                />
+              </button>
             ))}
           </div>
         )}
@@ -182,7 +185,7 @@ export function RightRail({
 
         {/* Inline SCF slider — sheet only */}
         {isSheet && showDftScfSlider && dftSnapshots && dftSnapshots.length > 1 && onScfChange && (
-          <div className="mb-3 flex-shrink-0 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3" style={{ touchAction: "pan-x" }}>
+          <div className="mb-3 flex-shrink-0 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
             <DftScfSlider
               snapshots={dftSnapshots}
               value={scfValue ?? 0}
@@ -197,7 +200,7 @@ export function RightRail({
 
         {/* Inline RDF slider — sheet only */}
         {isSheet && showRdfSlider && rdfBins && rdfBins.length > 1 && onRdfChange && (
-          <div className="mb-3 flex-shrink-0 rounded-2xl border border-white/10 bg-slate-950/72 px-4 py-3" style={{ touchAction: "pan-x" }}>
+          <div className="mb-3 flex-shrink-0 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
             <RDFBinSlider
               bins={rdfBins}
               value={rdfBinIndex ?? 0}
@@ -217,7 +220,7 @@ export function RightRail({
             <ConceptText
               text={stepConfig.concept[lang as "en" | "ko"] ?? stepConfig.concept.en}
               lang={lang}
-              className={`text-gray-300 leading-[1.72] ${isMobile || isSheet ? "text-[0.98rem]" : "text-[1.05rem]"}`}
+              className={`break-keep leading-[1.7] text-foreground ${isMobile || isSheet ? "text-sm" : "text-base"}`}
             />
           </div>
 
@@ -255,20 +258,20 @@ export function RightRail({
 
       {/* Navigation bar — desktop only (sheet has nav in MobileStatusRow) */}
       {!isSheet && !isMobile && (
-        <div className="mt-3 flex-shrink-0 border-t border-white/8 pt-3">
+        <div className="mt-3 flex-shrink-0 border-t border-border pt-3">
           <div className="flex items-center justify-between gap-2">
             <button
               type="button"
               disabled={!canGoPrev}
               onClick={onPrev}
-              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="type-mono-meta flex h-11 items-center gap-1.5 border border-border-strong px-4 text-xs text-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label={lang === "ko" ? "이전 단계" : "Previous step"}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
               <span>{lang === "ko" ? "이전" : "Prev"}</span>
             </button>
 
-            <span className="text-sm text-white/60 tabular-nums">
+            <span className="type-mono-meta text-xs text-muted-foreground">
               {scrollState.step + 1} / {scrollState.stepCount}
             </span>
 
@@ -276,11 +279,11 @@ export function RightRail({
               type="button"
               disabled={!canGoNext}
               onClick={onNext}
-              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="type-mono-meta flex h-11 items-center gap-1.5 border border-border-strong px-4 text-xs text-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label={lang === "ko" ? "다음 단계" : "Next step"}
             >
               <span>{lang === "ko" ? "다음" : "Next"}</span>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
             </button>
           </div>
         </div>

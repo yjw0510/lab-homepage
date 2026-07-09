@@ -9,13 +9,15 @@ interface AtomSimulationProps {
   interactive?: boolean;
 }
 
+// Muted ink tones from the scientific layer (DESIGN.md appendix) plus one
+// sparse vermilion signal, readable on both paper and instrument grounds.
 const COLORS = [
-  "#06b6d4", // cyan (primary)
-  "#8b5cf6", // violet
-  "#ef4444", // red (oxygen)
-  "#22d3ee", // light cyan
-  "#e2e8f0", // light gray (hydrogen)
-  "#14b8a6", // teal
+  "#475569", // ink
+  "#64748b", // slate ink
+  "#94a3b8", // light ink
+  "#334155", // deep ink
+  "#cbd5e1", // pale ink
+  "#d23f18", // vermilion signal (oklch 58% 0.19 35)
 ];
 
 export default function AtomSimulation({
@@ -145,7 +147,7 @@ export default function AtomSimulation({
             stiffness: 0.02,
             damping: 0.1,
             render: {
-              strokeStyle: "rgba(6, 182, 212, 0.15)",
+              strokeStyle: "rgba(100, 116, 139, 0.18)",
               lineWidth: 1,
             },
           })

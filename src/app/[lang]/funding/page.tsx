@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FundingCard } from "@/components/funding/FundingCard";
 import { grants } from "../../../../data/funding";
 import { getDictionary, hasLocale } from "../dictionaries";
 
-export const metadata: Metadata = {
-  title: "Funding",
-  description:
-    "Research funding and grants for the Multiscale Molecular Computational Chemistry Lab.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!hasLocale(lang)) return {};
+  const dict = await getDictionary(lang);
+  return { title: dict.funding.title, description: dict.funding.subtitle };
+}
 
 export default async function FundingPage({
   params,
@@ -22,45 +26,77 @@ export default async function FundingPage({
   const dict = await getDictionary(lang);
   const activeGrants = grants.filter((g) => g.status === "active");
   const completedGrants = grants.filter((g) => g.status === "completed");
+  const statusLabels = {
+    active: dict.funding.active,
+    completed: dict.funding.completed,
+  };
 
   return (
-    <div className="py-16 px-4">
-      <div className="max-w-4xl mx-auto">
-        <SectionHeading
-          title={dict.funding.title}
-          subtitle={dict.funding.subtitle}
-        />
+    <div className="px-6 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        {/* Masthead */}
+        <header>
+          <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
+            {dict.funding.title}
+          </h1>
+          <p className="mt-3 max-w-[36rem] leading-relaxed text-muted-foreground">
+            {dict.funding.subtitle}
+          </p>
+        </header>
+        <div
+          aria-hidden="true"
+          className="mt-8 border-t border-border-strong pt-[3px]"
+        >
+          <div className="border-t border-border" />
+        </div>
 
         {grants.length === 0 && (
-          <p className="text-muted-foreground text-center py-12">
-            {dict.funding.noGrants}
-          </p>
+          <div className="mt-14 border-b border-t border-border py-10 sm:mt-16">
+            <p className="type-mono-meta text-[12px] text-muted-foreground">0</p>
+            <p className="mt-2 leading-relaxed text-muted-foreground">
+              {dict.funding.noGrants}
+            </p>
+          </div>
         )}
 
         {activeGrants.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-xl font-semibold text-foreground mb-4">
-              {dict.funding.active}
-            </h2>
-            <div className="space-y-6">
+          <section className="mt-10">
+            <div className="border-t border-border-strong pt-6">
+              <h2 className="type-heading flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+                {dict.funding.active}
+              </h2>
+            </div>
+            <div className="mt-6 border-b border-border">
               {activeGrants.map((grant) => (
-                <FundingCard key={grant.id} grant={grant} />
+                <FundingCard
+                  key={grant.id}
+                  grant={grant}
+                  lang={lang}
+                  statusLabels={statusLabels}
+                />
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {completedGrants.length > 0 && (
-          <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">
-              {dict.funding.completed}
-            </h2>
-            <div className="space-y-6">
+          <section className="mt-14 sm:mt-16">
+            <div className="border-t border-border-strong pt-6">
+              <h2 className="type-heading flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+                {dict.funding.completed}
+              </h2>
+            </div>
+            <div className="mt-6 border-b border-border">
               {completedGrants.map((grant) => (
-                <FundingCard key={grant.id} grant={grant} />
+                <FundingCard
+                  key={grant.id}
+                  grant={grant}
+                  lang={lang}
+                  statusLabels={statusLabels}
+                />
               ))}
             </div>
-          </div>
+          </section>
         )}
       </div>
     </div>

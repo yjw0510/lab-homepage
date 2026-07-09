@@ -52,3 +52,10 @@ next-env.d.ts
 CLAUDE.md
 AGENTS.md
 /.claude/
+
+# redesign process artifacts (local only, not part of the site)
+/.superloopy/
+/.hallmark/
+/.agents/
+/_workspace/
+/skills-lock.json

@@ -5,11 +5,10 @@ import type { Publication } from "@/types/publication";
 
 export function PaperCard({
   publication,
-  accentColor,
   lang,
 }: {
   publication: Publication;
-  accentColor: string;
+  accentColor?: string;
   lang: string;
 }) {
   const firstAuthor = publication.authors[0] || "";
@@ -21,22 +20,21 @@ export function PaperCard({
   return (
     <Link
       href={`/${lang}/publications/${publication.slug}`}
-      className="block p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/25 transition-all group"
+      className="dark group block border-t border-border py-3 transition-colors hover:bg-muted/50"
     >
       <div className="flex gap-3">
-        <div
-          className="w-1 rounded-full flex-shrink-0"
-          style={{ backgroundColor: accentColor }}
-        />
-        <div className="min-w-0">
-          <div className="text-xs text-gray-400 mb-0.5">
-            {publication.year} · {publication.journal}
-          </div>
-          <div className="text-sm text-gray-200 font-medium leading-snug line-clamp-2 group-hover:text-white transition-colors">
+        <span className="type-mono-meta w-10 flex-shrink-0 pt-0.5 text-[11px] text-muted-foreground">
+          {publication.year}
+        </span>
+        <span className="min-w-0">
+          <span className="block text-sm font-[500] leading-snug text-foreground line-clamp-2">
             {publication.title}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">{authorDisplay}</div>
-        </div>
+          </span>
+          <span className="type-mono-meta mt-1 flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+            <span>{authorDisplay}</span>
+            <span>{publication.journal}</span>
+          </span>
+        </span>
       </div>
     </Link>
   );

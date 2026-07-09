@@ -2,6 +2,22 @@
 
 import { cn } from "@/lib/utils";
 
+export interface PublicationFilterLabels {
+  filterByYear: string;
+  filterByTag: string;
+  allYears: string;
+  allTags: string;
+}
+
+function toggleClass(active: boolean): string {
+  return cn(
+    "type-mono-meta inline-flex min-h-11 items-center text-[12.5px] transition-colors",
+    active
+      ? "text-foreground underline decoration-primary decoration-2 underline-offset-[4px]"
+      : "text-muted-foreground hover:text-foreground"
+  );
+}
+
 export function PublicationFilter({
   years,
   tags,
@@ -9,6 +25,7 @@ export function PublicationFilter({
   selectedTag,
   onYearChange,
   onTagChange,
+  labels,
 }: {
   years: number[];
   tags: string[];
@@ -16,34 +33,31 @@ export function PublicationFilter({
   selectedTag: string | null;
   onYearChange: (year: number | null) => void;
   onTagChange: (tag: string | null) => void;
+  labels: PublicationFilterLabels;
 }) {
   return (
-    <div className="space-y-4 mb-8">
+    <div className="space-y-1">
       {/* Year filter */}
-      <div role="group" aria-label="Filter by year" className="flex flex-wrap gap-2">
+      <div
+        role="group"
+        aria-label={labels.filterByYear}
+        className="flex flex-wrap items-baseline gap-x-5"
+      >
         <button
+          type="button"
           onClick={() => onYearChange(null)}
           aria-pressed={selectedYear === null}
-          className={cn(
-            "px-4 py-2 text-sm rounded-lg transition-colors",
-            selectedYear === null
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:text-foreground"
-          )}
+          className={toggleClass(selectedYear === null)}
         >
-          All Years
+          {labels.allYears}
         </button>
         {years.map((year) => (
           <button
             key={year}
+            type="button"
             onClick={() => onYearChange(year === selectedYear ? null : year)}
             aria-pressed={selectedYear === year}
-            className={cn(
-              "px-4 py-2 text-sm rounded-lg transition-colors",
-              selectedYear === year
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            )}
+            className={toggleClass(selectedYear === year)}
           >
             {year}
           </button>
@@ -51,30 +65,26 @@ export function PublicationFilter({
       </div>
 
       {/* Tag filter */}
-      <div role="group" aria-label="Filter by topic" className="flex flex-wrap gap-2">
+      <div
+        role="group"
+        aria-label={labels.filterByTag}
+        className="flex flex-wrap items-baseline gap-x-5"
+      >
         <button
+          type="button"
           onClick={() => onTagChange(null)}
           aria-pressed={selectedTag === null}
-          className={cn(
-            "px-4 py-2 text-sm rounded-lg transition-colors",
-            selectedTag === null
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:text-foreground"
-          )}
+          className={toggleClass(selectedTag === null)}
         >
-          All Topics
+          {labels.allTags}
         </button>
         {tags.map((tag) => (
           <button
             key={tag}
+            type="button"
             onClick={() => onTagChange(tag === selectedTag ? null : tag)}
             aria-pressed={selectedTag === tag}
-            className={cn(
-              "px-4 py-2 text-sm rounded-lg transition-colors",
-              selectedTag === tag
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            )}
+            className={toggleClass(selectedTag === tag)}
           >
             {tag}
           </button>

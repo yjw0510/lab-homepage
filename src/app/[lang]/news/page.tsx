@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { NewsCard } from "@/components/news/NewsCard";
 import { getAllNews } from "@/lib/news";
 import { getDictionary, hasLocale } from "../dictionaries";
@@ -22,22 +21,35 @@ export default async function NewsPage({
   const news = getAllNews();
 
   return (
-    <div className="py-16 px-4">
-      <div className="max-w-4xl mx-auto">
-        <SectionHeading
-          title={dict.news.title}
-          subtitle={dict.news.subtitle}
-        />
+    <div className="py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
+        {/* Masthead */}
+        <header className="pb-8">
+          <h1 className="type-display text-4xl text-foreground">
+            {dict.news.title}
+          </h1>
+          <p className="mt-4 max-w-[36rem] leading-relaxed text-muted-foreground">
+            {dict.news.subtitle}
+          </p>
+        </header>
+        <div className="border-t border-border-strong pt-[3px]" aria-hidden="true">
+          <div className="border-t border-border" />
+        </div>
 
-        <div className="space-y-6">
-          {news.length > 0 ? (
-            news.map((item) => <NewsCard key={item.slug} item={item} lang={lang} />)
-          ) : (
-            <p className="text-center text-muted-foreground py-12">
+        {news.length > 0 ? (
+          <div className="mt-10 border-b border-border">
+            {news.map((item) => (
+              <NewsCard key={item.slug} item={item} lang={lang} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-10 border-t border-b border-border py-10">
+            <p className="type-mono-meta text-[12px] text-muted-foreground">0</p>
+            <p className="mt-2 leading-relaxed text-muted-foreground">
               {dict.news.noNews}
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

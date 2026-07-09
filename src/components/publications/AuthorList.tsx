@@ -37,7 +37,7 @@ export function AuthorList({
         return (
           <span key={i}>
             <span
-              className={`${isPI ? "font-bold text-blue-600 dark:text-blue-400" : ""} ${isFirst ? "underline" : ""}`}
+              className={`${isPI ? "font-[600] text-accent-ink" : ""} ${isFirst ? "underline" : ""}`}
             >
               {author}
               {isCorr ? "*" : ""}

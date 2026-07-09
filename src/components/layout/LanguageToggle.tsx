@@ -12,15 +12,17 @@ export function LanguageToggle({ lang }: { lang: string }) {
   return (
     <button
       type="button"
-      className="flex items-center gap-1 px-2.5 py-2.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors min-h-11"
+      className="flex min-h-11 items-center gap-1.5 px-2.5 py-2.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       aria-label={`Switch to ${targetLang === "ko" ? "Korean" : "English"}`}
       onClick={() => {
         const search = window.location.search;
         router.push(`${targetPathname}${search}`);
       }}
     >
-      <Globe className="w-4 h-4" />
-      <span className="font-medium">{targetLang.toUpperCase()}</span>
+      <Globe className="h-4 w-4" strokeWidth={1.75} />
+      <span className="type-mono-meta text-[12px] font-[500]">
+        {targetLang.toUpperCase()}
+      </span>
     </button>
   );
 }

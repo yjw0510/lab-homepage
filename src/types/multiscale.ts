@@ -1,6 +1,7 @@
 export interface MultiscaleArea {
   slug: string;
   title: string;
+  titleKo?: string;
   shortDescription: string;
   shortDescriptionKo?: string;
   icon: string;

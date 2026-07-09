@@ -76,7 +76,7 @@ export const experience = {
 
 export const awards = {
   en: [
-    { title: "Young WATOC Scholar", detail: "Selected for World Association of Theoretical and Computational Chemists, Oslo 2025" },
+    { title: "Young WATOC Scholar", detail: "Selected by the World Association of Theoretical and Computational Chemists, Oslo 2025" },
     { title: "Dongjin Outstanding Paper Award", detail: "Seoul National University, 2022" },
     { title: "Summa Cum Laude", detail: "Chung-Ang University, 2016" },
   ],

@@ -119,7 +119,7 @@ export function renderInlineMarkdown(
           {
             key: `${key}-a-${partKey++}`,
             href: linkMatch[3],
-            className: "text-primary hover:text-primary-light transition-colors",
+            className: "text-accent-ink underline underline-offset-[3px] hover:text-primary transition-colors",
             target: linkMatch[3].startsWith("http") ? "_blank" : undefined,
             rel: linkMatch[3].startsWith("http")
               ? "noopener noreferrer"
@@ -206,7 +206,7 @@ export function renderMarkdownBody(
           },
           React.createElement("span", {
             className:
-              "w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0",
+              "mt-[0.6em] h-1 w-1 flex-shrink-0 bg-border-strong",
           }),
           React.createElement(
             "span",

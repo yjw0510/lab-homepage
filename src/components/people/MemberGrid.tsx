@@ -1,47 +1,52 @@
-import Link from "next/link";
-import { getInitials } from "@/lib/utils";
 import type { Person } from "@/types/person";
+
+const roleLabels: Record<Person["role"], string> = {
+  pi: "Principal Investigator",
+  phd: "Ph.D. Student",
+  ms: "M.S. Student",
+  undergraduate: "Undergraduate Researcher",
+  alumni: "Alumni",
+};
 
 export function MemberGrid({
   members,
-  contactHref,
   noMembersText,
 }: {
   members: Person[];
-  contactHref: string;
   noMembersText: string;
 }) {
   if (members.length === 0) {
     return (
-      <div className="text-center py-12 px-4 rounded-xl bg-card border border-border">
-        <p className="text-muted-foreground">{noMembersText}</p>
+      <div className="border-b border-t border-border py-10">
+        <p className="mt-2 leading-relaxed text-muted-foreground">
+          {noMembersText}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="border-b border-border">
       {members.map((member) => (
         <div
           key={member.name}
-          className="p-5 rounded-xl bg-card border border-border"
+          className="grid grid-cols-1 gap-x-8 gap-y-1 border-t border-border py-4 md:grid-cols-12"
         >
-          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
-            <span className="text-xl text-muted-foreground font-bold">
-              {getInitials(member.name)}
-            </span>
+          <div className="type-mono-meta text-[12px] text-muted-foreground md:col-span-3">
+            {member.enrollmentYear ?? ""}
           </div>
-          <div className="text-center">
-            <h3 className="font-semibold text-foreground">{member.name}</h3>
-            {member.nameKo && (
-              <p className="text-sm text-muted-foreground">{member.nameKo}</p>
-            )}
-            <p className="text-sm text-primary mt-1 capitalize">{member.role}</p>
-            {member.enrollmentYear && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Since {member.enrollmentYear}
-              </p>
-            )}
+          <div className="md:col-span-9">
+            <p className="font-[600] text-foreground">
+              {member.name}
+              {member.nameKo && (
+                <span className="ml-2 font-[430] text-muted-foreground">
+                  {member.nameKo}
+                </span>
+              )}
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {roleLabels[member.role]}
+            </p>
           </div>
         </div>
       ))}

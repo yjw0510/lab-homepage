@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 import type { ResearchTopic } from "@/types/topic";
 import type { Publication } from "@/types/publication";
 import { getPublicationsForTopic, getTopicsForPublication } from "@/lib/topics";
-import { getMultiscaleIcon } from "@/lib/icons";
 import { renderMarkdownBody } from "@/lib/markdown";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -50,146 +49,110 @@ export function TopicDrawerContent({
         exit={reducedMotion ? undefined : { opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
-        {/* Accent stripe */}
-        <div
-          className="h-[3px] w-full"
-          style={{ backgroundColor: topic.color }}
-        />
-
         {/* Title bar */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-card/90 backdrop-blur-sm border-b border-border/30">
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="flex-shrink-0 rounded-lg p-1.5"
-              style={{ backgroundColor: `${topic.color}15` }}
-            >
-              {getMultiscaleIcon(topic.icon, "w-5 h-5")}
-            </div>
-            <h2 className="text-lg font-semibold text-foreground truncate">
-              {title}
-            </h2>
-          </div>
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-background px-6 py-3">
+          <h2 className="type-heading truncate text-lg text-foreground">
+            {title}
+          </h2>
           <button
             onClick={onClose}
-            className="flex-shrink-0 ml-4 p-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="flex h-11 w-11 flex-shrink-0 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" strokeWidth={1.75} />
           </button>
         </div>
 
-        {/* Hero placeholder */}
-        <div
-          className="mx-6 mt-6 rounded-xl flex items-center justify-center h-40"
-          style={{
-            background: `linear-gradient(135deg, ${topic.color}12, ${topic.color}06)`,
-          }}
-        >
-          {getMultiscaleIcon(topic.icon, "w-16 h-16 text-muted-foreground/30")}
-        </div>
-
         {/* Description */}
-        <div className="px-6 mt-6 text-[15px] leading-relaxed text-foreground/90 max-w-prose">
+        <div className="max-w-prose px-6 pt-6 text-[15px] leading-relaxed text-foreground">
           {renderMarkdownBody(description, lang)}
         </div>
 
-        {/* Publication section — skip for "future" kind */}
+        {/* Publication section, skipped for "future" kind */}
         {topic.kind !== "future" && topicPubs.length > 0 && (
-          <>
-        <hr
-          className="mx-6 mt-8 mb-6 border-t"
-          style={{ borderColor: `${topic.color}30` }}
-        />
+          <div className="px-6 pb-10 pt-10">
+            <h3 className="border-t border-border-strong pt-3 text-sm font-[600] text-foreground">
+              {lang === "ko" ? "관련 논문" : "Publications"}{" "}
+              <span className="type-mono-meta text-[12.5px] text-muted-foreground">
+                ({topicPubs.length})
+              </span>
+            </h3>
 
-        <div className="px-6 pb-10">
-          <h3 className="text-sm font-medium text-muted-foreground mb-4">
-            {lang === "ko"
-              ? `관련 논문 (${topicPubs.length})`
-              : `Publications (${topicPubs.length})`}
-          </h3>
-
-          {years.map((year) => (
-            <div key={year} className="mb-5">
-              <p className="text-xs font-medium text-muted-foreground mb-2">
-                {year}
-              </p>
-              <div className="space-y-2">
-                {byYear.get(year)!.map((pub) => {
+            <div className="mt-3">
+              {years.map((year) =>
+                byYear.get(year)!.map((pub, i) => {
                   const pubTopics = getTopicsForPublication(pub, topics);
 
                   return (
                     <div
                       key={pub.slug}
-                      className="rounded-lg border border-border/30 px-4 py-3 bg-card/50"
+                      className="grid grid-cols-12 items-baseline gap-x-3 border-t border-border py-3"
                     >
-                      {pub.doi ? (
-                        <a
-                          href={`https://doi.org/${pub.doi}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-foreground hover:text-primary transition-colors leading-snug line-clamp-2"
-                        >
-                          {pub.title}
-                        </a>
-                      ) : (
-                        <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">
-                          {pub.title}
+                      <span className="type-mono-meta col-span-2 text-[12px] text-muted-foreground">
+                        {i === 0 ? pub.year : ""}
+                      </span>
+                      <div className="col-span-10">
+                        {pub.doi ? (
+                          <a
+                            href={`https://doi.org/${pub.doi}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-[600] leading-snug text-foreground decoration-[1px] underline-offset-[3px] transition-colors hover:text-accent-ink hover:underline"
+                          >
+                            {pub.title}
+                          </a>
+                        ) : (
+                          <p className="text-sm font-[600] leading-snug text-foreground">
+                            {pub.title}
+                          </p>
+                        )}
+                        <p className="mt-1 text-[12.5px] text-muted-foreground">
+                          {pub.authors[0]}
+                          {pub.authors.length > 1 ? " et al." : ""},{" "}
+                          <span className="type-mono-meta text-[12px]">
+                            {pub.journal}
+                          </span>
                         </p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {pub.authors[0]}
-                        {pub.authors.length > 1 ? " et al." : ""},{" "}
-                        <span className="italic">{pub.journal}</span>
-                      </p>
 
-                      {/* Topic tags — other topics are clickable */}
-                      {pubTopics.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {pubTopics.map((t) => {
-                            const isCurrent = t.id === topic.id;
-                            const label =
-                              lang === "ko" ? t.titleKo : t.title;
+                        {/* Topic labels; other topics switch the drawer */}
+                        {pubTopics.length > 0 && (
+                          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            {pubTopics.map((t) => {
+                              const isCurrent = t.id === topic.id;
+                              const label = lang === "ko" ? t.titleKo : t.title;
 
-                            if (isCurrent) {
+                              if (isCurrent) {
+                                return (
+                                  <span
+                                    key={t.id}
+                                    className="type-mono-meta text-[11.5px] text-muted-foreground"
+                                  >
+                                    [{label}]
+                                  </span>
+                                );
+                              }
+
                               return (
-                                <span
+                                <button
                                   key={t.id}
-                                  className="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
-                                  style={{
-                                    backgroundColor: `${t.color}25`,
-                                    color: t.color,
-                                  }}
+                                  type="button"
+                                  onClick={() => onTopicSwitch(t.id)}
+                                  className="type-mono-meta cursor-pointer py-1 text-[11.5px] text-accent-ink underline decoration-[1px] underline-offset-[3px] transition-colors hover:text-primary"
+                                  aria-label={`View ${t.title} details`}
                                 >
-                                  {label}
-                                </span>
+                                  [{label}]
+                                </button>
                               );
-                            }
-
-                            return (
-                              <button
-                                key={t.id}
-                                onClick={() => onTopicSwitch(t.id)}
-                                className="text-[11px] font-medium px-1.5 py-0.5 rounded-full cursor-pointer hover:brightness-110 transition-all"
-                                style={{
-                                  backgroundColor: `${t.color}18`,
-                                  color: t.color,
-                                }}
-                                aria-label={`View ${t.title} details`}
-                              >
-                                {label} →
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                            })}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
-                })}
-              </div>
+                }),
+              )}
             </div>
-          ))}
-        </div>
-          </>
+          </div>
         )}
         {topic.kind === "future" && <div className="pb-10" />}
       </motion.div>

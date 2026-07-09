@@ -2,9 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { getMultiscaleIcon } from "@/lib/icons";
 import { MesoSchematic } from "@/components/multiscale/schematics/MesoSchematic";
 import { AllAtomSchematic } from "@/components/multiscale/schematics/AllAtomSchematic";
 import { MLFFSchematic } from "@/components/multiscale/schematics/MLFFSchematic";
@@ -29,76 +27,88 @@ export function MultiscaleHighlights({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Reveal policy (DESIGN.md §5): rows are visible by default; JS adds
+  // .pre-reveal before observing, .visible on intersect.
   useEffect(() => {
     const els = containerRef.current?.querySelectorAll(".multiscale-card-reveal");
-    if (!els) return;
+    if (!els || els.length === 0) return;
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) e.target.classList.add("visible");
+          if (e.isIntersecting) {
+            e.target.classList.add("visible");
+            obs.unobserve(e.target);
+          }
         });
       },
       { threshold: 0.15 }
     );
-    els.forEach((el) => obs.observe(el));
+    els.forEach((el) => {
+      el.classList.add("pre-reveal");
+      obs.observe(el);
+    });
     return () => obs.disconnect();
   }, [areas]);
 
   if (areas.length === 0) return null;
 
   return (
-    <section className="py-12 sm:py-20 px-4" ref={containerRef}>
-      <div className="max-w-6xl mx-auto">
+    <section className="py-20 sm:py-28" ref={containerRef}>
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
         <SectionHeading
           title={dict.multiscale.title}
           subtitle={dict.multiscale.subtitle}
         />
 
-        <div className="space-y-10 sm:space-y-16">
+        {/* Scale-ruler spine (signature system, DESIGN.md §7) */}
+        <div className="scale-ruler" aria-hidden="true" />
+        <div className="type-mono-meta mt-2 flex justify-between text-[12px] text-muted-foreground">
+          <span>Å</span>
+          <span>nm</span>
+          <span>µm</span>
+        </div>
+
+        <div className="mt-12">
           {areas.map((area, i) => {
             const Schematic = schematicMap[area.slug];
-            const isEven = i % 2 === 0;
 
             return (
               <div
                 key={area.slug}
-                className="multiscale-card-reveal"
+                className="multiscale-card-reveal grid grid-cols-12 gap-x-6 gap-y-4 border-t border-border py-10 sm:py-12"
                 style={{ transitionDelay: `${i * 0.1}s` }}
               >
-                <div className={`flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} gap-8 items-center`}>
-                  {/* Schematic */}
-                  {Schematic && (
-                    <div className="w-full md:w-1/2 p-6 rounded-2xl bg-card border border-border">
-                      <Schematic active={true} />
-                    </div>
-                  )}
+                {/* Margin column: mono scale annotation */}
+                <div className="col-span-12 sm:col-span-3">
+                  <span className="type-mono-meta text-[12px] text-muted-foreground">
+                    {area.scale}
+                  </span>
+                </div>
 
-                  {/* Text */}
-                  <div className="w-full md:w-1/2 text-center md:text-left">
-                    {area.scale && (
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-3">
-                        {area.scale}
-                      </span>
-                    )}
-                    <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-                      <div style={{ color: area.color }}>
-                        {getMultiscaleIcon(area.icon, "w-6 h-6")}
-                      </div>
-                      <h3 className="text-2xl font-bold text-foreground">
-                        {area.title}
-                      </h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed mb-4">
-                      {lang === "ko" && area.shortDescriptionKo ? area.shortDescriptionKo : area.shortDescription}
+                {/* Content */}
+                <div className="col-span-12 min-w-0 sm:col-span-9 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,4fr)] md:gap-8">
+                  <div>
+                    <h3 className="type-heading text-xl text-foreground">
+                      {lang === "ko" && area.titleKo ? area.titleKo : area.title}
+                    </h3>
+                    <p className="mt-3 max-w-[34rem] break-keep leading-relaxed text-muted-foreground">
+                      {lang === "ko" && area.shortDescriptionKo
+                        ? area.shortDescriptionKo
+                        : area.shortDescription}
                     </p>
                     <Link
                       href={`/${lang}/multiscale/${area.slug}`}
-                      className="inline-flex items-center gap-2 text-primary hover:text-primary-light font-medium transition-colors"
+                      className="mt-4 inline-flex min-h-11 items-center text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
                     >
                       {dict.multiscale.learnMore}
-                      <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
+
+                  {Schematic && (
+                    <div className="mt-6 flex items-center border border-border p-4 sm:p-5 md:mt-0">
+                      <Schematic active={true} />
+                    </div>
+                  )}
                 </div>
               </div>
             );

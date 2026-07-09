@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, FlaskConical } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { navigation } from "../../../data/navigation";
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageToggle } from "./LanguageToggle";
@@ -21,101 +21,128 @@ const navKeyMap: Record<string, keyof Dictionary["nav"]> = {
   "/contact": "contact",
 };
 
+function NavLinks({
+  lang,
+  dict,
+  pathname,
+  variant,
+  onNavigate,
+}: {
+  lang: string;
+  dict: Dictionary;
+  pathname: string;
+  variant: "desktop" | "mobile";
+  onNavigate?: () => void;
+}) {
+  return (
+    <>
+      {navigation.map((item) => {
+        const localizedHref =
+          item.href === "/" ? `/${lang}` : `/${lang}${item.href}`;
+        const isActive =
+          item.href === "/"
+            ? pathname === `/${lang}` || pathname === `/${lang}/`
+            : pathname.startsWith(`/${lang}${item.href}`);
+        const label = dict.nav[navKeyMap[item.href] ?? "home"] ?? item.label;
+        return (
+          <Link
+            key={item.href}
+            href={localizedHref}
+            onClick={onNavigate}
+            className={cn(
+              variant === "desktop"
+                ? "px-3 py-2 text-[13.5px] font-[500] transition-colors"
+                : "block px-6 py-3 text-sm font-[500] transition-colors sm:px-8",
+              isActive
+                ? "text-foreground underline decoration-primary decoration-2 underline-offset-[6px]"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {label}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
+
 export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href={`/${lang}`} className="flex items-center gap-2 group">
-            <FlaskConical className="w-6 h-6 text-primary group-hover:text-primary-light transition-colors" />
-            <span className="font-semibold text-foreground">Yu Lab</span>
+          {/* Brand mark */}
+          <Link
+            href={`/${lang}`}
+            className="flex items-baseline gap-2 text-foreground"
+          >
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-2.5 self-center bg-primary"
+            />
+            <span className="text-[15px] font-[650] tracking-[-0.015em]">
+              Yu Lab
+            </span>
+            <span className="type-mono-meta text-[11px] text-muted-foreground">
+              MMCC
+            </span>
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navigation.map((item) => {
-              const localizedHref =
-                item.href === "/" ? `/${lang}` : `/${lang}${item.href}`;
-              const isActive =
-                item.href === "/"
-                  ? pathname === `/${lang}` || pathname === `/${lang}/`
-                  : pathname.startsWith(`/${lang}${item.href}`);
-              const label =
-                dict.nav[navKeyMap[item.href] ?? "home"] ?? item.label;
-              return (
-                <Link
-                  key={item.href}
-                  href={localizedHref}
-                  className={cn(
-                    "px-3 py-2 text-sm rounded-lg transition-colors",
-                    isActive
-                      ? "text-primary font-medium bg-accent"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {label}
-                </Link>
-              );
-            })}
+          <div className="hidden items-center lg:flex">
+            <NavLinks
+              lang={lang}
+              dict={dict}
+              pathname={pathname}
+              variant="desktop"
+            />
             <div className="ml-2 flex items-center gap-1">
               <LanguageToggle lang={lang} />
               <ThemeToggle />
             </div>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Mobile controls */}
+          <div className="flex items-center gap-2 lg:hidden">
             <LanguageToggle lang={lang} />
             <ThemeToggle />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex items-center justify-center w-11 h-11 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex h-11 w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-sheet"
             >
               {mobileOpen ? (
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" strokeWidth={1.75} />
               ) : (
-                <Menu className="w-5 h-5" />
+                <Menu className="h-5 w-5" strokeWidth={1.75} />
               )}
             </button>
           </div>
         </div>
-
-        {/* Mobile nav */}
-        {mobileOpen && (
-          <div className="md:hidden pb-4 space-y-1">
-            {navigation.map((item) => {
-              const localizedHref =
-                item.href === "/" ? `/${lang}` : `/${lang}${item.href}`;
-              const isActive =
-                item.href === "/"
-                  ? pathname === `/${lang}` || pathname === `/${lang}/`
-                  : pathname.startsWith(`/${lang}${item.href}`);
-              const label =
-                dict.nav[navKeyMap[item.href] ?? "home"] ?? item.label;
-              return (
-                <Link
-                  key={item.href}
-                  href={localizedHref}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "block px-3 py-3 text-sm rounded-lg transition-colors",
-                    isActive
-                      ? "text-primary font-medium bg-accent"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-          </div>
-        )}
       </div>
+
+      {/* Mobile sheet below the masthead */}
+      {mobileOpen && (
+        <div
+          id="mobile-nav-sheet"
+          className="absolute inset-x-0 top-full border-b border-border bg-background shadow-[0_8px_32px_oklch(14%_0.014_268_/_0.24)] lg:hidden"
+        >
+          <div className="divide-y divide-border">
+            <NavLinks
+              lang={lang}
+              dict={dict}
+              pathname={pathname}
+              variant="mobile"
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

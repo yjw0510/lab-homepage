@@ -1,51 +1,48 @@
-import { Mail, MapPin, Building2 } from "lucide-react";
 import { siteConfig } from "../../../data/site-config";
 
 export function ContactInfo({ dict, lang }: { dict: { contact: { email: string; office: string; location: string } }; lang: string }) {
-  const building = lang === "ko" && siteConfig.location.buildingKo ? siteConfig.location.buildingKo : siteConfig.location.building;
-  const address = lang === "ko" && siteConfig.location.addressKo ? siteConfig.location.addressKo : siteConfig.location.address;
+  const ko = lang === "ko";
+  const building = ko && siteConfig.location.buildingKo ? siteConfig.location.buildingKo : siteConfig.location.building;
+  const address = ko && siteConfig.location.addressKo ? siteConfig.location.addressKo : siteConfig.location.address;
+  const university = ko && siteConfig.universityKo ? siteConfig.universityKo : siteConfig.university;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="p-3 rounded-lg bg-accent text-primary flex-shrink-0">
-          <Mail className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">{dict.contact.email}</h3>
+    <dl className="border-b border-border">
+      <div className="border-t border-border py-4">
+        <dt className="text-sm font-[600] text-foreground">
+          {dict.contact.email}
+        </dt>
+        <dd className="type-mono-meta mt-1 text-[13px]">
           <a
             href={`mailto:${siteConfig.email}`}
-            className="text-primary hover:text-primary-light transition-colors"
+            className="inline-block py-2 text-accent-ink underline decoration-[1px] underline-offset-[3px] transition-colors hover:text-primary"
           >
             {siteConfig.email}
           </a>
-        </div>
+        </dd>
       </div>
 
-      <div className="flex items-start gap-4">
-        <div className="p-3 rounded-lg bg-accent text-primary flex-shrink-0">
-          <Building2 className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">{dict.contact.office}</h3>
-          <p className="text-muted-foreground">{building}</p>
+      <div className="border-t border-border py-4">
+        <dt className="text-sm font-[600] text-foreground">
+          {dict.contact.office}
+        </dt>
+        <dd className="type-mono-meta mt-1.5 space-y-1 text-[13px] leading-relaxed text-muted-foreground">
+          <p>{building}</p>
           {siteConfig.departments.map((d) => (
-            <p key={d.name} className="text-sm text-muted-foreground">
-              {d.name}
-            </p>
+            <p key={d.name}>{ko && d.nameKo ? d.nameKo : d.name}</p>
           ))}
-          <p className="text-sm text-muted-foreground">{siteConfig.university}</p>
-        </div>
+          <p>{university}</p>
+        </dd>
       </div>
 
-      <div className="flex items-start gap-4">
-        <div className="p-3 rounded-lg bg-accent text-primary flex-shrink-0">
-          <MapPin className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">{dict.contact.location}</h3>
-          <p className="text-muted-foreground">{address}</p>
-        </div>
+      <div className="border-t border-border py-4">
+        <dt className="text-sm font-[600] text-foreground">
+          {dict.contact.location}
+        </dt>
+        <dd className="type-mono-meta mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+          {address}
+        </dd>
       </div>
-    </div>
+    </dl>
   );
 }

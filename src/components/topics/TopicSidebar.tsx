@@ -33,24 +33,21 @@ export function TopicSidebar({
   const displayTopics = topics.filter((t) => t.kind !== "future");
 
   return (
-    <nav className="space-y-1.5">
+    <nav aria-label={lang === "ko" ? "주제 색인" : "Topic index"}>
       {displayTopics.map((topic) => {
         const isActive = activeTopicIds.has(topic.id);
         return (
           <button
             key={topic.id}
+            type="button"
             data-topic-sidebar={topic.id}
             onClick={() => onTopicClick(topic.id)}
             className={cn(
-              "w-full text-left text-[11px] leading-tight px-2 py-1.5 rounded-r border-l-2 transition-all duration-200 cursor-pointer",
+              "type-mono-meta flex min-h-11 w-full cursor-pointer items-center border-t border-border text-left text-[12px] leading-snug transition-colors",
               isActive
-                ? "bg-accent/50"
-                : "opacity-50 hover:opacity-90 hover:bg-accent/20",
+                ? "text-foreground underline decoration-primary decoration-2 underline-offset-4"
+                : "text-muted-foreground hover:text-foreground",
             )}
-            style={{
-              borderLeftColor: isActive ? topic.color : `${topic.color}60`,
-              color: isActive ? topic.color : undefined,
-            }}
           >
             {lang === "ko" ? topic.titleKo : topic.title}
           </button>

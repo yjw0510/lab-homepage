@@ -1,5 +1,4 @@
 import ExportedImage from "next-image-export-optimizer";
-import { Mail, BookOpen, GraduationCap } from "lucide-react";
 import { ExternalLink } from "@/components/ui/ExternalLink";
 import { BASE_PATH } from "@/lib/basePath";
 import { getInitials } from "@/lib/utils";
@@ -7,69 +6,78 @@ import type { Person } from "@/types/person";
 
 export function PIProfile({ person }: { person: Person }) {
   return (
-    <div className="flex flex-col md:flex-row gap-6 sm:gap-8 items-center md:items-start">
+    <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-12">
       {/* Photo or initials fallback */}
-      {person.photo ? (
-        <div className="w-36 sm:w-48 rounded-xl overflow-hidden flex-shrink-0 border border-border mx-auto md:mx-0">
-          <ExportedImage
-            src={person.photo}
-            basePath={BASE_PATH}
-            alt={person.name}
-            width={192}
-            height={256}
-            className="w-full h-auto"
-            sizes="(max-width: 640px) 144px, 192px"
-            priority
-            placeholder="blur"
-          />
-        </div>
-      ) : (
-        <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 border border-border mx-auto md:mx-0">
-          <span className="text-4xl text-muted-foreground font-bold">
-            {getInitials(person.name)}
-          </span>
-        </div>
-      )}
-
-      <div className="flex-1 text-center md:text-left">
-        <h2 className="text-2xl font-bold text-foreground">{person.name}</h2>
-        {person.nameKo && (
-          <p className="text-muted-foreground mt-0.5">{person.nameKo}</p>
+      <div className="md:col-span-3">
+        {person.photo ? (
+          <div className="w-36 border border-border sm:w-48">
+            <ExportedImage
+              src={person.photo}
+              basePath={BASE_PATH}
+              alt={person.name}
+              width={192}
+              height={256}
+              className="block h-auto w-full"
+              sizes="(max-width: 640px) 144px, 192px"
+              priority
+              placeholder="blur"
+            />
+          </div>
+        ) : (
+          <div className="flex h-36 w-36 items-center justify-center border border-border bg-muted sm:h-48 sm:w-48">
+            <span className="type-mono-meta text-2xl text-muted-foreground">
+              {getInitials(person.name)}
+            </span>
+          </div>
         )}
-        <p className="text-primary font-medium mt-1">{person.title}</p>
-        <div className="text-sm text-muted-foreground">
+      </div>
+
+      <div className="md:col-span-9">
+        <h3 className="type-heading text-[21px] text-foreground">
+          {person.name}
+          {person.nameKo && (
+            <span className="ml-2 font-[430] text-muted-foreground">
+              {person.nameKo}
+            </span>
+          )}
+        </h3>
+        <p className="mt-2 text-foreground">{person.title}</p>
+        <div className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {person.departments
-            ? person.departments.map((dept, i) => <span key={i} className="block">{dept}</span>)
-            : person.department && <span className="block">{person.department}</span>}
+            ? person.departments.map((dept, i) => (
+                <span key={i} className="block">
+                  {dept}
+                </span>
+              ))
+            : person.department && (
+                <span className="block">{person.department}</span>
+              )}
           <span className="block">{person.university}</span>
         </div>
 
         {/* Links */}
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm justify-center md:justify-start">
+        <div className="type-mono-meta mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-[12px]">
           {person.email && (
             <a
               href={`mailto:${person.email}`}
-              className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
+              className="inline-block py-2 text-accent-ink underline decoration-[1px] underline-offset-[3px] transition-colors hover:text-primary"
             >
-              <Mail className="w-4 h-4" />
               {person.email}
             </a>
           )}
           {person.orcid && (
             <ExternalLink
               href={`https://orcid.org/${person.orcid}`}
-              className="text-muted-foreground"
+              className="py-2 text-[12px]"
             >
-              <BookOpen className="w-4 h-4" />
               ORCID
             </ExternalLink>
           )}
           {person.links?.googleScholar && (
             <ExternalLink
               href={person.links.googleScholar}
-              className="text-muted-foreground"
+              className="py-2 text-[12px]"
             >
-              <GraduationCap className="w-4 h-4" />
               Google Scholar
             </ExternalLink>
           )}

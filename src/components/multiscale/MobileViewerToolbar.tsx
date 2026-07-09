@@ -21,7 +21,7 @@ const ACTIONS = [
 ] as const;
 
 const BTN =
-  "flex h-9 w-9 items-center justify-center rounded-xl text-white/90 transition hover:bg-white/10";
+  "flex h-11 w-11 items-center justify-center text-foreground transition-colors hover:bg-muted";
 
 export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }: Props) {
   const reducedMotion = useReducedMotion();
@@ -44,7 +44,7 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
     : { type: "spring" as const, damping: 25, stiffness: 400 };
 
   return (
-    <div ref={panelRef} className="absolute right-3 top-3 z-10 flex items-start gap-1.5">
+    <div ref={panelRef} className="dark absolute right-3 top-3 z-10 flex items-start gap-1.5">
       {/* Expanding action bar — slides in from the right */}
       <AnimatePresence>
         {isOpen && (
@@ -53,7 +53,7 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
             animate={{ opacity: 1, scaleX: 1 }}
             exit={{ opacity: 0, scaleX: 0 }}
             transition={transition}
-            className="flex items-center gap-1 rounded-xl border border-white/12 bg-slate-950/85 p-1 shadow-[0_16px_40px_rgba(0,0,0,0.36)] backdrop-blur-md"
+            className="flex items-center gap-1 border border-border-strong bg-surface-raised p-1"
           >
             {ACTIONS.map((action) => {
               const Icon = action.icon;
@@ -69,7 +69,7 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
                   aria-label={label}
                   title={label}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
                 </button>
               );
             })}
@@ -80,12 +80,12 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
       {/* Trigger button */}
       <button
         type="button"
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/12 bg-slate-950/78 text-white/90 shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-md transition hover:border-white/22 hover:bg-slate-900/86"
+        className="flex h-11 w-11 flex-shrink-0 items-center justify-center border border-border-strong bg-surface-raised text-foreground transition-colors hover:bg-muted"
         onClick={onToggle}
         aria-label={lang === "ko" ? "뷰어 도구" : "Viewer tools"}
         aria-expanded={isOpen}
       >
-        <SlidersHorizontal className="h-4 w-4" />
+        <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
       </button>
     </div>
   );

@@ -20,6 +20,7 @@ export function getAllMultiscaleAreas(): MultiscaleArea[] {
       return {
         slug: file.replace(".mdx", ""),
         title: data.title || "",
+        titleKo: data.titleKo || "",
         shortDescription: data.shortDescription || "",
         shortDescriptionKo: data.shortDescriptionKo || "",
         icon: data.icon || "FlaskConical",

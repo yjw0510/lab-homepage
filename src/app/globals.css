@@ -2,30 +2,42 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Design system: DESIGN.md ("Ledger & Instrument").
+   Every chrome color below traces to DESIGN.md §1. Scientific content colors
+   (schematics, plots, CPK) are a separate domain layer at the bottom. */
+
 :root {
   color-scheme: light;
-  --background: hsl(220, 20%, 97%);
-  --foreground: hsl(220, 20%, 10%);
-  --primary: hsl(185, 80%, 35%);
-  --primary-light: hsl(185, 80%, 45%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(220, 20%, 10%);
-  --muted: hsl(220, 15%, 92%);
-  --muted-foreground: hsl(220, 10%, 40%);
-  --border: hsl(220, 15%, 88%);
-  --accent: hsl(185, 80%, 95%);
-  --accent-foreground: hsl(185, 80%, 25%);
-  --surface-raised: hsl(0, 0%, 100%);
-  --surface-sunken: hsl(220, 15%, 94%);
+  /* ledger */
+  --background: oklch(97.6% 0.004 250);
+  --foreground: oklch(21% 0.015 260);
+  --primary: oklch(58% 0.19 35);
+  --accent-ink: oklch(46% 0.165 35);
+  --primary-foreground: oklch(97.6% 0.004 250);
+  --card: oklch(99% 0.002 250);
+  --card-foreground: oklch(21% 0.015 260);
+  --muted: oklch(93% 0.006 250);
+  --muted-foreground: oklch(43% 0.012 255);
+  --border: oklch(88.5% 0.006 250);
+  --border-strong: oklch(72% 0.01 252);
+  --accent: oklch(94% 0.025 45);
+  --accent-foreground: oklch(40% 0.15 35);
+  --surface-raised: oklch(99% 0.002 250);
+  --surface-sunken: oklch(95.2% 0.005 250);
 
-  /* Schematic structural colors */
+  /* motion */
+  --ease-ledger: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 180ms;
+  --dur-med: 320ms;
+  --dur-slow: 600ms;
+
+  /* Schematic structural colors (scientific layer) */
   --sch-ink: #334155;
   --sch-muted: #64748b;
-  --sch-bond: #2B2D42;
+  --sch-bond: #2b2d42;
   --sch-carbon: #6b7280;
 
-  /* Plot colors */
+  /* Plot colors (scientific layer) */
   --plot-axis: #64748b;
   --plot-label: #475569;
   --plot-grid: #cbd5e1;
@@ -36,20 +48,22 @@
 
 .dark {
   color-scheme: dark;
-  --background: hsl(220, 25%, 7%);
-  --foreground: hsl(220, 10%, 90%);
-  --primary: hsl(185, 72%, 48%);
-  --primary-light: hsl(185, 72%, 58%);
-  --primary-foreground: hsl(220, 25%, 7%);
-  --card: hsl(220, 25%, 11%);
-  --card-foreground: hsl(220, 10%, 90%);
-  --muted: hsl(220, 20%, 16%);
-  --muted-foreground: hsl(220, 10%, 60%);
-  --border: hsl(220, 15%, 25%);
-  --accent: hsl(185, 60%, 14%);
-  --accent-foreground: hsl(185, 72%, 58%);
-  --surface-raised: hsl(220, 22%, 14%);
-  --surface-sunken: hsl(220, 28%, 5%);
+  /* instrument */
+  --background: oklch(14% 0.014 268);
+  --foreground: oklch(92.5% 0.008 255);
+  --primary: oklch(68% 0.155 42);
+  --accent-ink: oklch(72% 0.14 45);
+  --primary-foreground: oklch(13% 0.014 268);
+  --card: oklch(17.5% 0.014 266);
+  --card-foreground: oklch(92.5% 0.008 255);
+  --muted: oklch(21% 0.014 265);
+  --muted-foreground: oklch(71% 0.01 255);
+  --border: oklch(27% 0.012 264);
+  --border-strong: oklch(38% 0.012 262);
+  --accent: oklch(24% 0.04 45);
+  --accent-foreground: oklch(78% 0.12 48);
+  --surface-raised: oklch(17.5% 0.014 266);
+  --surface-sunken: oklch(11.5% 0.012 270);
 
   /* Schematic structural colors — flipped for dark bg */
   --sch-ink: #cbd5e1;
@@ -70,35 +84,79 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
+  --color-accent-ink: var(--accent-ink);
   --color-primary-foreground: var(--primary-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --font-sans: var(--font-pretendard);
   --font-mono: var(--font-geist-mono);
+  --ease-ledger: var(--ease-ledger);
+}
+
+html,
+body {
+  overflow-x: clip;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-weight: 430;
+  transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
 }
 
-/* Smooth transitions for theme changes */
-* {
-  transition-property: background-color, border-color;
-  transition-duration: 200ms;
-  transition-timing-function: ease-in-out;
+.dark body {
+  font-weight: 400;
 }
 
-/* Scrollbar styling for dark mode */
+/* Theme-change transitions, scoped to surfaces (never `*`) */
+.theme-surface {
+  transition: background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+}
+
+/* Type roles (DESIGN.md §2) */
+@utility type-display {
+  font-weight: 830;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+@utility type-heading {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+@utility type-mono-meta {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-feature-settings: "tnum";
+  letter-spacing: 0.01em;
+}
+
+/* Focus: instant vermilion ring on every interactive element */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  transition: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -107,10 +165,61 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--muted-foreground);
-  border-radius: 4px;
 }
 
-/* Research scroll animations */
+/* Signature system: the scale ruler (DESIGN.md §7).
+   Hairline baseline, minor ticks every 24px, major ticks every 120px,
+   vermilion origin tick. Used ONLY on home scale-index, footer colophon,
+   multiscale overview header. */
+.scale-ruler {
+  position: relative;
+  height: 10px;
+  border-bottom: 1px solid var(--border-strong);
+  background-image:
+    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 120px);
+  background-size: 100% 5px, 100% 10px;
+  background-position: bottom left, bottom left;
+  background-repeat: no-repeat;
+}
+.scale-ruler::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  height: 10px;
+  background: var(--primary);
+}
+
+/* Reveal policy (DESIGN.md §5): content is visible without JS.
+   Client components add `.pre-reveal` on mount BEFORE observing, then
+   `.visible` on intersect. No CSS hides content by default. */
+.multiscale-reveal,
+.multiscale-card-reveal {
+  transition: opacity var(--dur-slow) var(--ease-ledger),
+    transform var(--dur-slow) var(--ease-ledger);
+}
+
+.multiscale-reveal.pre-reveal:not(.visible),
+.multiscale-card-reveal.pre-reveal:not(.visible) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .multiscale-reveal,
+  .multiscale-card-reveal {
+    transition: none;
+  }
+  .multiscale-reveal.pre-reveal:not(.visible),
+  .multiscale-card-reveal.pre-reveal:not(.visible) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scientific scene animations (schematics/plots) */
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0); }
   to { opacity: 1; transform: scale(1); }
@@ -133,12 +242,12 @@ body {
 }
 
 .animate-scale-in {
-  animation: scale-in 0.5s ease-out forwards;
+  animation: scale-in 0.5s var(--ease-ledger) forwards;
   opacity: 0;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
+  animation: fade-in 0.5s var(--ease-ledger) forwards;
   opacity: 0;
 }
 
@@ -160,20 +269,6 @@ body {
     opacity: 1;
     transform: none;
   }
-}
-
-/* Scroll reveal for research sections */
-.multiscale-reveal,
-.multiscale-card-reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.multiscale-reveal.visible,
-.multiscale-card-reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* Ruby term annotations (KR/EN) — superscript style */
@@ -235,5 +330,10 @@ body {
 }
 
 .multiscale-molstar .msp-no-webgl a {
-  color: #60a5fa;
+  color: var(--accent-ink);
+}
+
+/* Ruby annotations never break across lines (orphan superscript fix) */
+.term-ruby rt {
+  white-space: nowrap;
 }

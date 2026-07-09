@@ -4,6 +4,7 @@ import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Float } from "@react-three/drei";
 import * as THREE from "three";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 function Atom({
   position,
@@ -86,22 +87,35 @@ function WaterMolecule({
   );
 }
 
-function FloatingParticles({ count = 40 }: { count?: number }) {
+// Deterministic scatter: seeded LCG keeps render pure (react-hooks/purity)
+function seededPositions(count: number) {
+  let s = 42;
+  const rand = () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count * 3; i++) {
+    pos[i] = (rand() - 0.5) * 16;
+  }
+  return pos;
+}
+
+function FloatingParticles({
+  count = 40,
+  reduceMotion = false,
+}: {
+  count?: number;
+  reduceMotion?: boolean;
+}) {
   const ref = useRef<THREE.Points>(null);
 
-  const positions = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) {
-      pos[i] = (Math.random() - 0.5) * 16;
-    }
-    return pos;
-  }, [count]);
+  const positions = useMemo(() => seededPositions(count), [count]);
 
   useFrame((_, delta) => {
-    if (ref.current) {
-      ref.current.rotation.y += delta * 0.02;
-      ref.current.rotation.x += delta * 0.01;
-    }
+    if (reduceMotion || !ref.current) return;
+    ref.current.rotation.y += delta * 0.02;
+    ref.current.rotation.x += delta * 0.01;
   });
 
   return (
@@ -112,55 +126,59 @@ function FloatingParticles({ count = 40 }: { count?: number }) {
           args={[positions, 3]}
         />
       </bufferGeometry>
+      {/* Muted ink particle field (scientific atmosphere layer, DESIGN.md appendix) */}
       <pointsMaterial
         size={0.04}
-        color="#06b6d4"
+        color="#64748b"
         transparent
-        opacity={0.6}
+        opacity={0.45}
         sizeAttenuation
       />
     </points>
   );
 }
 
-function Scene() {
+function Scene({ reduceMotion }: { reduceMotion: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
-    if (groupRef.current) {
+    if (!reduceMotion && groupRef.current) {
       groupRef.current.rotation.y += delta * 0.08;
     }
   });
 
+  const floatSpeed = (base: number) => (reduceMotion ? 0 : base);
+
   return (
     <>
       <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={0.8} color="#06b6d4" />
-      <pointLight position={[-10, -5, 5]} intensity={0.3} color="#8b5cf6" />
+      {/* Warm key light with a faint vermilion cast + neutral cool fill */}
+      <pointLight position={[10, 10, 10]} intensity={0.8} color="#f0cfc4" />
+      <pointLight position={[-10, -5, 5]} intensity={0.3} color="#d8dfe8" />
 
       <group ref={groupRef}>
-        <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+        <Float speed={floatSpeed(1.5)} rotationIntensity={0.2} floatIntensity={0.5}>
           <WaterMolecule position={[0, 0, 0]} />
         </Float>
-        <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.4}>
+        <Float speed={floatSpeed(1.2)} rotationIntensity={0.3} floatIntensity={0.4}>
           <WaterMolecule position={[2.2, 1.2, -0.5]} rotation={[0.5, 0.8, 0]} />
         </Float>
-        <Float speed={1.8} rotationIntensity={0.2} floatIntensity={0.3}>
+        <Float speed={floatSpeed(1.8)} rotationIntensity={0.2} floatIntensity={0.3}>
           <WaterMolecule position={[-1.8, -1.0, 0.8]} rotation={[1.2, 0.3, 0.6]} />
         </Float>
-        <Float speed={1.0} rotationIntensity={0.4} floatIntensity={0.6}>
+        <Float speed={floatSpeed(1.0)} rotationIntensity={0.4} floatIntensity={0.6}>
           <WaterMolecule position={[0.5, -1.8, -1.2]} rotation={[0.8, 1.5, 0.2]} />
         </Float>
-        <Float speed={1.4} rotationIntensity={0.2} floatIntensity={0.5}>
+        <Float speed={floatSpeed(1.4)} rotationIntensity={0.2} floatIntensity={0.5}>
           <WaterMolecule position={[-2.0, 1.5, 1.0]} rotation={[2.0, 0.5, 1.0]} />
         </Float>
       </group>
 
-      <FloatingParticles count={60} />
+      <FloatingParticles count={60} reduceMotion={reduceMotion} />
       <OrbitControls
         enableZoom={false}
         enablePan={false}
-        autoRotate
+        autoRotate={!reduceMotion}
         autoRotateSpeed={0.3}
         maxPolarAngle={Math.PI / 1.5}
         minPolarAngle={Math.PI / 3}
@@ -170,6 +188,8 @@ function Scene() {
 }
 
 export default function MoleculeHero() {
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+
   return (
     <Canvas
       camera={{ position: [0, 0, 7], fov: 45 }}
@@ -177,7 +197,7 @@ export default function MoleculeHero() {
       className="!absolute inset-0"
       style={{ background: "transparent" }}
     >
-      <Scene />
+      <Scene reduceMotion={reduceMotion} />
     </Canvas>
   );
 }
