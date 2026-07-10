@@ -20,6 +20,7 @@ export function VisualStage({
   rdfBinIndex,
   allAtomActiveTerm,
   allAtomActiveReadout,
+  lang = "en",
 }: {
   progressRef: RefObject<number>;
   scrollState: ScrollState;
@@ -30,6 +31,7 @@ export function VisualStage({
   rdfBinIndex?: number;
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
   allAtomActiveReadout?: AllAtomReadoutId | null;
+  lang?: string;
 }) {
   const commonProps = {
     progressRef,
@@ -46,7 +48,7 @@ export function VisualStage({
     case "allatom":
       return <AllAtomHybridStage {...commonProps} activeTerm={allAtomActiveTerm ?? null} activeReadout={allAtomActiveReadout ?? null} />;
     case "dft":
-      return <MolstarDftStage {...commonProps} manualSnapshotIndex={dftManualSnapshotIndex} />;
+      return <MolstarDftStage {...commonProps} manualSnapshotIndex={dftManualSnapshotIndex} lang={lang} />;
     default:
       return <div className="h-full w-full bg-[#050510]" />;
   }

@@ -1,11 +1,11 @@
 ---
 title: "All-Atom Molecular Dynamics"
 titleKo: "전원자 분자동역학"
-shortDescription: "Retaining full atomic resolution without electronic structure calculations, this method describes interatomic interactions to capture both static distributions and dynamic properties of atoms and molecules"
-shortDescriptionKo: "개별 원자의 해상도를 유지하되 전자구조는 계산하지 않는다. 원자 수준에서 상호작용을 기술해 원자와 분자의 정적인 분포와 동적인 특성을 포착하는 기법이다"
+shortDescription: "Tracks explicit atoms and solvent with a classical potential, providing trajectory-level structural and dynamical references for larger-scale models."
+shortDescriptionKo: "고전 퍼텐셜로 명시적 원자와 용매를 추적해, 더 큰 스케일 모형의 구조 및 동역학 참조값을 제공한다."
 icon: "Atom"
 color: "#06b6d4"
-order: 2
+order: 3
 scale: "1-10 nm"
 contentKo: |
   ## 개요
@@ -21,7 +21,11 @@ contentKo: |
 
   ## 방법론
 
-  이 페이지의 시각화는 물에 녹인 카페인의 명시적 용매 궤적을 사용하여 전원자 MD의 핵심 개념을 예시한다: 원자 표현 방식, 힘장 항이 실제로 어떻게 보이는지, 국소 분자 구조가 장소에 따라 어떻게 달라지는지, 주기 경계 조건이 어떻게 작동하는지. 이 궤적은 하나의 예시이며, 이 개념들은 액체나 용액의 모든 전원자 시뮬레이션에 적용된다.
+  멀티스케일 인터랙티브 경험은 물에 녹인 카페인의 명시적 용매 궤적으로 전원자 MD의 핵심 개념을 예시한다. 원자 표현 방식, 힘장 항, 국소 분자 구조의 차이, 주기 경계 조건을 차례로 보여 준다. 이 궤적은 하나의 학습용 예시이며, 핵심 개념은 액체와 용액의 다양한 전원자 시뮬레이션에 적용된다.
+
+  ## 멀티스케일 체계에서의 역할
+
+  전원자 MD는 더 정교한 전자구조 또는 MLFF 계산과 더 단순한 조대화 모형 사이에서 구조와 동역학의 기준선을 제공한다. 같은 계의 분포, 확산, 접촉 통계를 비교하면 각 해상도에서 무엇을 보존했고 무엇을 생략했는지 확인할 수 있다.
 
   ## 관련 논문
 
@@ -44,7 +48,11 @@ All-atom molecular dynamics tracks every atom in a system, including every water
 
 ## Methods
 
-The interactive visualizations on this page use an explicit-solvent trajectory of caffeine dissolved in water to illustrate core all-atom MD concepts: how atoms are represented, what force-field terms look like in practice, how local molecular structure varies from place to place, and how periodic boundary conditions work. The trajectory is one example; these concepts apply to any all-atom simulation of a liquid or solution.
+The Multiscale interactive experience uses an explicit-solvent trajectory of caffeine dissolved in water to illustrate core all-atom MD concepts: atomistic representation, force-field terms, local molecular structure, and periodic boundary conditions. The trajectory is a teaching example; the concepts apply across all-atom simulations of liquids and solutions.
+
+## Role in Multiscale Framework
+
+All-atom MD provides structural and dynamical reference measurements between more detailed electronic-structure or MLFF calculations and simpler coarse-grained models. Comparing distributions, diffusion, and contact statistics for the same system makes clear which features are retained or omitted at each resolution.
 
 ## Related Publications
 

@@ -40,15 +40,19 @@ function normalizeSeries(values: number[]) {
 export function AllAtomReadoutPlot({
   progress,
   accentColor,
+  lang = "en",
   activeReadout,
+  selectedReadout,
   onReadoutHover,
   onReadoutLeave,
   onReadoutToggle,
 }: {
   progress: number;
   accentColor: string;
+  lang?: string;
   rdfActiveRadius?: number;
   activeReadout?: AllAtomReadoutId | null;
+  selectedReadout?: AllAtomReadoutId | null;
   onReadoutHover?: (readout: AllAtomReadoutId) => void;
   onReadoutLeave?: () => void;
   onReadoutToggle?: (readout: AllAtomReadoutId) => void;
@@ -91,19 +95,19 @@ export function AllAtomReadoutPlot({
   }> = [
     {
       id: "orientation",
-      label: "solvent orientation",
+      label: lang === "ko" ? "수화 접촉 수" : "hydration contacts",
       color: accentColor,
       values: normalizeSeries(data.map((entry) => entry.hydrationContacts)),
     },
     {
       id: "packing",
-      label: "local packing",
+      label: lang === "ko" ? "국소 밀집도 점수" : "local packing score",
       color: "#f59e0b",
       values: normalizeSeries(data.map((entry) => entry.packingScore)),
     },
     {
       id: "motif",
-      label: "contact motif",
+      label: lang === "ko" ? "카페인 이웃 수" : "caffeine neighbor count",
       color: "#e2e8f0",
       values: normalizeSeries(data.map((entry) => entry.caffeineNeighbors)),
     },
@@ -111,7 +115,7 @@ export function AllAtomReadoutPlot({
 
   return (
     <PlotContainer
-      ariaLabel="Three local readouts extracted from the same short all-atom trajectory window"
+      ariaLabel={lang === "ko" ? "같은 짧은 전원자 궤적 구간에서 얻은 세 가지 국소 관측량" : "Three local readouts extracted from the same short all-atom trajectory window"}
       aspectRatio={0.8}
       minHeight={255}
       maxHeight={325}
@@ -126,10 +130,11 @@ export function AllAtomReadoutPlot({
         return {
           svg: (
             <g transform={`translate(${margin.left},${margin.top})`}>
-              <rect x={0} y={0} width={innerWidth} height={innerHeight} rx={18} fill={accentColor} opacity={0.03} />
+              <rect x={0} y={0} width={innerWidth} height={innerHeight} rx={0} fill={accentColor} opacity={0.03} />
               {series.map((track, trackIndex) => {
                 const rowY = rowYs[trackIndex];
                 const isActive = activeReadout === track.id;
+                const isSelected = selectedReadout === track.id;
                 const isDimmed = activeReadout != null && !isActive;
                 // Connecting line data
                 const linePoints = visible.map((_, index) => ({
@@ -144,11 +149,21 @@ export function AllAtomReadoutPlot({
                     onMouseEnter={() => onReadoutHover?.(track.id)}
                     onMouseLeave={onReadoutLeave}
                     onClick={() => onReadoutToggle?.(track.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onReadoutToggle?.(track.id);
+                      }
+                    }}
                     style={{ cursor: "pointer" }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${lang === "ko" ? "관측량 선택" : "Select readout"}: ${track.label}`}
+                    aria-pressed={isSelected}
                   >
                     {/* Active track background band */}
                     {isActive && (
-                      <rect x={0} y={rowY - 14} width={innerWidth} height={28} rx={6} fill={track.color} opacity={0.06} />
+                      <rect x={0} y={rowY - 14} width={innerWidth} height={28} rx={0} fill={track.color} opacity={0.06} />
                     )}
                     <line x1={0} y1={rowY} x2={innerWidth} y2={rowY} stroke={PLOT_COLORS.grid} strokeDasharray="4,4" strokeWidth={1.1} />
                     {/* Connecting path between dots */}
@@ -194,7 +209,7 @@ export function AllAtomReadoutPlot({
             {
               x: margin.left + innerWidth / 2,
               y: height - font.axisLabel * 0.8,
-              text: "one short trajectory, three local readouts",
+              text: lang === "ko" ? "하나의 짧은 궤적, 세 가지 국소 관측량" : "one short trajectory, three local readouts",
               align: "middle",
               color: PLOT_COLORS.axisLabel,
               fontSize: font.axisLabel,

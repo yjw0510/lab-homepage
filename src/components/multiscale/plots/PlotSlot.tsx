@@ -24,12 +24,15 @@ import { NvtStabilityPlot } from "./NvtStabilityPlot";
 type PlotComponentProps = {
   progress: number;
   accentColor: string;
+  lang?: string;
   rdfActiveRadius?: number;
   activeTerm?: AllAtomForceFieldTerm | null;
+  selectedTerm?: AllAtomForceFieldTerm | null;
   onTermHover?: (term: AllAtomForceFieldTerm) => void;
   onTermLeave?: () => void;
   onTermToggle?: (term: AllAtomForceFieldTerm) => void;
   activeReadout?: AllAtomReadoutId | null;
+  selectedReadout?: AllAtomReadoutId | null;
   onReadoutHover?: (readout: AllAtomReadoutId) => void;
   onReadoutLeave?: () => void;
   onReadoutToggle?: (readout: AllAtomReadoutId) => void;
@@ -60,13 +63,16 @@ export function PlotSlot({
   plotType,
   progress,
   accentColor,
+  lang,
   activeIndexOverride,
   rdfActiveRadius,
   activeTerm,
+  selectedTerm,
   onTermHover,
   onTermLeave,
   onTermToggle,
   activeReadout,
+  selectedReadout,
   onReadoutHover,
   onReadoutLeave,
   onReadoutToggle,
@@ -74,13 +80,16 @@ export function PlotSlot({
   plotType: string;
   progress: number;
   accentColor: string;
+  lang?: string;
   activeIndexOverride?: number;
   rdfActiveRadius?: number;
   activeTerm?: AllAtomForceFieldTerm | null;
+  selectedTerm?: AllAtomForceFieldTerm | null;
   onTermHover?: (term: AllAtomForceFieldTerm) => void;
   onTermLeave?: () => void;
   onTermToggle?: (term: AllAtomForceFieldTerm) => void;
   activeReadout?: AllAtomReadoutId | null;
+  selectedReadout?: AllAtomReadoutId | null;
   onReadoutHover?: (readout: AllAtomReadoutId) => void;
   onReadoutLeave?: () => void;
   onReadoutToggle?: (readout: AllAtomReadoutId) => void;
@@ -101,12 +110,15 @@ export function PlotSlot({
     <Component
       progress={progress}
       accentColor={accentColor}
+      lang={lang}
       rdfActiveRadius={rdfActiveRadius}
       activeTerm={activeTerm}
+      selectedTerm={selectedTerm}
       onTermHover={onTermHover}
       onTermLeave={onTermLeave}
       onTermToggle={onTermToggle}
       activeReadout={activeReadout}
+      selectedReadout={selectedReadout}
       onReadoutHover={onReadoutHover}
       onReadoutLeave={onReadoutLeave}
       onReadoutToggle={onReadoutToggle}

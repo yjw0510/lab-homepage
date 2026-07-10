@@ -36,10 +36,10 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
     steps: [
       {
         activeTerms: [],
-        title: { en: "Coarse-Graining", ko: "조대화" },
+        title: { en: "Atomistic Starting Point", ko: "전원자 출발점" },
         concept: {
-          en: "Coarse-graining replaces groups of atoms with simplified particles called beads, each representing a cluster of atoms that move together. The colored envelopes on screen show how local chemical structure maps onto these beads: the fine atomic detail is compressed, but the overall chain connectivity and shape are preserved. Coarse-graining is not a loss of information so much as a deliberate change of resolution. By discarding fast atomic vibrations that do not affect large-scale structure, the model becomes efficient enough to simulate the slow, collective organization that matters at mesoscopic length scales. The steps that follow illustrate this idea through dissipative particle dynamics (DPD), one of several coarse-grained frameworks used in this lab alongside MARTINI and Kremer-Grest models.",
-          ko: "조대화란 함께 움직이는 원자 묶음을 비드(bead)라 부르는 단순화된 입자 하나로 치환하는 것이다. 화면에서 각 비드를 감싸는 색을 입힌 막은 국소적 화학 구조가 비드 하나로 어떻게 대응되는지를 나타낸다. 원자 수준의 세부 구조는 압축되지만 사슬의 연결 관계와 전체 형태는 그대로 남는다. 조대화는 해상도를 일부러 낮추는 작업이다. 대규모 구조에 영향을 주지 않는 빠른 원자 진동을 생략하면, 메조스케일에서 중요한 느린 집단적 배열을 효율적으로 시뮬레이션할 수 있다. 이어지는 단계는 소산 입자 동역학(DPD)을 예로 들어 이 개념을 설명한다. DPD는 이 연구실에서 MARTINI, Kremer-Grest 모형과 함께 쓰는 조대화 체계 가운데 하나이다.",
+          en: "This teaching system begins with an atomistic DNA model so the change in resolution stays visible. Coarse-graining then replaces groups of atoms with simplified particles called beads, each representing a cluster that moves together. The fine atomic detail is compressed, but chain connectivity and overall shape are retained. This is a deliberate change of resolution: by omitting fast atomic vibrations that do not control larger structure, the model can follow the slower collective organization that matters at mesoscopic length scales. The next steps use dissipative particle dynamics (DPD) to explain that trade-off alongside other coarse-grained frameworks used in the lab, including MARTINI and Kremer-Grest models.",
+          ko: "이 학습용 계는 해상도 변화가 분명히 보이도록 먼저 전원자 DNA 모형에서 시작한다. 조대화는 함께 움직이는 원자 묶음을 비드(bead)라는 단순화된 입자로 바꾸는 과정이다. 원자 수준의 세부 구조는 압축되지만 사슬의 연결 관계와 전체 형태는 남는다. 이는 해상도를 의도적으로 바꾸는 일이다. 대규모 구조를 좌우하지 않는 빠른 원자 진동을 생략하면, 메조스케일에서 중요한 느린 집단적 배열을 더 효율적으로 따라갈 수 있다. 다음 단계에서는 소산 입자 동역학(DPD)을 예로 들어 이 절충을 설명하며, MARTINI와 Kremer-Grest 모형도 함께 참고한다.",
         },
         plotType: null,
         paperSlug: null,
@@ -165,8 +165,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "Local Observables", ko: "국소 관측량" },
         concept: {
-          en: "The same atomistic trajectory yields several independent observables at once. Solvent orientation tracks how water molecules align around the solute; local packing captures how tightly neighbors crowd a given site; contact motifs record which molecular fragments sit within bonding distance at each instant. The three readout tracks in the plot show these quantities fluctuating across a short time window, each telling a different story about the same set of frames.",
-          ko: "같은 전원자 궤적에서 여러 독립적인 관측량을 한꺼번에 얻는다. 용매 배향은 물 분자가 용질 주변에서 어떻게 정렬되는지 따라가고, 국소 밀집도는 이웃 분자가 특정 자리를 얼마나 촘촘히 둘러싸는지 잰다. 접촉 모티프는 매 순간 어떤 분자 조각이 결합 거리 안에 들어오는지 기록한다. 오른쪽 세 줄의 그래프에서 이 세 가지 양이 짧은 시간 구간에 걸쳐 요동하는 모습을 볼 수 있고, 같은 프레임이라도 세 관측량은 저마다 다른 면을 드러낸다.",
+          en: "The same atomistic trajectory yields several independent observables at once. Hydration contacts count nearby solvent contacts around the solute, the local packing score tracks how tightly neighbors crowd a site, and the caffeine neighbor count records nearby molecules around the solute. The three readout tracks show how these quantities fluctuate across one short time window. They are different measurements of the same frames, not different simulations.",
+          ko: "같은 전원자 궤적에서 여러 독립적인 관측량을 한꺼번에 얻는다. 수화 접촉 수는 용질 주변의 가까운 용매 접촉을 세고, 국소 밀집도 점수는 이웃 분자가 한 자리를 얼마나 촘촘히 둘러싸는지 나타내며, 카페인 이웃 수는 용질 주변의 가까운 분자 수를 기록한다. 세 줄의 그래프는 하나의 짧은 시간 구간에서 이 값들이 어떻게 요동하는지 보여 준다. 서로 다른 시뮬레이션이 아니라 같은 프레임을 다른 방식으로 읽은 결과다.",
         },
         plotType: "allatomReadout",
         paperSlug: null,
@@ -216,8 +216,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         activeTerms: ["Ei"],
         title: { en: "Per-Atom Energy", ko: "원자별 에너지" },
         concept: {
-          en: "Each encoded local environment produces a scalar energy contribution $E_i$. The total energy of the system is the sum of these per-atom values. The parity plot compares predicted per-atom energies against DFT reference values; points near the diagonal indicate accurate predictions. At this stage the model converts geometric information into energy, and the quality of that conversion is directly measurable.",
-          ko: "인코딩된 국소 환경 하나하나가 스칼라 에너지 기여 $E_i$를 내놓고, 계의 총 에너지는 이 원자별 값을 모두 더한 값이다. 오른쪽 패리티 도표에서는 예측된 원자별 에너지를 DFT 참조값과 나란히 놓고 본다. 점이 대각선에 가까울수록 예측이 정확하다는 뜻이다. 이 단계에서 모형은 기하학적 정보를 에너지로 옮기며, 그 변환이 얼마나 잘 됐는지는 곧바로 측정된다.",
+          en: "Each encoded local environment produces a scalar energy contribution $E_i$. The total energy of the system is the sum of these per-atom values. The illustrative parity diagram places predicted per-atom energies against DFT reference values. In a measured result, points near the diagonal would indicate agreement. At this stage the model converts geometric information into energy, and that conversion can be evaluated against held-out reference data.",
+          ko: "인코딩된 국소 환경 하나하나가 스칼라 에너지 기여 $E_i$를 내놓고, 계의 총 에너지는 이 원자별 값을 모두 더한 값이다. 설명용 패리티 도표는 예측된 원자별 에너지와 DFT 참조값을 나란히 놓는다. 실제 측정 결과에서는 점이 대각선에 가까울수록 두 값의 일치를 뜻한다. 이 단계에서 모형은 기하학적 정보를 에너지로 옮기며, 그 변환은 별도로 남겨 둔 참조 데이터와 비교해 평가할 수 있다.",
         },
         plotType: "parity",
         paperSlug: null,
@@ -238,8 +238,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         activeTerms: [],
         title: { en: "Accuracy and Cost", ko: "정확도와 비용" },
         concept: {
-          en: "A learned local model sits between two established regimes. Classical force fields evaluate faster but lack the flexibility to capture many-body electronic effects. Direct electronic-structure calculations capture those effects but cost orders of magnitude more per time step. MLFFs preserve atomistic detail and approach quantum reference quality while remaining fast enough for nanosecond-scale production simulations.",
-          ko: "국소 학습 모형은 두 기존 영역 사이에 자리 잡는다. 한쪽 고전 역장은 평가가 빠른 대신 다체 전자 효과를 담아낼 유연성이 모자라고, 다른 쪽 전자구조 직접 계산은 그 효과를 잡아내지만 시간 단계당 비용이 수 자릿수 더 든다. MLFF는 전원자 수준의 정밀도를 지키면서 양자 기준 품질에 바짝 다가서고, 동시에 나노초 규모의 실제 생산 시뮬레이션을 돌릴 만큼 빠르다.",
+          en: "A learned local model sits between two established regimes. Classical force fields evaluate faster but may lack the flexibility to represent many-body electronic effects. Direct electronic-structure calculations capture those effects but cost far more per time step. For atomic environments represented in training, an MLFF can preserve atomistic detail and target near-reference accuracy at a lower cost. Its range of reliable use must still be checked against the reference data.",
+          ko: "국소 학습 모형은 두 기존 영역 사이에 자리 잡는다. 고전 역장은 평가가 빠르지만 다체 전자 효과를 표현하는 유연성이 부족할 수 있고, 전자구조 직접 계산은 그 효과를 담지만 시간 단계당 비용이 훨씬 크다. 학습에 포함된 원자 환경에서는 MLFF가 전원자 해상도를 유지하면서 더 낮은 비용으로 참조 수준에 가까운 정확도를 목표로 할 수 있다. 다만 신뢰할 수 있는 적용 범위는 참조 데이터와 대조해 확인해야 한다.",
         },
         plotType: null,
         paperSlug: null,
@@ -290,7 +290,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         title: { en: "Nuclear Attraction", ko: "핵 인력" },
         concept: {
           en: "The external potential $V_{\\mathrm{ext}}$ is the attraction exerted by the nuclei on the electrons. It is fixed directly by the molecular geometry and nuclear charges. Move the atoms, and this term changes with them. That is why electronic structure and molecular geometry are tightly coupled in first-principles calculations.",
-          ko: "세 번째 항인 외부 퍼텐셜 $V_{\\mathrm{ext}}$는 원자핵이 전자를 끌어당기는 인력이다. 그 크기는 분자 기하 구조와 핵 전하가 직접 정한다. 원자 위치를 바꾸면 이 항도 따라 바뀐다. 제일원리 계산에서 전자 구조와 분자 기하 구조가 단단히 맞물려 있는 까닭이다.",
+          ko: "외부 퍼텐셜 $V_{\\mathrm{ext}}$는 원자핵이 전자를 끌어당기는 인력이다. 그 크기는 분자 기하 구조와 핵 전하가 직접 정한다. 원자 위치를 바꾸면 이 항도 따라 바뀐다. 제일원리 계산에서 전자 구조와 분자 기하 구조가 단단히 맞물려 있는 까닭이다.",
         },
         plotType: null,
         paperSlug: null,

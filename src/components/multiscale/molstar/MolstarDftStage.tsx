@@ -14,7 +14,6 @@ import {
   CYAN,
   ELEMENT_COLORS,
   ELEMENT_RADII,
-  LIGHT_BLUE,
   ORANGE,
   PluginLike,
   RED,
@@ -52,7 +51,7 @@ interface FrontierOrbitalData {
 }
 
 async function fetchJsonOrThrow<T>(path: string, label: string): Promise<T> {
-  const response = await fetch(withBasePath(path));
+  const response = await fetch(withBasePath(path), { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Failed to load ${label}: ${response.status} ${response.statusText}`);
   }
@@ -479,6 +478,7 @@ export function MolstarDftStage({
   autoRotateRef,
   actionsRef,
   manualSnapshotIndex,
+  lang = "en",
 }: {
   progressRef: RefObject<number>;
   scrollState: ScrollState;
@@ -486,9 +486,11 @@ export function MolstarDftStage({
   autoRotateRef: MutableRefObject<boolean>;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   manualSnapshotIndex?: number | null;
+  lang?: string;
 }) {
   void progressRef;
   void isMobile;
+  const isKorean = lang === "ko";
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pluginRef = useRef<PluginLike | null>(null);
@@ -669,7 +671,8 @@ export function MolstarDftStage({
 
   useEffect(() => {
     const data = dataRef.current;
-    if (!data || data.frontier || frontierRequestedRef.current) return;
+    const needsFrontierOrbitals = scrollState.step === 6 || scrollState.step === 7;
+    if (!isReady || !needsFrontierOrbitals || !data || data.frontier || frontierRequestedRef.current) return;
 
     frontierRequestedRef.current = true;
     let cancelled = false;
@@ -691,7 +694,7 @@ export function MolstarDftStage({
     return () => {
       cancelled = true;
     };
-  }, [isReady]);
+  }, [isReady, scrollState.step]);
 
   // Store latest camera function in a ref so the effect below doesn't re-fire
   // on every step/snapshot change — only on level entry, zoom, or manual reset.
@@ -733,11 +736,42 @@ export function MolstarDftStage({
     <div className="multiscale-molstar relative h-full w-full overflow-hidden bg-[#050510]" data-testid="multiscale-render-surface">
       {!isReady && <div className="absolute inset-0 bg-[#050510]" />}
       <div ref={containerRef} className="h-full w-full" />
+      {!isReady && !mountError && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center p-8 text-center"
+          role="status"
+          aria-live="polite"
+          data-testid="multiscale-dft-loading"
+        >
+          <div className="border border-white/10 bg-[#050510]/94 px-5 py-4">
+            <p className="type-mono-meta text-xs text-white/90">
+              {isKorean ? "양자 뷰 준비 중" : "Preparing quantum view"}
+            </p>
+            <p className="mt-2 text-sm text-slate-300/90">
+              {isKorean ? "분자 구조와 전자 밀도 데이터를 불러오는 중입니다." : "Loading molecular geometry and density data."}
+            </p>
+          </div>
+        </div>
+      )}
       {mountError && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-8 text-center text-sm text-slate-300">
-          <div className="max-w-md rounded-3xl border border-white/10 bg-slate-950/72 px-6 py-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-md">
-            <p className="font-semibold text-white/92">Mol* could not start WebGL.</p>
-            <p className="mt-2 leading-6 text-slate-300/90">{mountError}</p>
+        <div className="absolute inset-0 flex items-center justify-center p-8 text-center text-sm text-slate-300">
+          <div className="max-w-md border border-white/10 bg-[#050510]/94 px-6 py-5">
+            <p className="font-semibold text-white/92">
+              {isKorean ? "3D 뷰를 불러올 수 없습니다." : "3D view unavailable."}
+            </p>
+            <p className="mt-2 leading-6 text-slate-300/90">
+              {isKorean
+                ? "설명과 그래프는 계속 볼 수 있습니다. 뷰를 다시 불러와 보세요."
+                : "The explanation and chart remain available. Reload the viewer to try again."}
+            </p>
+            <button
+              type="button"
+              className="type-mono-meta mt-4 border border-white/20 px-3 py-2 text-xs text-white transition-colors hover:bg-white/10"
+              onClick={() => window.location.reload()}
+            >
+              {isKorean ? "3D 뷰 다시 불러오기" : "Reload 3D view"}
+            </button>
+            <p className="sr-only">{mountError}</p>
           </div>
         </div>
       )}

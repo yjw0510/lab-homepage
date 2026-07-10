@@ -12,32 +12,40 @@ const TERM_COLORS: Record<AllAtomForceFieldTerm, string> = {
   UCoul: "#3b82f6",
 };
 
-const TERMS: Array<{ id: AllAtomForceFieldTerm; label: string; lane: "bonded" | "nonbonded" }> = [
-  { id: "Ubond", label: "bond", lane: "bonded" },
-  { id: "Uangle", label: "angle", lane: "bonded" },
-  { id: "Udihedral", label: "dihedral", lane: "bonded" },
-  { id: "UvdW", label: "vdW", lane: "nonbonded" },
-  { id: "UCoul", label: "Coulomb", lane: "nonbonded" },
+const TERMS: Array<{
+  id: AllAtomForceFieldTerm;
+  label: Record<"en" | "ko", string>;
+  lane: "bonded" | "nonbonded";
+}> = [
+  { id: "Ubond", label: { en: "bond", ko: "결합" }, lane: "bonded" },
+  { id: "Uangle", label: { en: "angle", ko: "각도" }, lane: "bonded" },
+  { id: "Udihedral", label: { en: "dihedral", ko: "이면각" }, lane: "bonded" },
+  { id: "UvdW", label: { en: "vdW", ko: "vdW" }, lane: "nonbonded" },
+  { id: "UCoul", label: { en: "Coulomb", ko: "쿨롱" }, lane: "nonbonded" },
 ];
 
 export function AllAtomForceFieldPlot({
   accentColor,
+  lang = "en",
   activeTerm,
+  selectedTerm,
   onTermHover,
   onTermLeave,
   onTermToggle,
 }: {
   progress: number;
   accentColor: string;
+  lang?: string;
   rdfActiveRadius?: number;
   activeTerm?: AllAtomForceFieldTerm | null;
+  selectedTerm?: AllAtomForceFieldTerm | null;
   onTermHover?: (term: AllAtomForceFieldTerm) => void;
   onTermLeave?: () => void;
   onTermToggle?: (term: AllAtomForceFieldTerm) => void;
 }) {
   return (
     <PlotContainer
-      ariaLabel="Classical all-atom force field: bonded and non-bonded term families summing to total U"
+      ariaLabel={lang === "ko" ? "결합 항과 비결합 항을 합쳐 전체 U를 만드는 전원자 힘장" : "Classical all-atom force field: bonded and non-bonded term families summing to total U"}
       aspectRatio={0.8}
       minHeight={255}
       maxHeight={320}
@@ -107,9 +115,11 @@ export function AllAtomForceFieldPlot({
                 const y = topY + i * step;
                 const mid = y + pillH / 2;
                 const isActive = activeTerm === term.id;
+                const isSelected = selectedTerm === term.id;
                 const isFam = highlightFamily === lane;
                 const color = TERM_COLORS[term.id];
                 const edgeX = lane === "bonded" ? laneX + laneW : laneX;
+                const label = term.label[lang === "ko" ? "ko" : "en"];
 
                 return (
                   <g
@@ -117,7 +127,17 @@ export function AllAtomForceFieldPlot({
                     onMouseEnter={() => onTermHover?.(term.id)}
                     onMouseLeave={onTermLeave}
                     onClick={() => onTermToggle?.(term.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onTermToggle?.(term.id);
+                      }
+                    }}
                     style={{ cursor: "pointer" }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${lang === "ko" ? "힘장 항 선택" : "Select force-field term"}: ${label}`}
+                    aria-pressed={isSelected}
                   >
                     {/* Hit area slightly larger than pill */}
                     <rect
@@ -128,7 +148,7 @@ export function AllAtomForceFieldPlot({
                     {/* Pill */}
                     <rect
                       x={laneX} y={y} width={laneW} height={pillH}
-                      rx={8} fill={color}
+                      rx={0} fill={color}
                       opacity={isActive ? 0.32 : isFam ? 0.16 : 0.1}
                       stroke={isActive ? color : `${color}80`}
                       strokeWidth={isActive ? 1.8 : 1}
@@ -139,7 +159,7 @@ export function AllAtomForceFieldPlot({
                       fill={isActive ? "#f8fafc" : color}
                       fontSize={font.tick} fontWeight={700}
                     >
-                      {term.label}
+                      {label}
                     </text>
                     {/* Branch: pill → spine */}
                     <line
@@ -185,7 +205,7 @@ export function AllAtomForceFieldPlot({
                 fill={highlightFamily === "bonded" ? accentColor : PLOT_COLORS.text}
                 fontSize={font.tick} fontWeight={700}
               >
-                bonded
+                {lang === "ko" ? "결합" : "bonded"}
               </text>
               <text
                 x={nonBondedLaneX + laneW / 2} y={nonBondedTopY - font.tick * 0.6}
@@ -193,7 +213,7 @@ export function AllAtomForceFieldPlot({
                 fill={highlightFamily === "nonbonded" ? accentColor : PLOT_COLORS.text}
                 fontSize={font.tick} fontWeight={700}
               >
-                non-bonded
+                {lang === "ko" ? "비결합" : "non-bonded"}
               </text>
             </g>
           ),

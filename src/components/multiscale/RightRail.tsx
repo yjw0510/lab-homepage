@@ -34,10 +34,12 @@ export function RightRail({
   canGoNext,
   canGoPrev,
   allAtomActiveTerm,
+  allAtomSelectedTerm,
   onAllAtomTermHover,
   onAllAtomTermLeave,
   onAllAtomTermToggle,
   allAtomActiveReadout,
+  allAtomSelectedReadout,
   onAllAtomReadoutHover,
   onAllAtomReadoutLeave,
   onAllAtomReadoutToggle,
@@ -53,6 +55,10 @@ export function RightRail({
   rdfBins,
   rdfBinIndex,
   onRdfChange,
+  stepTitles,
+  previousStepTitle,
+  nextStepTitle,
+  interactionHint,
 }: {
   scrollState: ScrollState;
   level: LevelConfig;
@@ -68,10 +74,12 @@ export function RightRail({
   canGoNext: boolean;
   canGoPrev: boolean;
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
+  allAtomSelectedTerm?: AllAtomForceFieldTerm | null;
   onAllAtomTermHover?: (term: AllAtomForceFieldTerm) => void;
   onAllAtomTermLeave?: () => void;
   onAllAtomTermToggle?: (term: AllAtomForceFieldTerm) => void;
   allAtomActiveReadout?: AllAtomReadoutId | null;
+  allAtomSelectedReadout?: AllAtomReadoutId | null;
   onAllAtomReadoutHover?: (readout: AllAtomReadoutId) => void;
   onAllAtomReadoutLeave?: () => void;
   onAllAtomReadoutToggle?: (readout: AllAtomReadoutId) => void;
@@ -88,6 +96,10 @@ export function RightRail({
   rdfBins?: RdfBin[];
   rdfBinIndex?: number;
   onRdfChange?: (index: number) => void;
+  stepTitles: string[];
+  previousStepTitle?: string;
+  nextStepTitle?: string;
+  interactionHint?: string;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -95,6 +107,15 @@ export function RightRail({
   const isAllAtomLevel = level.id === "allatom";
   const equationActiveTerms = stepConfig.activeTerms;
   const isSheet = variant === "sheet";
+  const currentStepTitle = stepTitles[scrollState.step] ?? `${lang === "ko" ? "단계" : "Step"} ${scrollState.step + 1}`;
+  const previousLabel = previousStepTitle
+    ? `${lang === "ko" ? "이전" : "Prev"}: ${previousStepTitle}`
+    : lang === "ko" ? "이전 단계" : "Previous step";
+  const nextLabel = nextStepTitle
+    ? `${lang === "ko" ? "다음" : "Next"}: ${nextStepTitle}`
+    : lang === "ko" ? "다음 단계" : "Next step";
+  const previousButtonText = previousStepTitle ?? (lang === "ko" ? "이전" : "Prev");
+  const nextButtonText = nextStepTitle ?? (lang === "ko" ? "다음" : "Next");
 
   // Fade transition on step change + reset scroll position
   useEffect(() => {
@@ -127,6 +148,9 @@ export function RightRail({
       }`}
     >
       <div ref={railRef} className="flex min-h-0 flex-1 flex-col">
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {`${level.label[lang as "en" | "ko"] ?? level.label.en}: ${currentStepTitle}`}
+        </div>
         {/* Level readout — rail only (sheet has it in status row) */}
         {!isSheet && (
           <div className={`flex items-baseline gap-2.5 flex-shrink-0 ${isMobile ? "mb-2" : "mb-3"}`}>
@@ -148,7 +172,9 @@ export function RightRail({
                 type="button"
                 className="group flex h-6 flex-1 cursor-pointer items-center"
                 onClick={() => onStepClick(i)}
-                aria-label={`${lang === "ko" ? "단계" : "Step"} ${i + 1} / ${scrollState.stepCount}`}
+                aria-label={`${stepTitles[i] ?? `${lang === "ko" ? "단계" : "Step"} ${i + 1}`}, ${i + 1} / ${scrollState.stepCount}`}
+                aria-current={i === scrollState.step ? "step" : undefined}
+                title={stepTitles[i]}
               >
                 <span
                   className="h-[2px] w-full transition-colors duration-300 group-hover:opacity-80"
@@ -173,9 +199,11 @@ export function RightRail({
               equationKey={equationKey}
               activeTerms={equationActiveTerms}
               accentColor={level.color}
+              lang={lang}
               detailMode={stepConfig.equationDetailMode}
               interactiveTerms={isAllAtomLevel && scrollState.step === 1 ? ["Ubond", "Uangle", "Udihedral", "UvdW", "UCoul"] : undefined}
               hoveredTerm={allAtomActiveTerm}
+              selectedTerm={allAtomSelectedTerm}
               onTermHover={onAllAtomTermHover}
               onTermLeave={onAllAtomTermLeave}
               onTermClick={onAllAtomTermToggle}
@@ -217,6 +245,11 @@ export function RightRail({
           className="min-h-0 flex-1 overflow-y-auto pr-1"
         >
           <div>
+            {interactionHint && (
+              <p className="type-mono-meta mb-4 border-y border-white/10 py-2 text-[11px] leading-relaxed text-muted-foreground">
+                {interactionHint}
+              </p>
+            )}
             <ConceptText
               text={stepConfig.concept[lang as "en" | "ko"] ?? stepConfig.concept.en}
               lang={lang}
@@ -230,13 +263,16 @@ export function RightRail({
                 plotType={stepConfig.plotType}
                 progress={stepConfig.sceneKey === "D9_settle" ? 1 : scrollState.stepProgress}
                 accentColor={level.color}
+                lang={lang}
                 activeIndexOverride={stepConfig.plotType === "scf" ? scfActiveIndexOverride : undefined}
                 rdfActiveRadius={stepConfig.plotType === "beadRDF" ? rdfActiveRadius : undefined}
                 activeTerm={allAtomActiveTerm}
+                selectedTerm={allAtomSelectedTerm}
                 onTermHover={onAllAtomTermHover}
                 onTermLeave={onAllAtomTermLeave}
                 onTermToggle={onAllAtomTermToggle}
                 activeReadout={allAtomActiveReadout}
+                selectedReadout={allAtomSelectedReadout}
                 onReadoutHover={onAllAtomReadoutHover}
                 onReadoutLeave={onAllAtomReadoutLeave}
                 onReadoutToggle={onAllAtomReadoutToggle}
@@ -264,11 +300,12 @@ export function RightRail({
               type="button"
               disabled={!canGoPrev}
               onClick={onPrev}
-              className="type-mono-meta flex h-11 items-center gap-1.5 border border-border-strong px-4 text-xs text-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label={lang === "ko" ? "이전 단계" : "Previous step"}
+              className="type-mono-meta flex min-w-0 flex-1 h-11 items-center gap-1.5 border border-border-strong px-3 text-xs text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label={previousLabel}
+              title={previousLabel}
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
-              <span>{lang === "ko" ? "이전" : "Prev"}</span>
+              <span className="min-w-0 truncate">{previousButtonText}</span>
             </button>
 
             <span className="type-mono-meta text-xs text-muted-foreground">
@@ -279,10 +316,11 @@ export function RightRail({
               type="button"
               disabled={!canGoNext}
               onClick={onNext}
-              className="type-mono-meta flex h-11 items-center gap-1.5 border border-border-strong px-4 text-xs text-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label={lang === "ko" ? "다음 단계" : "Next step"}
+              className="type-mono-meta flex min-w-0 flex-1 h-11 items-center justify-end gap-1.5 border border-border-strong px-3 text-xs text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label={nextLabel}
+              title={nextLabel}
             >
-              <span>{lang === "ko" ? "다음" : "Next"}</span>
+              <span className="min-w-0 truncate">{nextButtonText}</span>
               <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
             </button>
           </div>

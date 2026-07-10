@@ -42,14 +42,14 @@ const C = {
   ink: "var(--sch-ink)",
   muted: "var(--sch-muted)",
   bond: "var(--sch-bond)",
-  stretch: "#0891b2",
-  angle: "#16a34a",
-  torsion: "#d97706",
+  stretch: "var(--sch-stretch)",
+  angle: "var(--sch-angle)",
+  torsion: "var(--sch-amber)",
   // Nonbonded — modern accessible palette
-  lj: "#7e22ce",          // Deep Amethyst (Lennard-Jones)
-  coulomb: "#4f46e5",     // Electric Indigo (Coulombic force)
-  deltaPlus: "#2563eb",   // Sapphire Blue (δ+)
-  deltaMinus: "#c026d3",  // Vibrant Fuchsia (δ−)
+  lj: "var(--sch-lj)",              // Deep Amethyst (Lennard-Jones)
+  coulomb: "var(--sch-coulomb)",    // Electric Indigo (Coulombic force)
+  deltaPlus: "var(--sch-delta-plus)",   // Sapphire Blue (δ+)
+  deltaMinus: "var(--sch-delta-minus)", // Vibrant Fuchsia (δ−)
   oxygen: "#dc2626",
   carbon: "var(--sch-carbon)",
   hydrogen: "#f1f5f9",
@@ -260,7 +260,7 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
       <g opacity={0.12} {...anim(0.1)}>
         {([[Cb, Ca], [Cb, Hm1], [Cb, Hm2], [Cb, Hm3], [Cp, Hald]] as [typeof Ca, typeof Ca][]).map(([a, b], i) => {
           const bl = bline(a, b);
-          return <line key={`q${i}`} {...bl} stroke="#475569" strokeWidth={S.bond} strokeLinecap="round" />;
+          return <line key={`q${i}`} {...bl} stroke="var(--sch-peripheral)" strokeWidth={S.bond} strokeLinecap="round" />;
         })}
         {Array.from({ length: 6 }).map((_, i) => {
           const tS = Ca.r / caHa2.L, tE = 1 - Ha2.r / caHa2.L;
@@ -270,7 +270,7 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
           return <line key={`d${i}`}
             x1={R(x + w * dN.x)} y1={R(y + w * dN.y)}
             x2={R(x - w * dN.x)} y2={R(y - w * dN.y)}
-            stroke="#475569" strokeWidth={u(1.3)} strokeLinecap="round" />;
+            stroke="var(--sch-peripheral)" strokeWidth={u(1.3)} strokeLinecap="round" />;
         })}
         {([
           { a: Cb, fill: C.carbon, label: "C" },

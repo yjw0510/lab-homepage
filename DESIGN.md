@@ -229,6 +229,25 @@ fallback gradient stops `rgba(17,24,39,.92)` `rgba(5,5,16,.98)`
 `rgba(241,245,249,.9)`. CPK/element colors inside WebGL scenes are data,
 not design tokens.
 
+Schematic accent tokens (`--sch-*` in globals.css): every chromatic accent a
+schematic animates (SCF ring, packets, force-field term colors, electron
+density) is declared as a light/dark pair. Hue is held across modes; dark
+raises lightness one step so animated strokes read on the instrument ground.
+Light: `--sch-amber #d97706` `--sch-amber-bright #f59e0b` `--sch-amber-label
+#92400e` `--sch-density #1d4ed8` `--sch-stretch #0891b2` `--sch-angle #16a34a`
+`--sch-lj #7e22ce` `--sch-coulomb #4f46e5` `--sch-delta-plus #2563eb`
+`--sch-delta-minus #c026d3` `--sch-packet #c41e3a` `--sch-peripheral #475569`
+`--sch-meso-n #7c8db0` `--sch-meso-o #b07c7c`. Dark: `#f59e0b` `#fbbf24`
+`#fbbf24` `#60a5fa` `#22d3ee` `#4ade80` `#c084fc` `#818cf8` `#60a5fa`
+`#e879f9` `#fb7185` `#94a3b8` `#9fb0d0` `#cf9d9d`. Mode-stable scientific
+literals (CPK-adjacent mid tones, HOMO/LUMO, frame hairlines) stay inline:
+`#ef4444` `#dc2626` `#f1f5f9` `#3b82f6` `#06b6d4` `#f97316` `#9ca3af`
+`#cbd5e1`. MLFF force-arrow magnitude interpolants (data, `#3b82f6`→`#ef4444`
+per-atom): `#3e80f2` `#3f80f1` `#427fee` `#497ce7` `#4b7ce5` `#5678da`
+`#5e75d2` `#6374ce` `#6573cc` `#6d70c4` `#6f6fc1` `#786cb9` `#97629a`
+`#9f5f92` `#a05f91` `#a55d8c` `#a75c8a` `#aa5b88` `#ac5a85` `#b7577a`
+`#bb5576` `#c15370`.
+
 ## Anti-slop enforcement (binding)
 
 Zero em/en-dashes in visible copy (Korean gains 없음: use `,`/`·`/period —

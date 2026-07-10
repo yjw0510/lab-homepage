@@ -3,133 +3,108 @@ import type { ResearchTopic } from "@/types/topic";
 export const topics: ResearchTopic[] = [
   {
     id: "self-assembly",
-    title: "Grafted Nanoparticle Self-Assembly",
-    titleKo: "접합 나노입자 자기조립",
+    title: "Polymer-Grafted Nanoparticles & Brush Physics",
+    titleKo: "고분자 접합 나노입자와 브러시 물리",
     tagline:
-      "How polymer coatings on nanoparticles determine what crystal structure they form",
-    taglineKo:
-      "고분자 코팅이 나노입자 결정 구조를 정하는 원리",
-    description: `The same gold nanoparticles, placed in the same solvent, can spontaneously organize into entirely different crystal structures. The only variable is the polymer coating on each particle's surface. These polymer-grafted nanoparticles carry chains of repeating molecular units that act as a tunable shell, mediating how neighboring particles interact. Adjusting the coating properties (the number of chains, their length, or their branching architecture) shifts the assembly between crystal symmetries, from a loosely packed body-centered cubic arrangement to a tightly packed face-centered cubic or hexagonal structure.
+      "How the polymer coating on a nanoparticle decides the pattern it forms",
+    taglineKo: "나노입자를 감싼 고분자 코팅이 입자의 배열을 정하는 원리",
+    description: `A nanoparticle is a solid grain thousands of times smaller than the width of a hair. Polymers, long chain-shaped molecules, can be attached to its surface, and when many chains are attached they stand out like the bristles of a brush; this layer is called a polymer brush. Particles carrying such brushes gather into regular arrangements, and the arrangement changes with the state of the brush.
 
-This matters because nanoscale crystal symmetry directly determines bulk material properties, including how the material interacts with light. Tuning the polymer shell at the molecular level therefore provides a design handle on macroscopic optical and mechanical behavior.
+We study which properties of the brush determine how the particles arrange, using simulations that represent every attached chain. The balance between the dense inner part of the brush and the sparse outer part sets an effective size for each particle, and this size decides whether the particles stack loosely or densely. Attaching a single branched, bottlebrush-shaped chain breaks the particle's symmetry and produces flat, two-dimensional arrangements that uniform coatings cannot make.
 
-A particularly striking case arises when linear chains are replaced with bottlebrush polymers, branched molecules with side chains extending from a central backbone. The asymmetry of the bottlebrush coating breaks the particle's spherical symmetry and opens access to two-dimensional assembly patterns that isotropic coatings cannot produce: hexagonal arrays, square lattices, and linear clusters.`,
-    descriptionKo: `같은 금 나노입자를 같은 용매에 넣어도 전혀 다른 결정 구조로 자발 조립될 수 있다. 유일한 변수는 입자 표면의 고분자 코팅이다. 이 고분자 접합 나노입자는 반복 분자 단위로 이루어진 사슬을 달고 있으며, 이 사슬이 조절 가능한 껍질이 되어 이웃 입자 사이의 상호작용을 매개한다. 코팅의 성질(사슬 수, 길이, 분지 구조)을 조절하면 느슨한 체심입방 배열부터 조밀한 면심입방이나 육방 구조까지 조립의 결정 대칭이 바뀐다.
+A polymer brush also creates forces between objects placed inside it. When two objects sit close together, the chains pushed out of the gap between them produce a force that can pull the objects together or apart, and we calculate how this force changes with the height of the brush. The same kind of force is thought to help gather proteins in the polymer layer that covers living cells. We also study block copolymers, chains made of two different polymers joined into one, which separate on their own into regular nanometer-scale patterns; our simulations follow how these patterns form, including short-lived intermediate stages that experiments have difficulty catching.`,
+    descriptionKo: `나노입자는 머리카락 굵기보다 수천 배 작은 고체 알갱이다. 그 표면에는 사슬 모양의 분자인 고분자를 붙일 수 있는데, 사슬 여러 가닥이 붙으면 솔처럼 뻗어 나온 층이 생긴다. 이 층을 고분자 브러시라고 한다. 브러시를 단 입자들은 서로 모여 규칙적인 배열을 이루며, 배열의 모양은 브러시의 상태에 따라 달라진다.
 
-나노 규모의 결정 대칭은 빛과의 상호작용을 비롯한 벌크 물성을 직접 좌우한다. 그래서 분자 수준에서 고분자 껍질을 조절하면 거시적 광학·역학 거동까지 설계할 수 있다.
+우리는 사슬 하나하나를 그대로 반영한 시뮬레이션으로 브러시의 어떤 성질이 입자의 배열을 정하는지 연구한다. 표면 가까이의 촘촘한 부분과 바깥쪽의 성긴 부분이 이루는 균형이 입자의 유효 크기를 정하고, 이 크기에 따라 입자가 성기게 쌓일지 빽빽하게 쌓일지 갈린다. 여러 갈래로 가지 친 병솔 모양 사슬 하나만 붙이면 입자의 대칭이 깨져, 균일한 코팅으로는 나오지 않는 평면 배열이 만들어진다.
 
-특히 눈에 띄는 사례는 선형 사슬을 병솔형 고분자(중심 주쇄에서 곁사슬이 뻗어 나온 분지형 분자)로 바꿀 때다. 병솔형 코팅의 비대칭이 입자의 구형 대칭을 깨면서, 육방 배열, 정방 격자, 선형 클러스터처럼 등방성 코팅으로는 만들 수 없는 2차원 조립 패턴이 열린다.`,
+고분자 브러시는 그 안에 놓인 물체들 사이에 힘도 만든다. 두 물체가 가까이 놓이면 좁은 틈에서 밀려난 사슬 때문에 서로 당기거나 미는 힘이 생기고, 우리는 이 힘이 브러시 높이에 따라 어떻게 변하는지 계산한다. 살아 있는 세포를 덮은 고분자 층이 단백질을 한데 모으는 현상도 같은 종류의 힘으로 설명된다. 서로 다른 두 고분자를 하나로 이어 붙인 블록 공중합체도 연구한다. 이 사슬은 저절로 나노미터 규모의 규칙적인 무늬로 나뉘는데, 시뮬레이션으로 무늬가 만들어지는 과정과 실험으로는 붙잡기 어려운 짧은 중간 단계를 따라간다.`,
     icon: "Hexagon",
     color: "#f59e0b",
     gridSpan: [2, 2],
-    tags: ["Self-Assembly", "Nanoparticle"],
-  },
-  {
-    id: "polymer-physics",
-    title: "Computational Polymer Physics",
-    titleKo: "전산 고분자 물리학",
-    tagline:
-      "Polymer brush interactions, block copolymer phase behavior, and macromolecular architecture",
-    taglineKo:
-      "고분자 브러시 상호작용, 블록 공중합체 상 거동, 거대분자 구조",
-    description: `Polymer brushes, dense layers of polymer chains anchored to surfaces, line the inside of biological joints, cover cell membranes, and coat engineered nanoparticles. Despite their ubiquity, predicting the forces they create between objects embedded in the brush remains an open problem. When proteins or nanoparticles sit within a brush layer, surrounding chains are partially excluded from the space between them, generating an effective force that can be attractive or repulsive depending on the geometry of the embedded objects. This dependence is richer than classical excluded-volume theories predict, and it governs processes from membrane protein organization to colloidal stabilization.
-
-Block copolymers present a different kind of self-organization. These chains are built from two or more chemically distinct segments joined end to end. Because the segments repel each other, they separate spontaneously into periodic nanostructures (alternating layers, packed cylinders, or interconnected channel networks) whose geometry depends on the relative lengths and compositions of the blocks. We use computational methods to map the transition pathways between disordered and ordered states, resolving not only the final structure but also metastable intermediates: transient states along the path to equilibrium that experiments detect but cannot characterize in molecular detail.`,
-    descriptionKo: `표면에 빽빽이 고정된 고분자 사슬층, 곧 고분자 브러시는 생체 관절 내부, 세포막, 나노입자 표면에 두루 존재한다. 이처럼 흔한데도 브러시 안에 삽입된 물체 사이의 힘은 여전히 예측하기 어렵다. 단백질이나 나노입자가 브러시 층 안에 놓이면 주변 사슬이 두 물체 사이 공간에서 부분적으로 배제되면서 유효한 힘이 발생하는데, 이 힘의 인력·척력 여부는 삽입된 물체의 기하에 따라 달라진다. 이런 의존성은 고전적 배제 부피 이론의 예측보다 복잡하고, 막단백질 배열부터 콜로이드 안정화까지 여러 과정을 좌우한다.
-
-블록 공중합체는 또 다른 방식으로 자기조직화한다. 화학적으로 구별되는 두 개 이상의 분절이 끝끼리 이어진 이 사슬에서 분절들은 서로 밀어내기 때문에 교대 층, 원통 배열, 연결된 채널 네트워크 같은 주기적 나노구조로 자발 분리된다. 어떤 구조가 형성되는지는 블록의 상대적 길이와 조성에 달려 있다. 전산 방법으로 무질서 상태에서 질서 상태로 넘어가는 전이 경로를 규명하며, 최종 구조뿐 아니라 준안정 중간체도 분해한다. 실험으로는 감지되지만 분자 수준까지는 규명하기 어려운, 평형에 이르는 길목의 일시적 상태다.`,
-    icon: "Layers",
-    color: "#8b5cf6",
-    gridSpan: [1, 2],
-    tags: ["Polymer Brush", "Polymer Physics"],
+    tags: ["Self-Assembly", "Polymer Brush", "Polymer Physics"],
   },
   {
     id: "aqueous-solution",
-    title: "Aqueous Solution Physical Chemistry",
-    titleKo: "수용액 물리화학",
+    title: "Machine-Learning Force Fields for Water & Reactions",
+    titleKo: "물과 반응을 위한 기계학습 역장",
     tagline:
-      "How dissolved ions reshape water's structure, dynamics, and reactivity",
-    taglineKo:
-      "용존 이온이 물의 구조·동역학·반응성을 재편하는 원리",
-    description: `Water is not a passive solvent. When ions dissolve, they reorganize the surrounding hydrogen bond network, the web of weak attractions between water molecules that gives liquid water its unusual properties. This reorganization alters how water conducts heat, how fast dissolved substances move, and how water responds to electric fields. The effects depend on the ion: some ions strengthen local water ordering and slow molecular motion, while others disrupt ordering and can accelerate it.
+      "Machine-learning force fields for water, ions, and chemical reactions",
+    taglineKo: "물·이온·화학 반응을 계산하는 기계학습 역장",
+    description: `Dissolving salt in water changes how the water molecules move. Some salts slow the water down and others speed it up, and why this happens has long gone unexplained. Molecular simulations run on a set of rules for how atoms push and pull on one another, called a force field, and the simple force fields in common use do not reproduce these salt effects correctly.
 
-Classical molecular simulations model water as rigid charged particles connected by springs. This approximation works for many purposes but cannot distinguish one salt's effect from another at the level needed to match experiments. Neural network force fields, computational models trained on quantum-mechanical calculations, reproduce the experimentally observed differences in water transport across salt types and trace them to how water molecules move rather than how they are arranged: the static structure around different ions looks nearly identical, but the dynamics are qualitatively different.
+We study how water and the ions dissolved in it move, and how chemical reactions proceed in water. For this we use machine-learning force fields trained on quantum-mechanical calculations, which are accurate yet fast enough to follow many molecules for a long time, capturing the subtle ways groups of water molecules move together. These force fields reproduce the measured differences between salts that speed water up and salts that slow it down, and the cause lies in the collective motion of many molecules at once. When water fills in around a dissolved aluminum ion, for example, the incoming molecule skips the water right next to the ion and arrives from farther out, carried by several molecules moving in step.
 
-The same approach reveals unexpected mechanisms in ion dissolution. When trivalent aluminum ions dissolve, the entering water molecule arrives not from the nearest surrounding water layer but from farther out, guided by a synchronized motion of already-coordinated molecules. We also study how water responds to electromagnetic radiation across the microwave-to-terahertz spectrum, and how organic molecules decompose in supercritical water, water above 374 °C and 22 MPa where it becomes a medium capable of breaking down organic waste through radical chemistry.`,
-    descriptionKo: `물은 수동적인 용매가 아니다. 이온이 녹으면 수소결합 네트워크를 재조직한다. 이 네트워크는 물 분자 사이의 약한 인력이 얽힌 그물로, 액체 물에 특이한 성질을 준다. 이렇게 재조직되면 물의 열전도, 용질 이동 속도, 전기장 반응이 달라진다. 그 효과는 이온마다 다르다. 어떤 이온은 국소 물 질서를 강화하고 분자 운동을 늦추는 반면, 어떤 이온은 질서를 흐트러뜨리며 운동을 빠르게 하기도 한다.
+The same approach extends to chemical reactions. We study how organic matter decomposes in supercritical water, a hot, high-pressure form of water, and how water responds to electric fields.`,
+    descriptionKo: `물에 소금을 녹이면 물 분자의 움직임이 달라진다. 어떤 소금은 물을 더 느리게, 어떤 소금은 더 빠르게 움직이게 하는데, 왜 그런지는 오랫동안 제대로 설명되지 않았다. 분자 시뮬레이션은 원자들이 서로 밀고 당기는 방식을 정해 놓은 규칙을 바탕으로 돌아가며, 이 규칙을 역장이라고 한다. 지금까지 널리 쓰인 간단한 역장은 이 소금 효과를 정확히 재현하지 못한다.
 
-고전적 분자 시뮬레이션은 물을 스프링으로 연결된 강체 점전하로 다루는데, 여러 목적에 유용하지만 실험과 맞는 수준에서 염 종류 간 차이를 구별하지 못한다. 양자역학 계산으로 훈련해 분자 상호작용을 예측하는 전산 모형인 신경망 역장은 염 종류에 따른 물 수송의 실험적 차이를 재현하고, 그 차이가 물 분자의 움직임에서 비롯됨을 밝혀낸다. 서로 다른 이온 주변의 정적 구조는 거의 동일하지만, 동역학은 질적으로 다르다.
+우리는 물과 그 속에 녹은 이온이 어떻게 움직이는지, 그리고 물속에서 화학 반응이 어떻게 일어나는지 연구한다. 이를 위해 양자역학 계산 결과를 학습시킨 기계학습 역장을 쓰는데, 정확하면서도 많은 분자를 오래 계산할 수 있어 물 분자 여럿이 함께 움직이는 미세한 차이까지 담아낸다. 이 역장은 소금 종류에 따라 물이 빨라지거나 느려지는 실험 결과를 재현하며, 그 원인은 물 분자들이 무리 지어 움직이는 방식에 있다. 예를 들어 알루미늄 이온 주위에 물 분자가 채워질 때, 바로 옆의 물을 건너뛰고 조금 떨어진 물이 여러 분자의 동시 움직임에 실려 들어온다.
 
-같은 접근으로 이온 용해의 예상치 못한 메커니즘도 드러난다. 3가 알루미늄 이온이 용해될 때, 들어오는 물 분자는 가장 가까운 물 층을 건너뛰고 더 먼 곳에서, 이미 배위된 분자의 동기화된 운동에 이끌려 도달한다. 물이 마이크로파부터 테라헤르츠까지의 전자기 복사에 어떻게 반응하는지, 그리고 초임계수(374 °C, 22 MPa 이상에서 라디칼 화학으로 유기 폐기물을 분해할 수 있는 매체)에서 유기 분자가 어떻게 분해되는지도 연구한다.`,
+같은 방법은 화학 반응으로도 이어진다. 고온·고압의 특수한 물인 초임계수에서 유기물이 분해되는 과정과, 물이 전기장에 반응하는 방식을 연구한다.`,
     icon: "Droplets",
     color: "#3b82f6",
     gridSpan: [1, 1],
     tags: ["Water", "Dissolution", "MLFF"],
   },
   {
-    id: "colloidal-dynamics",
-    title: "Colloidal Nanoparticle Dynamics",
-    titleKo: "콜로이드 나노입자 동역학",
-    tagline:
-      "Structure, transport, and optical properties of colloidal particles",
-    taglineKo:
-      "콜로이드 입자의 구조·수송·광학 물성 연구",
-    description: `Trap a few thousand silica particles inside a slowly shrinking droplet and they assemble into an icosahedral cluster, a sphere-like arrangement with twenty crystalline wedges and fivefold symmetry. Because the internal lattice is ordered, each cluster scatters light at a single wavelength while transmitting all others, producing vivid structural color (blue, green, or red depending on particle diameter) from geometry alone, without chemical dyes.
-
-Shape controls more than color. Semiconductor nanocrystals shaped like tetrapods, four-armed particles resembling jacks, form electrically conductive networks at far lower concentrations than spheres. Their arms reach more neighbors with fewer particles, reducing the number of hops an electron must take across the network. CdSe tetrapods with 90 nm arms achieve seven times the conductivity of spherical nanocrystals at the same volume fraction, making them candidates for flexible thin-film electronics.
-
-At still smaller scales, gold nanoparticles tracked in real time inside a graphene microscopy cell reveal that Brownian motion, the random thermal motion of suspended particles, departs from textbook predictions at the nanoscale. Average displacements grow as expected, but individual steps are occasionally much larger or smaller than the average, because each particle's local environment fluctuates as surrounding water molecules rearrange. When two nanoparticles collide, they do not merge immediately but form a transient contact pair and must rotate into crystallographic alignment before fusing.`,
-    descriptionKo: `수천 개의 실리카 입자를 천천히 수축하는 액적 안에 가두면 정이십면체 클러스터로 조립된다. 결정성 쐐기 20개가 5회 대칭을 이루는 구형 배열이다. 내부 격자가 질서 정연하여 하나의 파장에서만 빛을 산란하고 나머지를 투과시키며, 화학 염료 없이 입자 지름에 따라 파란색·초록색·빨간색의 선명한 구조색을 기하학만으로 만들어 낸다.
-
-형상이 좌우하는 것은 색만이 아니다. 네 방향으로 팔이 뻗은 사족형 반도체 나노결정은 구형 입자보다 훨씬 낮은 농도에서 전기 전도 네트워크를 형성한다. 팔이 더 적은 입자로 더 많은 이웃에 닿으므로 전자가 네트워크를 가로지르며 거쳐야 하는 호핑 단계가 줄어든다. 팔 길이가 90 nm인 CdSe 사족형은 같은 부피 분율의 구형 나노결정 대비 7배 높은 전도도를 보여, 유연한 박막 전자 소자의 후보가 된다.
-
-더 작은 규모로 내려가, 그래핀 현미경 셀 안에서 금 나노입자를 실시간으로 추적하면 나노 규모의 브라운 운동(부유 입자의 무작위 열운동)이 교과서 예측과 어긋난다는 것을 알 수 있다. 평균 변위는 예상대로 증가하지만, 주변 물 분자가 재배열되면서 각 입자의 국소 환경이 요동치기 때문에 개별 걸음이 간혹 평균보다 훨씬 크거나 작다. 두 나노입자가 충돌하면 바로 합쳐지지 않고 일시적 접촉 쌍을 이루어, 결정학적 정렬을 이룬 후에야 융합한다.`,
-    icon: "Orbit",
-    color: "#f43f5e",
-    gridSpan: [1, 1],
-    tags: ["Colloidal Dynamics"],
-  },
-  {
     id: "glass",
     title: "Glass Transition & Microrheology",
-    titleKo: "유리 전이 및 미시유변학",
-    tagline:
-      "Probing the mechanical properties of glasses one particle at a time",
-    taglineKo:
-      "단일 입자 수준에서 밝히는 유리의 역학 물성",
-    description: `When a liquid is cooled fast enough to avoid crystallization, it becomes a glass: still disordered like a liquid but mechanically rigid like a solid. Understanding why and how this transition occurs remains one of the oldest unsolved problems in condensed matter physics. Conventional mechanical testing applies force to the entire sample, which averages over all local environments and can even rejuvenate the glass by injecting energy, obscuring the very features researchers want to study.
+    titleKo: "유리 전이와 미시유변학",
+    tagline: "Molecular-level structure and dynamics of glassy materials",
+    taglineKo: "유리 물질의 구조와 동역학을 분자 수준에서 이해하기",
+    description: `When most liquids cool slowly, their atoms line up into an orderly solid, the way salt or a metal does; this is a crystal. If the cooling is fast enough, the atoms freeze in place before they can line up, leaving a disordered solid. That is a glass, and window glass and hard plastics are everyday examples. Why a glass can be as disordered as a liquid and as rigid as a solid is not yet fully understood.
 
-Active microrheology takes a different approach. A single nanoscale probe particle is pulled through the glass at a controlled speed, and the resistance it encounters encodes the glass transition directly. Above a certain temperature the probe slides freely; below it, a threshold force is needed to dislodge the probe from its cage of neighboring particles. The transition between these two regimes shows the hallmarks of a continuous phase transition, with systematic scaling behavior and well-defined critical properties. Conventional bulk measurements cannot resolve it because the applied force itself partially melts the glass.
+We characterize glassy materials and work toward a theoretical and physicochemical understanding of their structure and dynamics at the level of atoms and molecules, combining molecular dynamics simulation with machine-learning techniques. One of our methods is active microrheology: a single particle is moved through the glass while its interaction with the surrounding material is recorded (for example, the force on it when dragged at a constant speed), giving information about the interior. Conventional measurements press on the whole sample at once, washing out regional differences and deforming the glass; this method avoids both problems.
 
-Analyzing the probe's friction signal over time reveals two distinct relaxation processes: a fast rattling within the local cage of neighbors and a slow cooperative rearrangement involving many surrounding particles. As the glass cools further, these cooperative regions grow in size, providing direct evidence that different regions of a glass relax at dramatically different rates. This is a central prediction of the dynamical heterogeneity hypothesis, one that bulk experiments can only infer indirectly.`,
-    descriptionKo: `액체를 결정화를 피할 만큼 빠르게 냉각하면 유리가 된다. 액체처럼 무질서하지만 고체처럼 역학적으로 강한 상태이다. 이 전이가 왜, 어떻게 일어나는지는 응집물질물리학의 가장 오래된 난제로 꼽힌다. 통상적 역학 시험은 시료 전체에 힘을 가하므로 모든 국소 환경을 평균화하며, 심지어 에너지를 넣어 유리를 회춘시킬 수도 있어 관찰하려는 바로 그 특성을 가리게 된다.
+Measured this way, the particle passes easily through the glass at higher temperatures, but below a certain temperature it is caught by its neighbors and moves only under large force. This boundary corresponds to the temperature at which a liquid becomes a glass. The interior of a glass is also not uniform: regions that move quickly and regions that move slowly coexist, and the slow regions widen as the temperature falls.`,
+    descriptionKo: `물질을 이루는 원자나 분자는 천천히 식으면 대개 규칙적으로 줄을 맞춰 단단한 고체가 된다. 이것을 결정이라 하고, 소금이나 금속이 여기에 해당한다. 반면 아주 빠르게 식히면 원자가 줄을 맞추지 못하고 흐트러진 상태로 굳는다. 이렇게 무질서하게 굳은 고체를 유리라 하며, 창유리나 단단한 플라스틱이 이에 속한다. 유리가 액체처럼 무질서하면서도 고체처럼 단단한 이유는 아직 충분히 밝혀지지 않았다.
 
-능동 미시유변학은 다르게 접근한다. 단일 나노 규모 탐침 입자를 제어된 속도로 유리 안에서 끌어 저항을 측정하면, 이 저항이 유리 전이를 직접 반영한다. 특정 온도 위에서는 탐침이 자유롭게 미끄러지고, 그 아래에서는 이웃 입자들의 우리에서 탐침을 빼내기 위한 문턱 힘이 필요하다. 이 두 영역 사이의 전이는 체계적인 스케일링 거동과 잘 정의된 임계 성질처럼 연속 상전이의 특징을 보인다. 통상적 벌크 측정은 가해진 힘 자체가 유리를 부분적으로 녹이므로 이 전이를 분해할 수 없다.
+우리는 유리 물질의 특성을 규명하고, 원자·분자 수준의 구조와 동역학을 이론과 물리화학으로 이해하려 한다. 분자동역학 시뮬레이션과 인공지능 기법을 함께 쓰며, 그중 한 가지 방법이 능동 미시유변학이다. 유리 속에서 입자 하나를 움직이며, 입자가 유리와 주고받는 상호작용(예를 들어 일정한 속도로 끌 때 받는 힘)을 기록해 유리 내부의 정보를 얻어낸다. 기존 측정법은 시료 전체에 힘을 가해 부분별 차이를 뭉개고 유리 자체를 변형시키는데, 이 방법은 그런 한계를 피한다.
 
-시간에 따른 탐침의 마찰 신호를 분석하면 두 가지 구별되는 완화 과정이 드러난다. 하나는 이웃 입자로 이루어진 국소 우리 안에서 일어나는 빠른 진동이고, 다른 하나는 주변 많은 입자가 관여하는 느린 협동적 재배열이다. 유리가 더 냉각될수록 이 협동적 영역의 크기가 커진다. 이는 유리의 영역마다 완화 속도가 크게 다르다는 동역학적 비균질성 가설을 직접 뒷받침한다. 벌크 실험으로는 간접적으로만 추론할 수 있는 현상이다.`,
+이 방법으로 재면 온도가 높을 때는 입자가 유리 속을 쉽게 지나가지만, 어느 온도 아래에서는 이웃 입자에 붙들려 큰 힘을 줘야 움직인다. 이 경계가 액체가 유리로 바뀌는 온도에 해당한다. 굳은 유리는 내부도 균일하지 않아서, 빠르게 움직이는 부분과 느리게 움직이는 부분이 함께 있고 느린 부분은 온도가 낮아질수록 넓어진다.`,
     icon: "Atom",
     color: "#06b6d4",
     gridSpan: [1, 1],
     tags: ["Metallic Glass"],
   },
   {
-    id: "hydrogel",
-    title: "Hydrogel Physics & Mechanics",
-    titleKo: "하이드로겔 물리 및 역학",
+    id: "colloidal-dynamics",
+    title: "Colloidal Structure, Transport & Optics",
+    titleKo: "콜로이드의 구조·수송·광학",
     tagline:
-      "Predicting how polymer network structure controls gel stiffness and thermal response",
-    taglineKo:
-      "고분자 네트워크 구조가 겔의 강성과 열적 응답을 제어하는 원리 예측",
-    description: `Injectable drug delivery systems need a material that flows as a liquid through a syringe but solidifies once inside the body. Hydrogels, three-dimensional polymer networks swollen with water, can do exactly this, and their softness lets them conform to living tissue while remaining strong enough to hold their shape. The central challenge is predicting stiffness from the molecular recipe: the density of crosslinks (chemical bonds connecting polymer chains into a network), the stiffness of those chains, and how much water the network absorbs.
+      "How the shape and packing of tiny particles produce color, conductivity, and motion",
+    taglineKo: "작은 입자의 모양과 배열이 색·전도·움직임을 만드는 방식",
+    description: `A colloid is a liquid with very small particles scattered through it; milk and paint are familiar examples. The properties of such particles depend not only on what they are made of but also on their shape and on how they gather.
 
-Our coarse-grained simulations of polyacrylamide gels, a widely used model system, reproduce experimentally measured stiffness values and reveal that swelling reduces chain entanglements nonlinearly: doubling the water content more than halves the stiffness. Gels shaped before crosslinking can develop direction-dependent elasticity, becoming stiffer along one axis than another. This property is absent in flat gels and potentially useful for tissue scaffolds that must match the directional stiffness of biological tissue.
+We study, together with experimental groups, what structures colloidal particles form, how they move, and how they interact with light and electricity. Thousands of small spheres trapped in a slowly shrinking droplet gather into a regular cluster, and because the cluster reflects only one color of light, it shows vivid blue, green, or red depending on the size of the spheres, without any pigment. Semiconductor particles shaped like four-armed stars form an electrically conducting network with far less material than round particles, because the arms reach neighbors easily and complete paths for the current; this property is useful for bendable electronic devices.
 
-Thermoresponsive PLGA-PEG-PLGA triblock copolymer hydrogels offer a particularly elegant design route. The polymer dissolves at room temperature but forms a gel near body temperature: liquid during injection, solid in the body. Whether gelation is sharp or gradual depends on the arrangement of building blocks along the polymer backbone. Uniform blocks produce a sharp transition and a stiffer gel; randomly mixed blocks produce a gradual transition and a softer gel.`,
-    descriptionKo: `주사형 약물 전달 시스템에는 주사기를 통과할 때는 액체로 흐르지만 체내에 들어가면 굳는 소재가 필요하다. 물로 팽윤된 3차원 고분자 네트워크인 하이드로겔이 바로 이 역할을 하는데, 유연하여 생체 조직에 맞으면서도 형태를 유지할 만큼 강하다. 핵심 과제는 가교 밀도(고분자 사슬을 네트워크로 연결하는 화학 결합의 밀도), 사슬 강성, 네트워크가 머금는 물의 양 같은 분자 수준 제조법으로 강성을 예측하는 일이다.
+At a smaller scale, we analyze the motion of individual gold nanoparticles alongside real-time imaging experiments. At this size the motion departs from the textbook prediction: the distance moved varies from moment to moment as the surroundings change, and two colliding particles align their orientation before merging into one.`,
+    descriptionKo: `액체 속에 아주 작은 입자가 흩어져 떠 있는 상태를 콜로이드라고 한다. 우유나 물감이 그런 예다. 이런 입자의 성질은 무엇으로 만들어졌는지뿐 아니라 입자의 모양과 모이는 방식에도 달려 있다.
 
-폴리아크릴아마이드 겔(널리 사용되는 모형 시스템)의 조대화 시뮬레이션은 실험에서 측정한 강성을 재현하고, 팽윤이 사슬 얽힘을 비선형적으로 줄인다는 사실도 보여준다. 물 함량을 두 배로 늘리면 강성은 절반보다 더 크게 떨어진다. 가교 전에 형태를 잡은 겔은 한 축이 다른 축보다 더 단단한, 방향에 따라 달라지는 탄성을 보이며, 이는 평평한 겔에서는 나타나지 않고 생체 조직의 방향성 강성에 맞춰야 하는 조직 스캐폴드에 유용할 수 있다.
+우리는 콜로이드 입자가 어떤 구조로 모이고, 어떻게 움직이고, 빛·전기와 어떻게 상호작용하는지를 실험 그룹과 함께 시뮬레이션으로 연구한다. 작은 구슬 수천 개를 천천히 줄어드는 물방울 안에 가두면 규칙적인 덩어리로 모이는데, 이 덩어리는 한 가지 색의 빛만 반사해 색소 없이도 구슬 크기에 따라 파랑·초록·빨강의 선명한 색을 낸다. 팔이 네 개 달린 별 모양 반도체 입자는 둥근 입자보다 훨씬 적은 양으로 전기가 통하는 그물을 이룬다. 팔이 이웃에 잘 닿아 전기가 지나갈 길이 쉽게 이어지기 때문이며, 이 성질은 휘어지는 전자 소자에 쓸 수 있다.
 
-PLGA-PEG-PLGA 삼중블록 공중합체 기반 온도감응성 하이드로겔은 특히 우아한 설계 경로다. 고분자는 실온에서 녹아 있다가 체온 근처에서 겔을 형성하여, 주사 시에는 액체이고 체내에서는 고체이다. 겔화가 날카롭게 일어나는지 서서히 일어나는지는 주쇄를 따라 구성 단위가 어떻게 배열되었는지에 달려 있다. 균일한 블록은 날카로운 전이와 단단한 겔을, 무작위 혼합은 점진적 전이와 약한 겔을 만든다.`,
+더 작은 규모에서는 금 나노입자 하나하나의 움직임을 실시간 관찰 실험과 함께 분석한다. 이 크기에서는 입자의 움직임이 교과서의 예측과 어긋난다. 주변 환경이 순간순간 바뀌면서 이동 폭이 그때그때 달라지고, 두 입자가 부딪히면 서로 방향을 맞춘 뒤에야 하나로 합쳐진다.`,
+    icon: "Orbit",
+    color: "#f43f5e",
+    gridSpan: [1, 1],
+    tags: ["Colloidal Dynamics"],
+  },
+  {
+    id: "hydrogel",
+    title: "Hydrogel Mechanics",
+    titleKo: "하이드로겔 역학",
+    tagline:
+      "Predicting how soft, water-filled gels set and how firm they become",
+    taglineKo: "물을 머금은 부드러운 겔이 굳는 과정과 단단함을 예측하기",
+    description: `A hydrogel is a network of polymer chains holding a large amount of water; jelly and contact lenses are made of such material. A gel for delivering drugs must flow like a liquid through a needle and then set inside the body. How firm the gel becomes depends on the makeup of the network: how tightly the chains are tied together and how much water the network holds.
+
+We predict the properties of a gel from the makeup of its network, using simulations that group several molecules into single units. For polyacrylamide, a common gel, the calculations reproduce the firmness measured in experiments, and the more water the gel holds, the faster it softens. A gel shaped before it sets becomes firmer in one direction than another, a property useful for scaffolds that stand in for body tissue.
+
+In a temperature-sensitive gel called PLGA-PEG-PLGA, whether it sets sharply or gradually depends on the order of the building blocks along the chain. This order is hard to control in ordinary synthesis, and it changes how fast a drug is released in the body.`,
+    descriptionKo: `하이드로겔은 물을 많이 머금은 고분자 그물로, 젤리나 콘택트렌즈가 이런 소재다. 약물 전달에 쓰는 겔은 주삿바늘을 지날 때는 액체처럼 흐르다가 몸 안에서는 굳어야 한다. 겔이 얼마나 단단해지는지는 그물의 짜임새에 달려 있다. 사슬을 얼마나 촘촘히 엮었는지, 물을 얼마나 머금는지가 여기에 관여한다.
+
+우리는 분자 여러 개를 한 단위로 묶어 단순화한 시뮬레이션으로, 그물의 짜임새로부터 겔의 성질을 예측한다. 폴리아크릴아마이드라는 대표적인 겔을 계산하면 실험에서 잰 단단함이 재현되고, 물을 많이 머금을수록 겔은 그보다 빠르게 물러진다. 굳기 전에 미리 형태를 잡은 겔은 방향에 따라 단단함이 달라지는데, 이 성질은 생체 조직을 대신하는 지지체에 쓸모가 있다.
+
+온도에 반응하는 PLGA-PEG-PLGA라는 겔에서는, 겔이 급하게 굳는지 천천히 굳는지가 사슬을 따라 늘어선 구성 단위의 순서에 달려 있다. 이 순서는 보통의 합성으로는 조절하기 어렵지만, 약물이 몸속에서 풀려나는 속도를 바꾼다.`,
     icon: "FlaskConical",
     color: "#10b981",
     gridSpan: [1, 1],
@@ -139,10 +114,10 @@ PLGA-PEG-PLGA 삼중블록 공중합체 기반 온도감응성 하이드로겔�
     id: "misc",
     title: "Misc.",
     titleKo: "기타",
-    tagline: "Cross-cutting and collaborative work",
-    taglineKo: "학제간 공동 연구",
-    description: `Publications that span multiple research areas or represent collaborative contributions to fields outside the lab's primary focus. These include a review article surveying how experimental and computational methods provide complementary views of macromolecular self-assembly across dendrimers, star polymers, and bottlebrush polymers; computational support for stretchable bioelectronic devices (Ag-Au core-sheath nanowire composites); thermodynamic modeling of perovskite thin film patterning for image sensor arrays; and luminescent solar concentrator development.`,
-    descriptionKo: `여러 연구 주제에 걸치거나 외부 공동연구로 발표한 논문이다. 덴드리머·성형 고분자·병솔형 고분자의 자기조립을 실험과 시뮬레이션 양쪽에서 조망한 리뷰 논문이 있고, 신축성 생체전자 소자(Ag-Au 코어-쉘 나노와이어 복합체)의 전산 해석, 이미지 센서 배열용 페로브스카이트 박막 패터닝의 열역학 모형화, 발광 태양광 집광기 개발 등이 이에 해당한다.`,
+    tagline: "Collaborative simulation and theory in materials and devices",
+    taglineKo: "소재·소자 분야의 공동 시뮬레이션과 이론",
+    description: `Outside the lab's main themes, we contribute simulation and theory to experiment-led collaborations. These include a stretchable silver-gold nanowire composite for wearable and implantable electronics, the patterning of perovskite films for image sensors, and a transparent light-collecting material for solar energy.`,
+    descriptionKo: `연구실의 주요 주제 밖에서, 실험 중심의 공동 연구에 시뮬레이션과 이론으로 참여한 작업이다. 몸에 착용하거나 이식하는 전자소자를 위한 신축성 은·금 나노선 복합체, 이미지 센서를 만들기 위한 페로브스카이트 박막의 패턴 형성, 빛을 모으는 투명한 태양광 소재 등이 여기에 해당한다.`,
     icon: "FlaskConical",
     color: "#9ca3af",
     gridSpan: [1, 1],

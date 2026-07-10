@@ -13,6 +13,9 @@ interface Props {
   onStepClick: (localStep: number) => void;
   onLevelSwitch: (levelIndex: number) => void;
   lang: string;
+  stepTitles: string[];
+  previousStepTitle?: string;
+  nextStepTitle?: string;
   scfLabel?: string | null;
   rdfLabel?: string | null;
   onChipTap?: () => void;
@@ -20,6 +23,7 @@ interface Props {
 
 export function MobileStatusRow({
   scrollState,
+  level,
   canGoNext,
   canGoPrev,
   onNext,
@@ -27,14 +31,26 @@ export function MobileStatusRow({
   onStepClick,
   onLevelSwitch,
   lang,
+  stepTitles,
+  previousStepTitle,
+  nextStepTitle,
   scfLabel,
   rdfLabel,
   onChipTap,
 }: Props) {
   const chipLabel = scfLabel ?? rdfLabel ?? null;
+  const previousLabel = previousStepTitle
+    ? `${lang === "ko" ? "이전" : "Previous"}: ${previousStepTitle}`
+    : lang === "ko" ? "이전 단계" : "Previous step";
+  const nextLabel = nextStepTitle
+    ? `${lang === "ko" ? "다음" : "Next"}: ${nextStepTitle}`
+    : lang === "ko" ? "다음 단계" : "Next step";
 
   return (
     <div className="dark flex-shrink-0 border-t border-border bg-surface-sunken">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {`${level.label[lang as "en" | "ko"] ?? level.label.en}: ${stepTitles[scrollState.step] ?? scrollState.step + 1}`}
+      </div>
       {/* Level tabs */}
       <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide px-3 pt-2 pb-1">
         {LEVELS.map((l, i) => {
@@ -49,7 +65,8 @@ export function MobileStatusRow({
                   : "border-transparent text-muted-foreground"
               }`}
               onClick={() => onLevelSwitch(i)}
-              aria-label={`${l.label.en} level`}
+              aria-label={`${l.label[lang as "en" | "ko"] ?? l.label.en} ${lang === "ko" ? "수준" : "level"}`}
+              aria-current={isActive ? "true" : undefined}
             >
               {l.label[lang as "en" | "ko"] ?? l.label.en}
             </button>
@@ -67,7 +84,9 @@ export function MobileStatusRow({
               type="button"
               className="flex h-7 w-2 flex-shrink-0 items-center"
               onClick={() => onStepClick(i)}
-              aria-label={`${lang === "ko" ? "단계" : "Step"} ${i + 1}`}
+              aria-label={`${stepTitles[i] ?? `${lang === "ko" ? "단계" : "Step"} ${i + 1}`}, ${i + 1} / ${scrollState.stepCount}`}
+              aria-current={i === scrollState.step ? "step" : undefined}
+              title={stepTitles[i]}
             >
               <span
                 className="h-[2px] w-full transition-colors"
@@ -95,6 +114,7 @@ export function MobileStatusRow({
             type="button"
             className="type-mono-meta flex-shrink-0 border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted"
             onClick={onChipTap}
+            aria-label={lang === "ko" ? `${chipLabel} 조절기 열기` : `Open ${chipLabel} control`}
           >
             {chipLabel}
           </button>
@@ -109,7 +129,8 @@ export function MobileStatusRow({
           disabled={!canGoPrev}
           onClick={onPrev}
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-border-strong text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-25"
-          aria-label={lang === "ko" ? "이전 단계" : "Previous step"}
+          aria-label={previousLabel}
+          title={previousLabel}
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
         </button>
@@ -118,7 +139,8 @@ export function MobileStatusRow({
           disabled={!canGoNext}
           onClick={onNext}
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-border-strong text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-25"
-          aria-label={lang === "ko" ? "다음 단계" : "Next step"}
+          aria-label={nextLabel}
+          title={nextLabel}
         >
           <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
         </button>

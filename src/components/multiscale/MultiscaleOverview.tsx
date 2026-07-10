@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { MultiscaleArea } from "@/types/multiscale";
-import type { Dictionary } from "@/app/[lang]/dictionaries";
 
 /* Mirrors the footer colophon ruler: DFT → MLFF → all-atom → meso. */
 const rulerMarks = [
@@ -13,11 +12,9 @@ const rulerMarks = [
 export function MultiscaleOverview({
   areas,
   lang,
-  dict,
 }: {
   areas: MultiscaleArea[];
   lang: string;
-  dict: Dictionary;
 }) {
   if (areas.length === 0) return null;
 
@@ -26,11 +23,13 @@ export function MultiscaleOverview({
       <div className="mx-auto max-w-6xl px-6 py-20 sm:px-8 sm:py-28">
         {/* Masthead */}
         <header className="max-w-3xl">
-          <h1 className="type-display text-4xl text-foreground sm:text-5xl">
-            {dict.multiscale.title}
-          </h1>
+          <h2 className="type-display text-4xl text-foreground sm:text-5xl">
+            {lang === "ko" ? "방법을 더 살펴보기" : "Study the methods in depth"}
+          </h2>
           <p className="mt-5 break-keep leading-relaxed text-muted-foreground">
-            {dict.multiscale.subtitle}
+            {lang === "ko"
+              ? "인터랙티브 여정에서 본 흐름을 각 방법의 연구 맥락, 적용 범위, 그리고 다음 해상도로 이어지는 연결까지 확장해 읽어 보세요."
+              : "Extend the interactive journey with each method's research context, scope of use, and connection to the next resolution."}
           </p>
         </header>
 

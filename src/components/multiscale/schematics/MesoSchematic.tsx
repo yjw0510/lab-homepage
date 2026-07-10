@@ -18,8 +18,8 @@ function mulberry32(seed: number) {
 
 const ATOM_PALETTE = [
   "var(--sch-carbon)", // C — grey
-  "#7c8db0", // N — muted blue
-  "#b07c7c", // O — muted red
+  "var(--sch-meso-n)", // N — muted blue
+  "var(--sch-meso-o)", // O — muted red
   "#9ca3af", // H — light grey
 ];
 
@@ -100,7 +100,7 @@ export function MesoSchematic({ active }: { active: boolean }) {
     cx: p.x + 280,
     cy: p.y,
     r: i % 2 === 0 ? 10 : 8.5,
-    color: i % 2 === 0 ? "#f59e0b" : "#d97706",
+    color: i % 2 === 0 ? "var(--sch-amber-bright)" : "var(--sch-amber)",
     delay: 0.52 + i * 0.035,
   }));
 
@@ -116,7 +116,7 @@ export function MesoSchematic({ active }: { active: boolean }) {
       {clusters.map((cluster, ci) => {
         const r = cluster.hull.r;
         const C = (2 * Math.PI * r).toFixed(1);
-        const color = ci % 2 === 1 ? "#f59e0b" : "#d97706";
+        const color = ci % 2 === 1 ? "var(--sch-amber-bright)" : "var(--sch-amber)";
 
         return (
           <g
@@ -152,7 +152,7 @@ export function MesoSchematic({ active }: { active: boolean }) {
               cy={cluster.hull.cy}
               r={r}
               fill="none"
-              stroke="#f59e0b"
+              stroke="var(--sch-amber-bright)"
               strokeWidth="4.5"
               strokeOpacity="0.12"
               strokeLinecap="round"
@@ -175,7 +175,7 @@ export function MesoSchematic({ active }: { active: boolean }) {
               cy={cluster.hull.cy}
               r={r}
               fill="none"
-              stroke="#f59e0b"
+              stroke="var(--sch-amber-bright)"
               strokeWidth="2.2"
               strokeOpacity="0.7"
               strokeLinecap="round"
@@ -288,13 +288,13 @@ export function MesoSchematic({ active }: { active: boolean }) {
           y1="78"
           x2="316"
           y2="78"
-          stroke="#f59e0b"
+          stroke="var(--sch-amber-bright)"
           strokeWidth="3.2"
           strokeOpacity="0.72"
         />
         <polygon
           points="316,71 330,78 316,85"
-          fill="#f59e0b"
+          fill="var(--sch-amber-bright)"
           fillOpacity="0.72"
         />
         <text

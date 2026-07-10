@@ -110,7 +110,7 @@ export function MobileBottomSheet({ snap, onSnapChange, header, children }: Prop
       ref={sheetRef}
       className="dark absolute inset-x-0 bottom-0 z-20 flex flex-col border-t border-border-strong bg-surface-sunken shadow-[0_-8px_32px_oklch(14%_0.014_268_/_0.24)]"
       style={{
-        height: containerH ? `${sheetH}px` : `${FULL_RATIO * 100}vh`,
+        height: containerH ? `${sheetH}px` : `${FULL_RATIO * 100}dvh`,
         y,
       }}
       drag={reducedMotion ? false : "y"}
@@ -140,6 +140,7 @@ export function MobileBottomSheet({ snap, onSnapChange, header, children }: Prop
         className="min-h-0 flex-1 overflow-y-auto"
         aria-hidden={isPeek}
         tabIndex={isPeek ? -1 : undefined}
+        inert={isPeek}
       >
         {children}
       </div>

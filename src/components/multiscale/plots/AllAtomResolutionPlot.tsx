@@ -66,7 +66,7 @@ export function AllAtomResolutionPlot({
 }) {
   return (
     <PlotContainer
-      ariaLabel="Atomistic resolution: caffeine in explicit water — every atom resolved"
+      ariaLabel="Atomistic resolution: caffeine in explicit solvent, every atom resolved"
       aspectRatio={0.8}
       minHeight={250}
       maxHeight={320}
@@ -146,7 +146,7 @@ export function AllAtomResolutionPlot({
             {
               x: boxX + boxW * 0.5,
               y: boxY + boxH + font.annotation * 1.5,
-              text: "caffeine in explicit solvent — every atom resolved",
+              text: "caffeine in explicit solvent · every atom resolved",
               align: "middle",
               color: accentColor,
               fontSize: font.annotation,

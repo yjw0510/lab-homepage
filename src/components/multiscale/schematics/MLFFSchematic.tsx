@@ -192,14 +192,14 @@ export function MLFFSchematic({ active }: { active: boolean }) {
       {/* Stage 2a: Descriptor — cutoff glow + dashed circle */}
       <circle
         cx={descCenter.cx} cy={descCenter.cy} r="42"
-        fill="none" stroke="#f59e0b" strokeWidth="4" strokeOpacity="0.08"
+        fill="none" stroke="var(--sch-amber-bright)" strokeWidth="4" strokeOpacity="0.08"
         filter="url(#pktGlow)"
         className={active ? "animate-fade-in" : "opacity-0"}
         style={{ animationDelay: "0.36s" }}
       />
       <circle
         cx={descCenter.cx} cy={descCenter.cy} r="42"
-        fill="none" stroke="#f59e0b" strokeWidth="1.8" strokeDasharray="4 3" strokeOpacity="0.35"
+        fill="none" stroke="var(--sch-amber-bright)" strokeWidth="1.8" strokeDasharray="4 3" strokeOpacity="0.35"
         className={active ? "animate-fade-in" : "opacity-0"}
         style={{ animationDelay: "0.36s" }}
       />
@@ -219,11 +219,11 @@ export function MLFFSchematic({ active }: { active: boolean }) {
             {/* base spoke */}
             <path d={d} fill="none" stroke="var(--sch-bond)" strokeWidth="1.8" strokeOpacity="0.3" strokeLinecap="round" />
             {/* glow packet → center (cardinal red) */}
-            <path d={d} fill="none" stroke="#C41E3A" strokeWidth="5" strokeOpacity="0.18" strokeLinecap="round" filter="url(#pktGlow)" strokeDasharray={`3 ${L}`}>
+            <path d={d} fill="none" stroke="var(--sch-packet)" strokeWidth="5" strokeOpacity="0.18" strokeLinecap="round" filter="url(#pktGlow)" strokeDasharray={`3 ${L}`}>
               <animate attributeName="stroke-dashoffset" from="0" to={`-${L}`} dur="1.4s" begin={`${0.7 + i * 0.12}s`} repeatCount="indefinite" />
             </path>
             {/* bright packet → center */}
-            <path d={d} fill="none" stroke="#C41E3A" strokeWidth="2" strokeOpacity="0.8" strokeLinecap="round" strokeDasharray={`2 ${L}`}>
+            <path d={d} fill="none" stroke="var(--sch-packet)" strokeWidth="2" strokeOpacity="0.8" strokeLinecap="round" strokeDasharray={`2 ${L}`}>
               <animate attributeName="stroke-dashoffset" from="0" to={`-${L}`} dur="1.4s" begin={`${0.7 + i * 0.12}s`} repeatCount="indefinite" />
             </path>
           </g>
@@ -248,11 +248,11 @@ export function MLFFSchematic({ active }: { active: boolean }) {
       {/* Stage 2a: Descriptor — center atom (amber) */}
       <g>
         <circle cx={descCenter.cx} cy={descCenter.cy} r={descCenter.r + 3}
-          fill="#f59e0b" fillOpacity="0.12" filter="url(#pktGlow)"
+          fill="var(--sch-amber-bright)" fillOpacity="0.12" filter="url(#pktGlow)"
           className={active ? "animate-fade-in" : "opacity-0"} style={{ animationDelay: "0.42s" }}
         />
         <circle cx={descCenter.cx} cy={descCenter.cy} r={descCenter.r}
-          fill="#f59e0b" fillOpacity="1"
+          fill="var(--sch-amber-bright)" fillOpacity="1"
           className={active ? "animate-scale-in" : "opacity-0"}
           style={{ animationDelay: "0.42s", transformOrigin: `${descCenter.cx}px ${descCenter.cy}px` }}
         />
@@ -276,10 +276,10 @@ export function MLFFSchematic({ active }: { active: boolean }) {
         return (
           <g key={`ge-${i}`} className={active ? "animate-fade-in" : "opacity-0"} style={{ animationDelay: `${0.36 + i * 0.02}s` }}>
             <path d={d} fill="none" stroke="var(--sch-bond)" strokeWidth="1.8" strokeOpacity="0.25" strokeLinecap="round" />
-            <path d={d} fill="none" stroke="#C41E3A" strokeWidth="5" strokeOpacity="0.15" strokeLinecap="round" filter="url(#pktGlow)" strokeDasharray={`3 ${L}`}>
+            <path d={d} fill="none" stroke="var(--sch-packet)" strokeWidth="5" strokeOpacity="0.15" strokeLinecap="round" filter="url(#pktGlow)" strokeDasharray={`3 ${L}`}>
               <animate attributeName="stroke-dashoffset" from="0" to={`-${L}`} dur="1.2s" begin={`${0.7 + i * 0.08}s`} repeatCount="indefinite" />
             </path>
-            <path d={d} fill="none" stroke="#C41E3A" strokeWidth="2" strokeOpacity="0.75" strokeLinecap="round" strokeDasharray={`2 ${L}`}>
+            <path d={d} fill="none" stroke="var(--sch-packet)" strokeWidth="2" strokeOpacity="0.75" strokeLinecap="round" strokeDasharray={`2 ${L}`}>
               <animate attributeName="stroke-dashoffset" from="0" to={`-${L}`} dur="1.2s" begin={`${0.7 + i * 0.08}s`} repeatCount="indefinite" />
             </path>
           </g>
@@ -299,10 +299,10 @@ export function MLFFSchematic({ active }: { active: boolean }) {
         return (
           <g key={`gce-${i}`} className={active ? "animate-fade-in" : "opacity-0"} style={{ animationDelay: `${0.38 + i * 0.025}s` }}>
             <path d={d} fill="none" stroke="var(--sch-bond)" strokeWidth="1.8" strokeOpacity="0.25" strokeLinecap="round" />
-            <path d={d} fill="none" stroke="#C41E3A" strokeWidth="5" strokeOpacity="0.15" strokeLinecap="round" filter="url(#pktGlow)" strokeDasharray={`3 ${L}`}>
+            <path d={d} fill="none" stroke="var(--sch-packet)" strokeWidth="5" strokeOpacity="0.15" strokeLinecap="round" filter="url(#pktGlow)" strokeDasharray={`3 ${L}`}>
               <animate attributeName="stroke-dashoffset" from="0" to={`-${L}`} dur="1.2s" begin={`${0.8 + i * 0.1}s`} repeatCount="indefinite" />
             </path>
-            <path d={d} fill="none" stroke="#C41E3A" strokeWidth="2" strokeOpacity="0.75" strokeLinecap="round" strokeDasharray={`2 ${L}`}>
+            <path d={d} fill="none" stroke="var(--sch-packet)" strokeWidth="2" strokeOpacity="0.75" strokeLinecap="round" strokeDasharray={`2 ${L}`}>
               <animate attributeName="stroke-dashoffset" from="0" to={`-${L}`} dur="1.2s" begin={`${0.8 + i * 0.1}s`} repeatCount="indefinite" />
             </path>
           </g>
@@ -327,11 +327,11 @@ export function MLFFSchematic({ active }: { active: boolean }) {
       {/* Stage 2b: Graph — center atom (amber) */}
       <g>
         <circle cx={graphCenter.cx} cy={graphCenter.cy} r={graphCenter.r + 3}
-          fill="#f59e0b" fillOpacity="0.12" filter="url(#pktGlow)"
+          fill="var(--sch-amber-bright)" fillOpacity="0.12" filter="url(#pktGlow)"
           className={active ? "animate-fade-in" : "opacity-0"} style={{ animationDelay: "0.44s" }}
         />
         <circle cx={graphCenter.cx} cy={graphCenter.cy} r={graphCenter.r}
-          fill="#f59e0b" fillOpacity="1"
+          fill="var(--sch-amber-bright)" fillOpacity="1"
           className={active ? "animate-scale-in" : "opacity-0"}
           style={{ animationDelay: "0.44s", transformOrigin: `${graphCenter.cx}px ${graphCenter.cy}px` }}
         />

@@ -218,20 +218,20 @@ export function DFTSchematic({ active }: { active: boolean }) {
           <path d={`M0,0 L${u(8)},${u(4)} L0,${u(8)} z`} fill="var(--sch-muted)" />
         </marker>
         <marker id="dft-al" markerWidth={u(8)} markerHeight={u(8)} refX={u(7)} refY={u(4)} orient="auto">
-          <path d={`M0,0 L${u(8)},${u(4)} L0,${u(8)} z`} fill="#d97706" />
+          <path d={`M0,0 L${u(8)},${u(4)} L0,${u(8)} z`} fill="var(--sch-amber)" />
         </marker>
         <radialGradient id="dft-co" cx="50%" cy="50%">
-          <stop offset="0%" stopColor="#1d4ed8" stopOpacity="0.48" />
-          <stop offset="35%" stopColor="#1d4ed8" stopOpacity="0.32" />
-          <stop offset="65%" stopColor="#1d4ed8" stopOpacity="0.16" />
-          <stop offset="88%" stopColor="#1d4ed8" stopOpacity="0.05" />
-          <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0" />
+          <stop offset="0%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.48" />
+          <stop offset="35%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.32" />
+          <stop offset="65%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.16" />
+          <stop offset="88%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.05" />
+          <stop offset="100%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0" />
         </radialGradient>
         <radialGradient id="dft-cin" cx="50%" cy="50%">
-          <stop offset="0%" stopColor="#1d4ed8" stopOpacity="0.52" />
-          <stop offset="40%" stopColor="#1d4ed8" stopOpacity="0.30" />
-          <stop offset="75%" stopColor="#1d4ed8" stopOpacity="0.10" />
-          <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0" />
+          <stop offset="0%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.52" />
+          <stop offset="40%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.30" />
+          <stop offset="75%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.10" />
+          <stop offset="100%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0" />
         </radialGradient>
         <filter id="dft-cb"><feGaussianBlur stdDeviation={u(8)} /></filter>
         <filter id="dft-sb"><feGaussianBlur stdDeviation={u(3)} /></filter>
@@ -318,7 +318,7 @@ export function DFTSchematic({ active }: { active: boolean }) {
       {/* ═══ 2. Cloud — Fourier contour ═══ */}
       <g className={active ? "animate-scale-in" : "opacity-0"}
         style={{ animationDelay: "0.25s", transformOrigin: `${RCX}px ${RCY}px` }}>
-        <motion.path d={outerD} fill="#1d4ed8" fillOpacity={0.14} filter="url(#dft-cb)" />
+        <motion.path d={outerD} fill="var(--sch-density)" fillOpacity={0.14} filter="url(#dft-cb)" />
         <motion.path d={outerD} fill="url(#dft-co)" style={{ opacity: outerOp }} />
         <motion.path d={innerD} fill="url(#dft-cin)" style={{ opacity: innerOp }} />
       </g>
@@ -349,7 +349,7 @@ export function DFTSchematic({ active }: { active: boolean }) {
 
       {/* ρ(r) + update tag */}
       <g className={f} style={{ animationDelay: "0.35s" }}>
-        <text x={u(282)} y={u(192)} textAnchor="end" fontSize={FS_CAPTION} fill="#92400e"
+        <text x={u(282)} y={u(192)} textAnchor="end" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
           fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">update</text>
         <text x={u(340)} y={u(192)} textAnchor="middle"
           fontSize={FS_MATH} fontWeight={MATH_WEIGHT} fill={MATH_FILL} fillOpacity={MATH_OPACITY}>
@@ -362,7 +362,7 @@ export function DFTSchematic({ active }: { active: boolean }) {
 
       {/* ═══ 3. SCF ring — base ═══ */}
       <path d={`M${RCX - u(6)},${RCY + RRY} A${RRX},${RRY} 0 1,1 ${RCX + u(6)},${RCY + RRY}`}
-        fill="none" stroke="#d97706" strokeWidth={u(1.5)} strokeOpacity="0.2"
+        fill="none" stroke="var(--sch-amber)" strokeWidth={u(1.5)} strokeOpacity="0.2"
         markerEnd="url(#dft-al)" className={f} style={{ animationDelay: "0.45s" }} />
 
       {/* stage anchor dots */}
@@ -373,33 +373,33 @@ export function DFTSchematic({ active }: { active: boolean }) {
             <circle key={`sa${i}`}
               cx={Math.round(RCX + RRX * Math.cos(a))}
               cy={Math.round(RCY + RRY * Math.sin(a))}
-              r={u(2.5)} fill="#d97706" fillOpacity={0.35} />
+              r={u(2.5)} fill="var(--sch-amber)" fillOpacity={0.35} />
           );
         })}
       </g>
 
       {/* ═══ 3b. Active sweep ═══ */}
       <g className={f} style={{ animationDelay: "0.6s" }}>
-        <motion.path d={ghostD} fill="none" stroke="#d97706" strokeWidth={u(6)}
+        <motion.path d={ghostD} fill="none" stroke="var(--sch-amber)" strokeWidth={u(6)}
           strokeOpacity={0.06} strokeLinecap="round" filter="url(#dft-sb)" />
-        <motion.path d={sweepD} fill="none" stroke="#d97706" strokeWidth={u(12)}
+        <motion.path d={sweepD} fill="none" stroke="var(--sch-amber)" strokeWidth={u(12)}
           strokeOpacity={0.12} strokeLinecap="round" filter="url(#dft-sb)" />
-        <motion.path d={sweepD} fill="none" stroke="#d97706" strokeWidth={u(3.5)}
+        <motion.path d={sweepD} fill="none" stroke="var(--sch-amber)" strokeWidth={u(3.5)}
           strokeOpacity={0.9} strokeLinecap="round" />
-        <motion.circle cx={headX} cy={headY} r={headGlowR} fill="#d97706"
+        <motion.circle cx={headX} cy={headY} r={headGlowR} fill="var(--sch-amber)"
           style={{ fillOpacity: headGlowOp }} filter="url(#dft-sb)" />
-        <motion.circle cx={headX} cy={headY} r={u(3.2)} fill="#d97706" />
+        <motion.circle cx={headX} cy={headY} r={u(3.2)} fill="var(--sch-amber)" />
       </g>
 
       {/* ═══ Ring labels — pushed away from ring to avoid overlap ═══ */}
       <g className={f} style={{ animationDelay: "0.45s" }}>
-        <text x={u(340)} y={u(10)} textAnchor="middle" fontSize={FS_CAPTION} fill="#92400e"
+        <text x={u(340)} y={u(10)} textAnchor="middle" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
           fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">
           SCF cycle
         </text>
 
         {/* build V_eff[ρ] — upper-left, well above ring */}
-        <text x={u(238)} y={u(22)} textAnchor="middle" fontSize={FS_CAPTION} fill="#92400e"
+        <text x={u(238)} y={u(22)} textAnchor="middle" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
           fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">build</text>
         <text x={u(238)} y={u(40)} textAnchor="middle"
           fontSize={FS_MATH} fill={MATH_FILL} fillOpacity={MATH_OPACITY} fontWeight={MATH_WEIGHT}>
@@ -409,7 +409,7 @@ export function DFTSchematic({ active }: { active: boolean }) {
         </text>
 
         {/* solve φ_i, ε_i — upper-right, well above ring */}
-        <text x={u(442)} y={u(22)} textAnchor="middle" fontSize={FS_CAPTION} fill="#92400e"
+        <text x={u(442)} y={u(22)} textAnchor="middle" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
           fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">solve</text>
         <text x={u(442)} y={u(40)} textAnchor="middle"
           fontSize={FS_MATH} fill={MATH_FILL} fillOpacity={MATH_OPACITY} fontWeight={MATH_WEIGHT}

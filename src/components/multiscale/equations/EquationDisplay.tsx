@@ -10,13 +10,14 @@ import type { AllAtomForceFieldTerm } from "../allatom/allAtomPagePolicy";
 function renderSegments(
   segments: EquationSegment[],
   activeTerms: string[],
-  accentColor: string
-  ,
+  accentColor: string,
   interactiveTerms?: readonly AllAtomForceFieldTerm[],
   hoveredTerm?: AllAtomForceFieldTerm | null,
+  selectedTerm?: AllAtomForceFieldTerm | null,
   onTermHover?: (term: AllAtomForceFieldTerm) => void,
   onTermLeave?: () => void,
   onTermClick?: (term: AllAtomForceFieldTerm) => void,
+  lang = "en",
 ) {
   return segments.map((seg, i) => {
     const html = katex.renderToString(seg.latex, {
@@ -26,16 +27,17 @@ function renderSegments(
     const isActive = seg.termId ? activeTerms.includes(seg.termId) : false;
     const isInteractive = !!seg.termId && !!interactiveTerms?.includes(seg.termId as AllAtomForceFieldTerm);
     const isHovered = !!seg.termId && hoveredTerm === seg.termId;
+    const isSelected = !!seg.termId && selectedTerm === seg.termId;
 
     return (
       <span
         key={i}
         data-term={seg.termId || undefined}
-        className={`inline-block transition-all duration-300 ${isInteractive ? "cursor-pointer" : ""}`}
+        className={`inline-block transition-[color,opacity,transform,filter] duration-300 ${isInteractive ? "cursor-pointer" : ""}`}
         style={{
           color: isActive ? accentColor : undefined,
-          textShadow: isActive || isHovered ? `0 0 12px ${accentColor}60` : undefined,
-          transform: isActive || isHovered ? "scale(1.05)" : undefined,
+          textShadow: isActive || isHovered || isSelected ? `0 0 12px ${accentColor}60` : undefined,
+          transform: isActive || isHovered || isSelected ? "scale(1.05)" : undefined,
           filter: seg.termId && !isActive ? "opacity(0.5)" : undefined,
         }}
         onMouseEnter={isInteractive ? () => onTermHover?.(seg.termId as AllAtomForceFieldTerm) : undefined}
@@ -45,6 +47,22 @@ function renderSegments(
         onBlur={isInteractive ? onTermLeave : undefined}
         role={isInteractive ? "button" : undefined}
         tabIndex={isInteractive ? 0 : undefined}
+        aria-label={
+          isInteractive
+            ? `${lang === "ko" ? "힘장 항 선택" : "Select force-field term"}: ${seg.termId}`
+            : undefined
+        }
+        aria-pressed={isInteractive ? isSelected : undefined}
+        onKeyDown={
+          isInteractive
+            ? (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onTermClick?.(seg.termId as AllAtomForceFieldTerm);
+                }
+              }
+            : undefined
+        }
         dangerouslySetInnerHTML={{ __html: html }}
       />
     );
@@ -58,9 +76,11 @@ export function EquationDisplay({
   detailMode = "single",
   interactiveTerms,
   hoveredTerm,
+  selectedTerm,
   onTermHover,
   onTermLeave,
   onTermClick,
+  lang = "en",
 }: {
   equationKey: string;
   activeTerms: string[];
@@ -68,27 +88,31 @@ export function EquationDisplay({
   detailMode?: "single" | "grouped" | "hidden";
   interactiveTerms?: readonly AllAtomForceFieldTerm[];
   hoveredTerm?: AllAtomForceFieldTerm | null;
+  selectedTerm?: AllAtomForceFieldTerm | null;
   onTermHover?: (term: AllAtomForceFieldTerm) => void;
   onTermLeave?: () => void;
   onTermClick?: (term: AllAtomForceFieldTerm) => void;
+  lang?: string;
 }) {
   const eqSet = EQUATIONS[equationKey];
-  if (!eqSet) return null;
+  const subEquations = eqSet?.subs;
 
   const activeSub = useMemo(() => {
-    if (detailMode !== "single" || activeTerms.length === 0) return null;
+    if (!subEquations || detailMode !== "single" || activeTerms.length === 0) return null;
     for (let i = activeTerms.length - 1; i >= 0; i--) {
-      const sub = eqSet.subs.find((s) => s.termId === activeTerms[i]);
+      const sub = subEquations.find((s) => s.termId === activeTerms[i]);
       if (sub) return sub;
     }
     return null;
-  }, [activeTerms, detailMode, eqSet.subs]);
+  }, [activeTerms, detailMode, subEquations]);
 
   const groupedSubs = useMemo(() => {
-    if (detailMode !== "grouped") return [] as SubEquation[];
+    if (!subEquations || detailMode !== "grouped") return [] as SubEquation[];
     if (activeTerms.length === 0) return [] as SubEquation[];
-    return eqSet.subs.filter((sub) => activeTerms.includes(sub.termId));
-  }, [activeTerms, detailMode, eqSet.subs]);
+    return subEquations.filter((sub) => activeTerms.includes(sub.termId));
+  }, [activeTerms, detailMode, subEquations]);
+
+  if (!eqSet) return null;
 
   return (
     <div
@@ -97,7 +121,7 @@ export function EquationDisplay({
     >
       {/* Main equation */}
       <div className="flex flex-wrap items-baseline gap-x-0.5 text-gray-300 overflow-x-auto">
-        {renderSegments(eqSet.main.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, onTermHover, onTermLeave, onTermClick)}
+        {renderSegments(eqSet.main.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, selectedTerm, onTermHover, onTermLeave, onTermClick, lang)}
       </div>
 
       {/* Sub-equation (expanded term) */}
@@ -110,7 +134,7 @@ export function EquationDisplay({
               aria-label={sub.ariaLabel}
             >
               <div className="flex flex-wrap items-baseline gap-x-0.5">
-                {renderSegments(sub.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, onTermHover, onTermLeave, onTermClick)}
+                {renderSegments(sub.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, selectedTerm, onTermHover, onTermLeave, onTermClick, lang)}
               </div>
             </div>
           ))}
@@ -122,7 +146,7 @@ export function EquationDisplay({
           className="mt-2 pt-2 border-t border-white/5 flex flex-wrap items-baseline gap-x-0.5 text-gray-400 text-sm"
           aria-label={activeSub.ariaLabel}
         >
-          {renderSegments(activeSub.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, onTermHover, onTermLeave, onTermClick)}
+          {renderSegments(activeSub.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, selectedTerm, onTermHover, onTermLeave, onTermClick, lang)}
         </div>
       )}
     </div>

@@ -37,6 +37,23 @@
   --sch-bond: #2b2d42;
   --sch-carbon: #6b7280;
 
+  /* Schematic accent colors (scientific layer) — hue held across modes,
+     lightness steps up in dark so animated strokes stay visible */
+  --sch-amber: #d97706;
+  --sch-amber-bright: #f59e0b;
+  --sch-amber-label: #92400e;
+  --sch-density: #1d4ed8;
+  --sch-stretch: #0891b2;
+  --sch-angle: #16a34a;
+  --sch-lj: #7e22ce;
+  --sch-coulomb: #4f46e5;
+  --sch-delta-plus: #2563eb;
+  --sch-delta-minus: #c026d3;
+  --sch-packet: #c41e3a;
+  --sch-peripheral: #475569;
+  --sch-meso-n: #7c8db0;
+  --sch-meso-o: #b07c7c;
+
   /* Plot colors (scientific layer) */
   --plot-axis: #64748b;
   --plot-label: #475569;
@@ -70,6 +87,22 @@
   --sch-muted: #94a3b8;
   --sch-bond: #94a3b8;
   --sch-carbon: #9ca3af;
+
+  /* Schematic accent colors — lighter steps of the same hues */
+  --sch-amber: #f59e0b;
+  --sch-amber-bright: #fbbf24;
+  --sch-amber-label: #fbbf24;
+  --sch-density: #60a5fa;
+  --sch-stretch: #22d3ee;
+  --sch-angle: #4ade80;
+  --sch-lj: #c084fc;
+  --sch-coulomb: #818cf8;
+  --sch-delta-plus: #60a5fa;
+  --sch-delta-minus: #e879f9;
+  --sch-packet: #fb7185;
+  --sch-peripheral: #94a3b8;
+  --sch-meso-n: #9fb0d0;
+  --sch-meso-o: #cf9d9d;
 
   /* Plot colors */
   --plot-axis: #57606b;
@@ -217,6 +250,20 @@ body {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Multiscale scene-title: fade + rise on step/level change (keyed remount).
+   Matches the RightRail's var(--dur-med) transition so the whole panel
+   changes coherently. Reduced motion is handled upstream (vertical fallback). */
+.multiscale-scene-title-inner {
+  animation: scene-title-in var(--dur-med) var(--ease-ledger) both;
+}
+@keyframes scene-title-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .multiscale-scene-title-inner { animation: none; }
 }
 
 /* Scientific scene animations (schematics/plots) */
