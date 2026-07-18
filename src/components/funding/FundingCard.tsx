@@ -18,7 +18,7 @@ export function FundingCard({
 
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-border py-5 md:grid-cols-12">
-      <div className="type-mono-meta text-[12px] text-muted-foreground md:col-span-3">
+      <div className="type-mono-meta text-[12px] text-accent-ink md:col-span-3">
         {plainDashes(grant.period)}
       </div>
       <div className="md:col-span-9">

@@ -54,8 +54,12 @@ AGENTS.md
 /.claude/
 
 # redesign process artifacts (local only, not part of the site)
+/.impeccable/
 /.superloopy/
 /.hallmark/
 /.agents/
 /_workspace/
 /skills-lock.json
+
+# generated visual-validation output
+/artifacts/

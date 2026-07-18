@@ -2,12 +2,11 @@ import type { AllAtomSceneSnapshot, AllAtomSystemData, AllAtomTrajectoryData, Al
 import type { ScrollState } from "../scrollState";
 import { getViewSpec } from "../multiscaleViewSchedule";
 import { getSubsetIndices } from "../multiscaleViewRuntime";
+import { trimBondEndpoints } from "../molstar/geometry";
 import { getAllAtomVisuals, getScheduledAllAtomSnapshot } from "./allAtomConfig";
 import {
-  forceFieldTermFamily,
   getAllAtomPagePolicy,
   getAllAtomSceneKey,
-  getAllAtomViewStep,
   type AllAtomForceFieldTerm,
   type AllAtomReadoutId,
 } from "./allAtomConfig";
@@ -31,7 +30,6 @@ import {
   ORANGE,
   OXYGEN,
   PURPLE,
-  RED,
   SLATE,
   WHITE,
   mixColor,
@@ -45,32 +43,7 @@ export interface AllAtomStageData {
   trajectory: AllAtomTrajectoryData | null;
 }
 
-export function shortenBond(
-  start: number[],
-  end: number[],
-  radiusStart: number,
-  radiusEnd: number,
-): { start: [number, number, number]; end: [number, number, number] } {
-  const dx = end[0] - start[0];
-  const dy = end[1] - start[1];
-  const dz = end[2] - start[2];
-  const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-  if (len < 1e-6) {
-    return {
-      start: start as [number, number, number],
-      end: end as [number, number, number],
-    };
-  }
-  const nx = dx / len;
-  const ny = dy / len;
-  const nz = dz / len;
-  return {
-    start: [start[0] + nx * radiusStart, start[1] + ny * radiusStart, start[2] + nz * radiusStart],
-    end: [end[0] - nx * radiusEnd, end[1] - ny * radiusEnd, end[2] - nz * radiusEnd],
-  };
-}
-
-export function buildDiscMesh(center: number[], normal: number[], radius: number, segments = 20) {
+function buildDiscMesh(center: number[], normal: number[], radius: number, segments = 20) {
   const norm = Math.hypot(normal[0], normal[1], normal[2]) || 1;
   const n: [number, number, number] = [normal[0] / norm, normal[1] / norm, normal[2] / norm];
   const fallback = Math.abs(n[0]) < 0.8 ? [1, 0, 0] : [0, 1, 0];
@@ -104,84 +77,6 @@ export function buildDiscMesh(center: number[], normal: number[], radius: number
     faces.push([0, index, index === segments ? 1 : index + 1]);
   }
   return { vertices, faces };
-}
-
-export function buildBoxLayer(lengths: number[] | undefined, color = CYAN, label = "Periodic Box"): ResearchLayerSpec[] {
-  if (!lengths || lengths.length < 3) return [];
-  const [lx, ly, lz] = lengths;
-  const hx = lx / 2;
-  const hy = ly / 2;
-  const hz = lz / 2;
-  const corners: [number, number, number][] = [
-    [-hx, -hy, -hz], [hx, -hy, -hz], [hx, hy, -hz], [-hx, hy, -hz],
-    [-hx, -hy, hz], [hx, -hy, hz], [hx, hy, hz], [-hx, hy, hz],
-  ];
-  const edges = [
-    [0, 1], [1, 2], [2, 3], [3, 0],
-    [4, 5], [5, 6], [6, 7], [7, 4],
-    [0, 4], [1, 5], [2, 6], [3, 7],
-  ];
-
-  return [
-    {
-      label,
-      primitives: [
-        ...edges.map(([left, right]) => ({
-          kind: "cylinder" as const,
-          start: corners[left],
-          end: corners[right],
-          radiusTop: 0.06,
-          radiusBottom: 0.06,
-          radialSegments: 10,
-          color,
-        })),
-        ...corners.map((corner) => ({
-          kind: "sphere" as const,
-          center: corner,
-          radius: 0.11,
-          color,
-        })),
-      ],
-      params: {
-        alpha: 0.5,
-        quality: "high",
-        material: { metalness: 0.04, roughness: 0.24, bumpiness: 0 },
-        emissive: 0.28,
-      },
-    },
-  ];
-}
-
-export function buildTrailLayer(snapshot: AllAtomSceneSnapshot, color = AMBER, alpha = 0.68): ResearchLayerSpec[] {
-  if (!snapshot.trails?.length) return [];
-  return [
-    {
-      label: "Trajectory Trails",
-      primitives: snapshot.trails.flatMap((trail) => [
-        ...trail.points.map((point, index) => ({
-          kind: "sphere" as const,
-          center: point as [number, number, number],
-          radius: Math.max(0.12, 0.19 - index * 0.01),
-          color,
-        })),
-        ...trail.points.slice(0, -1).map((point, index) => ({
-          kind: "cylinder" as const,
-          start: point as [number, number, number],
-          end: trail.points[index + 1] as [number, number, number],
-          radiusTop: 0.05,
-          radiusBottom: 0.05,
-          radialSegments: 10,
-          color,
-        })),
-      ]),
-      params: {
-        alpha,
-        quality: "high",
-        material: { metalness: 0, roughness: 0.4, bumpiness: 0 },
-        emissive: 0.22,
-      },
-    },
-  ];
 }
 
 /**
@@ -252,7 +147,7 @@ function computeFrameStackGeometry(
   return { planes, pairs };
 }
 
-export function buildRingLayers(snapshot: AllAtomSceneSnapshot, phase: number): ResearchLayerSpec[] {
+function buildRingLayers(snapshot: AllAtomSceneSnapshot, phase: number): ResearchLayerSpec[] {
   const frame = computeFrameStackGeometry(snapshot);
   const stackPlanes = frame?.planes ?? snapshot.stackPlanes;
   const stackPairs = frame?.pairs ?? snapshot.stackPairs;
@@ -297,37 +192,6 @@ export function buildRingLayers(snapshot: AllAtomSceneSnapshot, phase: number): 
         quality: "high",
         material: { metalness: 0, roughness: 0.42, bumpiness: 0 },
         emissive: 0.24,
-      },
-    },
-  ];
-}
-
-export function buildPolarContacts(snapshot: AllAtomSceneSnapshot): ResearchLayerSpec[] {
-  if (!snapshot.polarContacts?.length) return [];
-  return [
-    {
-      label: "Hydrogen Bond Contacts",
-      primitives: snapshot.polarContacts.flatMap((contact) => [
-        {
-          kind: "dashed-cylinder" as const,
-          start: contact.acceptor as [number, number, number],
-          end: contact.hydrogen as [number, number, number],
-          radius: 0.045,
-          dashCount: 7,
-          color: AMBER,
-        },
-        {
-          kind: "sphere" as const,
-          center: contact.acceptor as [number, number, number],
-          radius: 0.14,
-          color: AMBER,
-        },
-      ]),
-      params: {
-        alpha: 0.86,
-        quality: "high",
-        material: { metalness: 0, roughness: 0.44, bumpiness: 0 },
-        emissive: 0.3,
       },
     },
   ];
@@ -422,7 +286,7 @@ export function getMeasuredContactDistance(
   return computeFrameContact(displaySnapshot)?.distance ?? null;
 }
 
-export function buildMeasuredContact(snapshot: AllAtomSceneSnapshot): ResearchLayerSpec[] {
+function buildMeasuredContact(snapshot: AllAtomSceneSnapshot): ResearchLayerSpec[] {
   const contact = computeFrameContact(snapshot);
   if (!contact) return [];
   const acceptor = contact.acceptor as [number, number, number];
@@ -480,7 +344,7 @@ export function buildMeasuredContact(snapshot: AllAtomSceneSnapshot): ResearchLa
   ];
 }
 
-export function buildSelectedWaterPrimitives(
+function buildSelectedWaterPrimitives(
   snapshot: AllAtomSceneSnapshot,
   visibleAtomIndices: number[],
   maxWaters: number,
@@ -627,61 +491,17 @@ export function derivePlacementSnapshot(
     padding: 1 / pagePolicy.targetOccupancy,
   } as AllAtomSceneSnapshot["camera"];
 
-  // Force-field and integrator pages share the same local force cue anchor.
-  const cueTerm =
-    sceneKey === "A3_forcefield"
-      ? activeTerm
-      : sceneKey === "A4_integrate"
-        ? "Ubond"
-        : null;
-  if (cueTerm && snapshot.atoms?.length) {
-    const cueTarget = computeCueAnchorPoint(cueTerm, snapshot.atoms);
+  if (sceneKey === "A3_forcefield" && activeTerm && snapshot.atoms?.length) {
+    const cueTarget = computeCueAnchorPoint(activeTerm, snapshot.atoms);
     if (cueTarget && derivedCamera) {
       derivedCamera.target = cueTarget;
     }
-  }
-
-  if (pagePolicy.boxAllowed && pagePolicy.globalSceneRequired && snapshot.box?.lengths?.length === 3) {
-    const [lx, ly, lz] = snapshot.box.lengths;
-    const radius = Math.hypot(lx, ly, lz) * 0.5;
-    return {
-      ...snapshot,
-      camera: {
-        ...derivedCamera,
-        radius,
-      },
-    };
   }
 
   return {
     ...snapshot,
     camera: derivedCamera,
   };
-}
-
-/* ── Vec3 utilities ── */
-
-export function vec3Sub(a: number[], b: number[]): [number, number, number] {
-  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-}
-export function vec3Dot(a: number[], b: number[]): number {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-export function vec3Len(a: number[]): number {
-  return Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-}
-export function vec3Normalize(a: number[]): [number, number, number] {
-  const len = vec3Len(a) || 1;
-  return [a[0] / len, a[1] / len, a[2] / len];
-}
-export function vec3Scale(a: number[], s: number): [number, number, number] {
-  return [a[0] * s, a[1] * s, a[2] * s];
-}
-export function vec3Add(a: number[], b: number[]): [number, number, number] {
-  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-}
-export function vec3Cross(a: number[], b: number[]): [number, number, number] {
-  return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 }
 
 /**
@@ -791,7 +611,6 @@ function buildForceTermLayers(
 export function buildAllAtomLayers(
   data: AllAtomStageData,
   scrollState: ScrollState,
-  phase: number,
   activeTerm: AllAtomForceFieldTerm | null,
   activeReadout: AllAtomReadoutId | null,
   frameIndex: number,
@@ -805,16 +624,15 @@ export function buildAllAtomLayers(
   const displaySnapshot = getDisplaySnapshot(snapshot, trajectoryPage, frameIndex);
 
   const visuals = getAllAtomVisuals(step, scrollState.stepProgress);
-  const viewSpec = getViewSpec("allatom", getAllAtomViewStep(sceneKey));
+  const viewSpec = getViewSpec("allatom", step);
   const renderSubsetId = viewSpec.renderSubsetId ?? viewSpec.cameraSubsetId;
   const visibleAtomIndices = getSubsetIndices(displaySnapshot, renderSubsetId, displaySnapshot.atoms.length);
   const visibleSet = new Set(visibleAtomIndices);
   const focusSet = new Set(displaySnapshot.focusAtomIndices ?? []);
   const stackResidues = new Set(displaySnapshot.stackResidueIds ?? []);
-  const focusOnlySolute = sceneKey === "A6_observables" || sceneKey === "A7_mapping";
-  const ghostScaffold = sceneKey === "A3_forcefield" || sceneKey === "A4_integrate";
-  const localWaterLimit = pagePolicy.globalSceneRequired ? 0 : pagePolicy.maxSupportObjects;
-  const activeFamily = activeTerm ? forceFieldTermFamily(activeTerm) : null;
+  const focusOnlySolute = sceneKey === "A6_observables";
+  const ghostScaffold = sceneKey === "A3_forcefield";
+  const localWaterLimit = pagePolicy.maxSupportObjects;
 
   // For ghost scaffold (step 1): compute 1-bond neighbors of focus atoms
   const focusNeighborSet = new Set<number>();
@@ -924,7 +742,12 @@ export function buildAllAtomLayers(
 
     const leftRadius = ELEMENT_RADII[leftElement] ?? 0.42;
     const rightRadius = ELEMENT_RADII[rightElement] ?? 0.42;
-    const shortened = shortenBond(displaySnapshot.atoms[left], displaySnapshot.atoms[right], leftRadius, rightRadius);
+    const shortened = trimBondEndpoints(
+      displaySnapshot.atoms[left],
+      displaySnapshot.atoms[right],
+      leftRadius,
+      rightRadius,
+    );
     const sameFocus = leftFocus && rightFocus;
     const sameStack = stackResidues.has(displaySnapshot.residueIds[left] ?? -1) && stackResidues.has(displaySnapshot.residueIds[right] ?? -1);
     const color = sameFocus ? CYAN : sameStack ? AMBER : SLATE;
@@ -1011,55 +834,29 @@ export function buildAllAtomLayers(
     },
   });
 
-  if (pagePolicy.boxAllowed && displaySnapshot.box?.lengths && visuals.boxMode !== "none") {
-    layers.push(...buildBoxLayer(displaySnapshot.box.lengths, CYAN, "Periodic Box").map((layer) => ({
-      ...layer,
-      params: {
-        ...(layer.params ?? {}),
-        alpha: 0.06 + visuals.boxGlow * 0.06,
-        emissive: 0.06 + visuals.boxGlow * 0.1,
-      },
-    })));
-  }
-
-  const usesForceOverlay = sceneKey === "A3_forcefield" || sceneKey === "A4_integrate";
-  const isObservablePage = sceneKey === "A6_observables";
-
-  // Force-field page: term cues live in this Molstar scene, registered to the
-  // real atoms (no parallel overlay canvas, no floating numbers).
   if (sceneKey === "A3_forcefield" && activeTerm) {
     layers.push(...buildForceTermLayers(displaySnapshot, activeTerm));
   }
 
-  // Ring layers are a trajectory readout. Force-field and integration pages own separate schematic overlays.
-  if (!usesForceOverlay && displaySnapshot.stackPlanes && (activeFamily === "bonded" || visuals.bondedCue > 0.02 || (isObservablePage && activeReadout === "packing"))) {
+  if (sceneKey === "A6_observables" && activeReadout === "packing" && displaySnapshot.stackPlanes) {
     layers.push(
-      ...buildRingLayers(displaySnapshot, activeFamily === "bonded" ? 1 : isObservablePage && activeReadout === "packing" ? 0.9 : visuals.bondedCue).map((layer) => ({
+      ...buildRingLayers(displaySnapshot, 0.9).map((layer) => ({
         ...layer,
         params: {
           ...(layer.params ?? {}),
-          alpha: Number(layer.params?.alpha ?? 0.18) * (activeFamily === "bonded" ? 1 : isObservablePage && activeReadout === "packing" ? 1.0 : visuals.bondedCue),
-          emissive: Number(layer.params?.emissive ?? 0.12) * (activeFamily === "bonded" ? 1 : isObservablePage && activeReadout === "packing" ? 1.0 : 0.6 + visuals.bondedCue * 0.4),
+          alpha: Number(layer.params?.alpha ?? 0.18),
+          emissive: Number(layer.params?.emissive ?? 0.12),
         },
       })),
     );
   }
 
-  // Observable page: one clean, fully-visible measured contact (designed asset).
-  if (isObservablePage && activeReadout === "orientation" && displaySnapshot.polarContacts?.length) {
+  if (
+    sceneKey === "A6_observables" &&
+    activeReadout === "orientation" &&
+    displaySnapshot.polarContacts?.length
+  ) {
     layers.push(...buildMeasuredContact(displaySnapshot));
-  } else if (!usesForceOverlay && displaySnapshot.polarContacts && (activeFamily === "nonbonded" || visuals.nonBondedCue > 0.02)) {
-    // Force-field / non-observable pages keep the lighter contact cue.
-    layers.push(
-      ...buildPolarContacts(displaySnapshot).map((layer) => ({
-        ...layer,
-        params: {
-          ...(layer.params ?? {}),
-          alpha: Number(layer.params?.alpha ?? 0.86) * (activeFamily === "nonbonded" ? 1 : visuals.nonBondedCue),
-          emissive: Number(layer.params?.emissive ?? 0.3) * (activeFamily === "nonbonded" ? 1 : 0.55 + visuals.nonBondedCue * 0.45),
-        },
-      })),
-    );
   }
 
   return layers;
@@ -1072,12 +869,10 @@ export function buildAllAtomLayers(
 export function computeLayerEmphasis(
   step: number,
   stepProgress: number,
-  activeTerm: AllAtomForceFieldTerm | null,
   activeReadout: AllAtomReadoutId | null,
 ): Array<{ label: string; alpha: number; emissive: number }> {
   const sceneKey = getAllAtomSceneKey(step);
   const visuals = getAllAtomVisuals(step, stepProgress);
-  const activeFamily = activeTerm ? forceFieldTermFamily(activeTerm) : null;
 
   const result: Array<{ label: string; alpha: number; emissive: number }> = [
     {
@@ -1092,33 +887,20 @@ export function computeLayerEmphasis(
     },
   ];
 
-  if (visuals.boxMode !== "none") {
-    result.push({
-      label: "Periodic Box",
-      alpha: 0.06 + visuals.boxGlow * 0.06,
-      emissive: 0.06 + visuals.boxGlow * 0.1,
-    });
-  }
-
-  // Aromatic stacking layers — only visible when packing readout is active
-  const ringAlpha = activeFamily === "bonded" ? 1 : sceneKey === "A6_observables" && activeReadout === "packing" ? 1.0 : visuals.bondedCue;
-  const ringEmissive = activeFamily === "bonded" ? 1 : sceneKey === "A6_observables" && activeReadout === "packing" ? 1.0 : 0.6 + visuals.bondedCue * 0.4;
+  const ringAlpha = sceneKey === "A6_observables" && activeReadout === "packing" ? 1 : 0;
   result.push(
-    { label: "Aromatic Stacking", alpha: 0.18 * ringAlpha, emissive: 0.12 * ringEmissive },
-    { label: "Stack Connectors", alpha: 0.82 * ringAlpha, emissive: 0.24 * ringEmissive },
+    { label: "Aromatic Stacking", alpha: 0.18 * ringAlpha, emissive: 0.12 * ringAlpha },
+    { label: "Stack Connectors", alpha: 0.82 * ringAlpha, emissive: 0.24 * ringAlpha },
   );
 
-  // Polar contacts — only visible when orientation readout is active
-  const hbAlpha = activeFamily === "nonbonded" ? 1 : sceneKey === "A6_observables" && activeReadout === "orientation" ? 1.0 : visuals.nonBondedCue;
-  const hbEmissive = activeFamily === "nonbonded" ? 1 : sceneKey === "A6_observables" && activeReadout === "orientation" ? 1.0 : 0.55 + visuals.nonBondedCue * 0.45;
+  const contactAlpha = sceneKey === "A6_observables" && activeReadout === "orientation" ? 1 : 0;
   result.push({
-    label: "Hydrogen Bond Contacts",
-    alpha: 0.86 * hbAlpha,
-    emissive: 0.3 * hbEmissive,
+    label: "Measured Contact",
+    alpha: 0.96 * contactAlpha,
+    emissive: 0.12 * contactAlpha,
   });
 
-  // Ghost scaffold layers support the force-field and finite-integration mechanisms.
-  if (sceneKey === "A3_forcefield" || sceneKey === "A4_integrate") {
+  if (sceneKey === "A3_forcefield") {
     result.push(
       { label: "Solute Neighbors", alpha: 0.25 * visuals.primaryStructuralOpacity, emissive: 0.01 },
       { label: "Solute Scaffold", alpha: 0.06 * visuals.primaryStructuralOpacity, emissive: 0 },

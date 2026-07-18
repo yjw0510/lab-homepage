@@ -31,7 +31,7 @@ export function RecentPublications({
             >
               {/* Margin column: mono year */}
               <div className="col-span-12 sm:col-span-2">
-                <span className="type-mono-meta text-[13px] text-muted-foreground">
+                <span className="type-mono-meta text-[13px] text-accent-ink">
                   {pub.year}
                 </span>
               </div>

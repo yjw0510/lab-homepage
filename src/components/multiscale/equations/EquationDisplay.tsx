@@ -116,25 +116,45 @@ export function EquationDisplay({
 
   return (
     <div
-      className="border border-white/12 bg-white/[0.045] p-4"
+      className="border border-border bg-card p-4"
       aria-label={eqSet.main.ariaLabel}
     >
-      {/* Main equation */}
-      <div className="scientific-equation flex flex-wrap items-baseline gap-x-0 overflow-x-auto px-1 py-1 text-slate-100">
-        {renderSegments(eqSet.main.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, selectedTerm, onTermHover, onTermLeave, onTermClick, lang)}
+      <div className="scientific-equation flex flex-wrap items-baseline gap-x-0 overflow-x-auto px-1 py-1 text-foreground">
+        {renderSegments(
+          eqSet.main.segments,
+          activeTerms,
+          accentColor,
+          interactiveTerms,
+          hoveredTerm,
+          selectedTerm,
+          onTermHover,
+          onTermLeave,
+          onTermClick,
+          lang,
+        )}
       </div>
 
-      {/* Sub-equation (expanded term) */}
       {detailMode === "grouped" && groupedSubs.length > 0 && (
-        <div className="mt-2 grid gap-2 border-t border-white/5 pt-2">
+        <div className="mt-2 grid gap-2 border-t border-border pt-2">
           {groupedSubs.map((sub) => (
             <div
               key={sub.termId}
-              className="scientific-equation-sub border border-white/10 bg-white/[0.025] px-3 py-2.5 text-white/72"
+              className="scientific-equation-sub border border-border bg-muted/40 px-3 py-2.5 text-muted-foreground"
               aria-label={sub.ariaLabel}
             >
               <div className="flex flex-wrap items-baseline gap-x-0.5">
-                {renderSegments(sub.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, selectedTerm, onTermHover, onTermLeave, onTermClick, lang)}
+                {renderSegments(
+                  sub.segments,
+                  activeTerms,
+                  accentColor,
+                  interactiveTerms,
+                  hoveredTerm,
+                  selectedTerm,
+                  onTermHover,
+                  onTermLeave,
+                  onTermClick,
+                  lang,
+                )}
               </div>
             </div>
           ))}
@@ -143,10 +163,21 @@ export function EquationDisplay({
 
       {detailMode === "single" && activeSub && (
         <div
-          className="scientific-equation-sub mt-3 border-t border-white/8 pt-3 flex flex-wrap items-baseline gap-x-0 text-slate-300"
+          className="scientific-equation-sub mt-3 flex flex-wrap items-baseline gap-x-0 border-t border-border pt-3 text-muted-foreground"
           aria-label={activeSub.ariaLabel}
         >
-          {renderSegments(activeSub.segments, activeTerms, accentColor, interactiveTerms, hoveredTerm, selectedTerm, onTermHover, onTermLeave, onTermClick, lang)}
+          {renderSegments(
+            activeSub.segments,
+            activeTerms,
+            accentColor,
+            interactiveTerms,
+            hoveredTerm,
+            selectedTerm,
+            onTermHover,
+            onTermLeave,
+            onTermClick,
+            lang,
+          )}
         </div>
       )}
     </div>

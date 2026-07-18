@@ -4,7 +4,7 @@
 cd "$(dirname "$0")/.." || exit 1
 
 CHROME="src/components/layout src/components/ui src/components/home src/components/publications src/components/news src/components/people src/components/contact src/components/funding src/components/topics src/app/[lang]/page.tsx src/app/[lang]/publications src/app/[lang]/news src/app/[lang]/people src/app/[lang]/contact src/app/[lang]/funding src/app/[lang]/research-topics"
-MSCHROME="src/components/multiscale/MultiscaleOverview.tsx src/components/multiscale/ConceptText.tsx src/components/multiscale/RightRail.tsx src/components/multiscale/PaperCard.tsx src/components/multiscale/MobileBottomSheet.tsx src/components/multiscale/MobileStatusRow.tsx src/components/multiscale/MobileViewerToolbar.tsx"
+MSCHROME="src/components/multiscale/MultiscaleOverview.tsx src/components/multiscale/ConceptText.tsx src/components/multiscale/RightRail.tsx src/components/multiscale/MobileStatusRow.tsx src/components/multiscale/MobileViewerToolbar.tsx"
 
 fail=0
 check() {

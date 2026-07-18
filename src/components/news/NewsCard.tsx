@@ -10,7 +10,7 @@ export function NewsCard({ item, lang }: { item: NewsItem; lang?: string }) {
       <div className="col-span-12 md:col-span-3">
         <time
           dateTime={item.date}
-          className="type-mono-meta block text-[12px] text-muted-foreground"
+          className="type-mono-meta block text-[12px] text-accent-ink"
         >
           {formatDate(item.date, lang)}
         </time>

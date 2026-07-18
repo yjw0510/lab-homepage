@@ -9,9 +9,13 @@ import { Color } from "molstar/lib/mol-util/color/color.js";
 import { withBasePath } from "@/lib/basePath";
 import type { ResearchCameraActions } from "../molstar/shared";
 import { MULTISCALE_TYPE } from "../visualRules";
+import { useMultiscaleCanvasColor } from "../useMultiscaleCanvasColor";
 import {
+  AMBER,
   BLUE,
   CYAN,
+  GREEN,
+  ORANGE,
   PURPLE,
   SLATE,
   WHITE,
@@ -19,6 +23,7 @@ import {
   type PluginLike,
   type ResearchLayerSpec,
   type ResearchPrimitive,
+  applyResearchCanvasBackground,
   commitResearchLayers,
   fitScene,
   mountResearchPlugin,
@@ -272,24 +277,29 @@ function arrowPrimitives(start: Vec3Tuple, vector: Vec3Tuple, color: Color): Res
   if (length < 0.001) return [];
   const unit = scaleVector(vector, 1 / length);
   const end = addVector(start, vector);
-  const headBase = addVector(end, scaleVector(unit, -Math.min(0.34, length * 0.32)));
+  const headLength = Math.min(0.28, length * 0.3);
+  const headBase = addVector(end, scaleVector(unit, -headLength));
   return [
     {
       kind: "cylinder",
       start,
       end: headBase,
-      radiusTop: 0.045,
-      radiusBottom: 0.045,
-      radialSegments: 14,
+      radiusTop: 0.028,
+      radiusBottom: 0.028,
+      radialSegments: 12,
       color,
     },
+    // Cone head. Tapered cylinders render via addSimpleCylinder (see shared.ts),
+    // where radiusTop is the radius at `end` and radiusBottom at `start`. The tip
+    // sits at `end`, so it is the zero-radius side; the base at `headBase`
+    // (=`start`) is the wide side.
     {
       kind: "cylinder",
       start: headBase,
       end,
       radiusTop: 0,
-      radiusBottom: 0.14,
-      radialSegments: 18,
+      radiusBottom: 0.1,
+      radialSegments: 16,
       color,
     },
   ];
@@ -303,6 +313,66 @@ function pesHeight(x: number, y: number) {
 
 function surfacePoint(x: number, y: number, height = pesHeight(x, y)): Vec3Tuple {
   return rotatePoint([x, y, height], [0.92, 0, 0]);
+}
+
+// Energy colormap for the PES slice: deep basin (low) reads cool, ridges (high)
+// read warm, so contour color alone encodes the energy height.
+const PES_RAMP = [PURPLE, BLUE, CYAN, GREEN, AMBER, ORANGE];
+
+function energyColor(height: number): Color {
+  const t = Math.max(0, Math.min(1, (height + 1.32) / 0.92));
+  return PES_RAMP[Math.min(PES_RAMP.length - 1, Math.round(t * (PES_RAMP.length - 1)))];
+}
+
+// Numerical gradient of the learned surface. The trajectory follows -∇E and the
+// force arrows point along the same -∇E, so the path and the forces stay
+// physically consistent instead of being decorative.
+function pesGradient(x: number, y: number): [number, number] {
+  const eps = 0.012;
+  return [
+    (pesHeight(x + eps, y) - pesHeight(x - eps, y)) / (2 * eps),
+    (pesHeight(x, y + eps) - pesHeight(x, y - eps)) / (2 * eps),
+  ];
+}
+
+// Integrate real dynamics on the learned surface with velocity Verlet (mass 1,
+// F = -∇E, light damping). Unlike gradient descent, the configuration carries
+// kinetic energy: it climbs over a barrier and overshoots the minimum instead of
+// settling, so the path reads as finite-temperature MD rather than a geometry
+// optimization. Verified numerically to cross from the shallow well into the
+// deep well and continue past the minimum.
+function mdTrajectory(
+  startX: number,
+  startY: number,
+  velocityX: number,
+  velocityY: number,
+  steps: number,
+): { path: Array<[number, number]>; velocities: Array<[number, number]> } {
+  const dt = 0.12;
+  const damping = 0.992;
+  let x = startX;
+  let y = startY;
+  let vx = velocityX;
+  let vy = velocityY;
+  let [gx, gy] = pesGradient(x, y);
+  let fx = -gx;
+  let fy = -gy;
+  const path: Array<[number, number]> = [[x, y]];
+  const velocities: Array<[number, number]> = [[vx, vy]];
+  for (let index = 0; index < steps; index += 1) {
+    x += vx * dt + 0.5 * fx * dt * dt;
+    y += vy * dt + 0.5 * fy * dt * dt;
+    [gx, gy] = pesGradient(x, y);
+    const nextFx = -gx;
+    const nextFy = -gy;
+    vx = (vx + 0.5 * (fx + nextFx) * dt) * damping;
+    vy = (vy + 0.5 * (fy + nextFy) * dt) * damping;
+    fx = nextFx;
+    fy = nextFy;
+    path.push([x, y]);
+    velocities.push([vx, vy]);
+  }
+  return { path, velocities };
 }
 
 interface ContourSample {
@@ -330,7 +400,6 @@ function buildIsoenergyContours(levels: number[]): ResearchPrimitive[] {
       return { x, y, value: pesHeight(x, y) };
     });
   });
-  const colors = [PURPLE, PURPLE, BLUE, BLUE, CYAN, CYAN];
   const contours: ResearchPrimitive[] = [];
 
   levels.forEach((level, levelIndex) => {
@@ -360,9 +429,9 @@ function buildIsoenergyContours(levels: number[]): ResearchPrimitive[] {
             kind: "cylinder",
             start: surfacePoint(from.x, from.y, level + 0.026),
             end: surfacePoint(to.x, to.y, level + 0.026),
-            radiusTop: 0.024,
-            radiusBottom: 0.024,
-            color: colors[levelIndex] ?? CYAN,
+            radiusTop: 0.023,
+            radiusBottom: 0.023,
+            color: PES_RAMP[levelIndex] ?? energyColor(level),
           });
         });
       }
@@ -397,13 +466,13 @@ function buildSurfaceLayers(): ResearchLayerSpec[] {
   return [
     {
       label: "Learned potential energy surface",
-      primitives: [{ kind: "mesh", vertices, faces, color: PURPLE, doubleSided: true }],
-      params: { alpha: 0.36, xrayShaded: true, emissive: 0.14 },
+      primitives: [{ kind: "mesh", vertices, faces, color: Color.fromHexStyle("#111a3e"), doubleSided: true }],
+      params: { alpha: 0.46, xrayShaded: true, emissive: 0.05 },
     },
     {
       label: "Isoenergy contours on the learned PES slice",
       primitives: contours,
-      params: { alpha: 0.82, emissive: 0.48 },
+      params: { alpha: 0.82, emissive: 0.4 },
     },
   ];
 }
@@ -438,60 +507,95 @@ function buildDatasetLayers(data: MlffVisualData): ResearchLayerSpec[] {
 
 function buildPesLayers(data: MlffVisualData): ResearchLayerSpec[] {
   const layers = buildSurfaceLayers();
-  const center = centroid(data.molecule.atoms);
-  const anchor = surfacePoint(1.1, -0.05, pesHeight(1.1, -0.05) + 1.35);
-  const transform: MoleculeTransform = {
-    center,
-    scale: 0.64,
-    rotate: [0.32, -0.2, -0.1],
-    translate: anchor,
-  };
-  const molecule = moleculePrimitives(data.molecule, transform);
-  const selected = [0, 2, 4, 7, 10, 14, 18, 21].filter((index) => index < data.molecule.atoms.length);
-  const forceArrows = selected.flatMap((index, order) => {
-    const start = transformAtom(data.molecule.atoms[index], index, transform);
-    const angle = order * 1.67 + 0.35;
-    const vector: Vec3Tuple = [Math.cos(angle) * 0.62, Math.sin(angle) * 0.52, 0.32 + (order % 2) * 0.14];
-    return arrowPrimitives(start, vector, CYAN);
-  });
-  const trajectoryCoordinates = [
-    [-4.25, 1.65],
-    [-3.4, 0.95],
-    [-2.45, 0.35],
-    [-1.35, -0.32],
-    [-0.15, -0.45],
-    [1.05, -0.08],
-  ].map(([x, y]) => surfacePoint(x, y, pesHeight(x, y) + 0.12));
+  const lift = 0.14;
+
+  // Trajectory: a real MD path integrated from the forces. It starts in the
+  // shallow well, climbs over the barrier, and overshoots the deep minimum — the
+  // uphill climb and the overshoot are finite-temperature dynamics, which a
+  // geometry optimization never does. Each segment is colored by the energy it
+  // passes through.
+  const { path: mdPath, velocities } = mdTrajectory(-2.3, 1.2, 1.5, -0.55, 24);
+  const nodeWorld = mdPath.map(([x, y]) => surfacePoint(x, y, pesHeight(x, y) + lift));
   const trajectory: ResearchPrimitive[] = [];
-  trajectoryCoordinates.forEach((point, index) => {
-    trajectory.push({ kind: "sphere", center: point, radius: index === trajectoryCoordinates.length - 1 ? 0.095 : 0.065, color: WHITE });
+  mdPath.forEach(([x, y], index) => {
+    if (index < mdPath.length - 1) {
+      // White step-markers make the path read as a sequence of MD timesteps and
+      // stand out above the fine colored contours.
+      trajectory.push({ kind: "sphere", center: nodeWorld[index], radius: 0.07, color: WHITE });
+    }
     if (index > 0) {
+      const prev = mdPath[index - 1];
+      const midHeight = (pesHeight(x, y) + pesHeight(prev[0], prev[1])) / 2;
       trajectory.push({
         kind: "cylinder",
-        start: trajectoryCoordinates[index - 1],
-        end: point,
-        radiusTop: 0.035,
-        radiusBottom: 0.035,
-        color: CYAN,
+        start: nodeWorld[index - 1],
+        end: nodeWorld[index],
+        radiusTop: 0.055,
+        radiusBottom: 0.055,
+        color: energyColor(midHeight),
       });
     }
   });
+
+  // Current configuration R(t): the latest MD point. It sits on the far wall of
+  // the deep well, past the minimum, so it reads as moving rather than settled.
+  // A velocity arrow shows the direction it carries forward by inertia.
+  const currentIndex = mdPath.length - 1;
+  const [mx, my] = mdPath[currentIndex];
+  const markerWorld = surfacePoint(mx, my, pesHeight(mx, my) + lift);
+  const [vx, vy] = velocities[currentIndex];
+  const vLength = Math.hypot(vx, vy) || 1;
+  const velReach = 0.95;
+  const velTipX = mx + (vx / vLength) * velReach;
+  const velTipY = my + (vy / vLength) * velReach;
+  const velBase = surfacePoint(mx, my, pesHeight(mx, my) + lift + 0.05);
+  const velTip = surfacePoint(velTipX, velTipY, pesHeight(velTipX, velTipY) + lift + 0.05);
+  const velocityArrow = arrowPrimitives(velBase, subtractVector(velTip, velBase), AMBER);
+
+  // The current configuration is drawn as the actual molecule sitting at the
+  // trajectory's leading point, so the energy landscape reads as a molecular PES
+  // (a point on the surface is a molecular structure R). It sits at the marker
+  // with no elevated tether, so it cannot spill outside the panel.
+  const molecule = moleculePrimitives(data.molecule, {
+    center: centroid(data.molecule.atoms),
+    scale: 0.32,
+    rotate: [0.34, -0.22, -0.08],
+    translate: [markerWorld[0], markerWorld[1] + 0.12, markerWorld[2] + 0.1],
+  });
+
+  // Soft glows at the two basins the trajectory travels between.
+  const deepBasin = surfacePoint(1.1, -0.25, pesHeight(1.1, -0.25) + 0.02);
+  const shallowBasin = surfacePoint(-2.4, 1.15, pesHeight(-2.4, 1.15) + 0.02);
+
   return [
     ...layers,
     {
-      label: "Molecular trajectory on the learned surface",
-      primitives: trajectory,
-      params: { emissive: 0.56 },
+      label: "Basins the trajectory travels between",
+      primitives: [
+        { kind: "sphere", center: deepBasin, radius: 0.82, color: CYAN },
+        { kind: "sphere", center: shallowBasin, radius: 0.6, color: BLUE },
+      ],
+      params: { alpha: 0.08, xrayShaded: true, emissive: 0.28 },
     },
     {
-      label: "Molecule evaluated by the ML force field",
+      label: "MD trajectory on the learned surface",
+      primitives: trajectory,
+      params: { emissive: 0.86 },
+    },
+    {
+      label: "Current configuration halo",
+      primitives: [{ kind: "sphere", center: markerWorld, radius: 0.34, color: CYAN }],
+      params: { alpha: 0.14, xrayShaded: true, emissive: 0.42 },
+    },
+    {
+      label: "Molecule at the current configuration",
       primitives: molecule,
       params: { emissive: 0.08, material: { metalness: 0.08, roughness: 0.36, bumpiness: 0 } },
     },
     {
-      label: "Predicted atomic forces",
-      primitives: forceArrows,
-      params: { emissive: 0.68 },
+      label: "Velocity of the current configuration",
+      primitives: velocityArrow,
+      params: { emissive: 0.85 },
     },
   ];
 }
@@ -607,37 +711,29 @@ function buildForceLayers(data: MlffVisualData): ResearchLayerSpec[] {
     rotate: [0.38, -0.25, 0.06],
   };
   const molecule = moleculePrimitives(data.molecule, transform);
-  const indices = [0, 2, 4, 6, 9, 12, 16, 20, 23].filter((index) => index < data.molecule.atoms.length);
-  const arrows = indices.flatMap((index, order) => {
+  // A force acts on every atom, so draw an arrow on every atom. Drawing only a
+  // subset would imply the model predicts forces for some atoms and not others.
+  const arrows = data.molecule.atoms.flatMap((_, index) => {
     const start = transformAtom(data.molecule.atoms[index], index, transform);
     const outward = [start[0], start[1], start[2]] as Vec3Tuple;
     const length = Math.hypot(...outward) || 1;
     const tangent: Vec3Tuple = [
-      outward[0] / length + Math.cos(order * 1.3) * 0.22,
-      outward[1] / length + Math.sin(order * 1.3) * 0.22,
+      outward[0] / length + Math.cos(index * 1.3) * 0.22,
+      outward[1] / length + Math.sin(index * 1.3) * 0.22,
       outward[2] / length + 0.18,
     ];
-    return arrowPrimitives(start, scaleVector(tangent, 0.72), CYAN);
+    // Each force starts exactly at its atom center (same transform as the
+    // rendered atom).
+    return arrowPrimitives(start, scaleVector(tangent, 1.05), CYAN);
   });
-  const highlighted = indices.slice(0, 4).map((index) => ({
-    kind: "sphere" as const,
-    center: transformAtom(data.molecule.atoms[index], index, transform),
-    radius: 0.58,
-    color: BLUE,
-  }));
   return [
-    {
-      label: "Atomic energy sites",
-      primitives: highlighted,
-      params: { alpha: 0.095, xrayShaded: true, emissive: 0.28 },
-    },
     {
       label: "Molecular structure",
       primitives: molecule,
       params: { emissive: 0.08, material: { metalness: 0.08, roughness: 0.36, bumpiness: 0 } },
     },
     {
-      label: "Energy-consistent forces",
+      label: "Energy-consistent forces on every atom",
       primitives: arrows,
       params: { emissive: 0.72 },
     },
@@ -672,13 +768,19 @@ function MlffMolstarViewport({
   projectionRadius?: number;
   renderProjectionOverlay?: (layout: ProjectedLayout | null) => ReactNode;
 }) {
+  const canvasColor = useMultiscaleCanvasColor();
   const containerRef = useRef<HTMLDivElement>(null);
   const pluginRef = useRef<PluginLike | null>(null);
+  const canvasColorRef = useRef(canvasColor);
   const defaultSnapshotRef = useRef<CameraSnapshotLike | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [projectedLayout, setProjectedLayout] = useState<ProjectedLayout | null>(null);
   const layers = useMemo(() => (data ? buildLayers(variant, data) : null), [data, variant]);
+
+  useEffect(() => {
+    canvasColorRef.current = canvasColor;
+  }, [canvasColor]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -693,6 +795,7 @@ function MlffMolstarViewport({
         const mounted = await mountResearchPlugin({
           container,
           autoRotate: false,
+          backgroundColor: canvasColorRef.current,
           actionsRef,
           defaultSnapshotRef,
         });
@@ -716,7 +819,7 @@ function MlffMolstarViewport({
             variant === "local"
               ? 2.2
               : variant === "forces"
-                ? 2.15
+                ? 1.55
                 : variant === "dataset"
                   ? 1.02
                   : 1.08
@@ -798,7 +901,6 @@ function MlffMolstarViewport({
         resizeObserver.observe(container);
         if (!cancelled) setReady(true);
       } catch (cause) {
-        console.error(cause);
         if (!cancelled) setError(cause instanceof Error ? cause.message : "Mol* failed to initialize.");
         mountedPlugin?.dispose();
       }
@@ -817,9 +919,16 @@ function MlffMolstarViewport({
     };
   }, [actionsRef, framingScale, layers, projectionAnchors, projectionCenterId, projectionRadius, variant]);
 
+  useEffect(() => {
+    const plugin = pluginRef.current;
+    if (!plugin || !ready) return;
+    void applyResearchCanvasBackground(plugin, canvasColor);
+  }, [canvasColor, ready]);
+
   return (
     <div
-      className="multiscale-molstar pointer-events-none relative h-full w-full select-none overflow-hidden bg-[#070914]"
+      className="multiscale-molstar pointer-events-none relative h-full w-full select-none overflow-hidden"
+      style={{ backgroundColor: canvasColor }}
       data-testid={`mlff-molstar-${variant}`}
       data-mlff-viewport={variant}
       data-auto-rotate="false"
@@ -831,14 +940,14 @@ function MlffMolstarViewport({
       <div ref={containerRef} className="absolute inset-0" />
       {renderProjectionOverlay ? renderProjectionOverlay(projectedLayout) : null}
       {!ready && !error ? (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[#070914]">
-          <span className="type-mono-meta text-xs uppercase tracking-[0.12em] text-cyan-100/58">
+        <div className="pointer-events-none absolute inset-0 grid place-items-center" style={{ backgroundColor: canvasColor }}>
+          <span className="type-mono-meta text-xs uppercase tracking-[0.12em] text-muted-foreground">
             Mol* / preparing view
           </span>
         </div>
       ) : null}
       {error ? (
-        <div className="absolute inset-0 grid place-items-center bg-[#070914] px-5 text-center text-xs leading-5 text-slate-400">
+        <div className="absolute inset-0 grid place-items-center px-5 text-center text-xs leading-5 text-muted-foreground" style={{ backgroundColor: canvasColor }}>
           {error}
         </div>
       ) : null}
@@ -846,18 +955,26 @@ function MlffMolstarViewport({
   );
 }
 
+const PANEL_TITLE_TONE = {
+  dft: "text-sm font-semibold leading-5 text-lv-dft",
+  mlff: "text-sm font-semibold leading-5 text-lv-mlff",
+  aa: "text-sm font-semibold leading-5 text-lv-aa",
+} as const;
+
 function PanelHeader({
   title,
   detail,
   align = "left",
+  tone,
 }: {
   title: string;
   detail?: string;
   align?: "left" | "center";
+  tone?: keyof typeof PANEL_TITLE_TONE;
 }) {
   return (
     <div className={`pointer-events-none absolute left-0 right-0 top-0 z-10 p-3.5 ${align === "center" ? "text-center" : ""}`}>
-      <h4 className={MULTISCALE_TYPE.schematicTitle}>{title}</h4>
+      <h4 className={tone ? PANEL_TITLE_TONE[tone] : MULTISCALE_TYPE.schematicTitle}>{title}</h4>
       {detail ? <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>{detail}</p> : null}
     </div>
   );
@@ -870,14 +987,15 @@ function FlowArrow({ vertical, reducedMotion, label }: { vertical: boolean; redu
       <svg className={vertical ? "h-9 w-8" : "h-12 w-full"} viewBox={vertical ? "0 0 32 42" : "0 0 52 32"} fill="none">
         <path
           d={vertical ? "M16 2V34M10 28L16 35L22 28" : "M2 16H44M38 10L45 16L38 22"}
-          stroke="rgba(103,232,249,.72)"
+          stroke="var(--sch-stretch)"
+          strokeOpacity="0.72"
           strokeWidth="1.35"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </svg>
       {label ? (
-        <span className={`${MULTISCALE_TYPE.schematicMeta} absolute text-cyan-100/58 ${vertical ? "left-[calc(50%+1.5rem)] top-3" : "left-1/2 top-[calc(50%+1.25rem)] -translate-x-1/2 whitespace-nowrap"}`}>
+        <span className={`${MULTISCALE_TYPE.schematicMeta} absolute text-muted-foreground ${vertical ? "left-[calc(50%+1.5rem)] top-3" : "left-1/2 top-[calc(50%+1.25rem)] -translate-x-1/2 whitespace-nowrap"}`}>
           {label}
         </span>
       ) : null}
@@ -1041,14 +1159,14 @@ function ExactNeighborMessageOverlay({
       </svg>
       <span
         data-mlff-center-atom-label
-        className="absolute border border-violet-300/45 bg-violet-950/94 px-2 py-1 text-2xl font-semibold leading-none text-violet-50 shadow-[0_0_22px_rgba(167,139,250,.58)] backdrop-blur-sm"
+        className="absolute border border-violet-700/45 bg-surface-raised/95 px-2 py-1 text-2xl font-semibold leading-none text-violet-900 shadow-[0_0_22px_rgba(167,139,250,.32)] backdrop-blur-sm dark:border-violet-300/45 dark:bg-violet-950/94 dark:text-violet-50"
         style={{ left: centerLabelLeft, top: centerLabelTop }}
       >
         <MathLabel latex={String.raw`i`} />
       </span>
       <span
         data-mlff-cutoff-label
-        className="absolute border border-cyan-300/38 bg-[#050510]/94 px-2 py-1 text-lg font-semibold leading-none text-cyan-50 shadow-[0_0_16px_rgba(34,211,238,.32)] backdrop-blur-sm"
+        className="absolute border border-cyan-700/40 bg-surface-raised/95 px-2 py-1 text-lg font-semibold leading-none text-cyan-900 shadow-[0_0_16px_rgba(34,211,238,.22)] backdrop-blur-sm dark:border-cyan-300/38 dark:text-cyan-50"
         style={{ left: cutoffLabelLeft, top: cutoffLabelTop }}
       >
         <MathLabel latex={String.raw`r_{\mathrm{cut}}`} />
@@ -1058,87 +1176,122 @@ function ExactNeighborMessageOverlay({
 }
 
 function LocalGraphGlyph() {
-  const nodes = [
-    { x: 60, y: 58, r: 9, fill: "#8b5cf6" },
-    { x: 28, y: 31, r: 5, fill: "#f43f5e" },
-    { x: 91, y: 29, r: 5, fill: "#64748b" },
-    { x: 102, y: 72, r: 5, fill: "#f8fafc" },
-    { x: 43, y: 92, r: 5, fill: "#64748b" },
-    { x: 20, y: 66, r: 4, fill: "#f8fafc" },
+  const cx = 60;
+  const cy = 60;
+  const cutoff = 32;
+  // A dense condensed-phase environment (~27 atoms) laid out on a golden-angle
+  // spiral, not a sparse handful that reads as gas phase. The central atom
+  // references only the neighbors that fall inside the cutoff shell.
+  const elements = [
+    { fill: "#64748b", r: 5.4 }, // C
+    { fill: "#3b82f6", r: 5.6 }, // N
+    { fill: "#f43f5e", r: 5.6 }, // O
+    { fill: "#e2e8f0", r: 4.3 }, // H
+    { fill: "#64748b", r: 5.4 }, // C
+    { fill: "#e2e8f0", r: 4.3 }, // H
   ];
+  const atoms = Array.from({ length: 27 }, (_, index) => {
+    const radius = 11 * Math.sqrt(index);
+    const angle = index * 2.399963;
+    const element = elements[index % elements.length];
+    return {
+      index,
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle),
+      fill: element.fill,
+      r: element.r,
+      inside: index > 0 && radius <= cutoff,
+    };
+  });
+  const neighbors = atoms.filter((atom) => atom.inside);
+  const bulk = atoms.filter((atom) => atom.index > 0 && !atom.inside);
   return (
-    <svg viewBox="0 0 120 118" className="h-full w-full" role="img" aria-label="Atom-centered local graph">
-      <circle cx="60" cy="58" r="48" fill="rgba(34,211,238,.025)" stroke="rgba(103,232,249,.3)" strokeDasharray="3 4" />
-      {nodes.slice(1).map((node, index) => (
-        <line key={`edge-${index}`} x1="60" y1="58" x2={node.x} y2={node.y} stroke="rgba(103,232,249,.34)" strokeWidth="1.2" />
+    <svg viewBox="0 0 120 120" className="h-full w-full" role="img" aria-label={`Central atom referencing ${neighbors.length} neighbors inside the cutoff of a dense environment`}>
+      {bulk.map((atom) => (
+        <circle key={`bulk-${atom.index}`} cx={atom.x} cy={atom.y} r={atom.r * 0.92} fill={atom.fill} opacity="0.32" />
       ))}
-      {nodes.map((node, index) => (
-        <g key={index}>
-          <circle cx={node.x} cy={node.y} r={node.r + 3} fill={node.fill} opacity=".12" />
-          <circle cx={node.x} cy={node.y} r={node.r} fill={node.fill} stroke="rgba(255,255,255,.38)" strokeWidth=".8" />
+      <circle cx={cx} cy={cy} r={cutoff} fill="var(--sch-stretch)" fillOpacity="0.03" stroke="var(--sch-stretch)" strokeOpacity="0.34" strokeWidth="1" strokeDasharray="3 4" />
+      {neighbors.map((atom) => (
+        <line key={`edge-${atom.index}`} x1={cx} y1={cy} x2={atom.x} y2={atom.y} stroke="var(--sch-stretch)" strokeOpacity="0.42" strokeWidth="1.1" />
+      ))}
+      {neighbors.map((atom) => (
+        <g key={`nbr-${atom.index}`}>
+          <circle cx={atom.x} cy={atom.y} r={atom.r + 2.4} fill={atom.fill} opacity="0.16" />
+          <circle cx={atom.x} cy={atom.y} r={atom.r} fill={atom.fill} stroke="var(--sch-ink)" strokeOpacity="0.5" strokeWidth=".7" />
         </g>
       ))}
+      <circle cx={cx} cy={cy} r="13.5" fill="#8b5cf6" opacity="0.14" />
+      <circle cx={cx} cy={cy} r="7.6" fill="#8b5cf6" stroke="var(--sch-ink)" strokeOpacity="0.92" strokeWidth="1" />
     </svg>
   );
 }
 
-function EquivariantInteractionCore({ ko }: { ko: boolean }) {
+function stageDelayStyle(delay: number): CSSProperties {
+  return { "--stage-delay": `${delay}s` } as CSSProperties;
+}
+
+// Vertical connector with a glowing packet that falls from one stage to the
+// next, so the schematic reads as a workflow flowing top→bottom rather than a
+// static stack. The packet is dropped when reduced motion is requested.
+function FlowConnector({ animate, delay = 0 }: { animate: boolean; delay?: number }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-3">
-      <div className="w-full max-w-[15rem] border border-white/10 bg-white/[0.025] px-3 py-2.5 text-center text-cyan-100">
+    <div className="mlff-flow-conn" aria-hidden="true">
+      <span className="mlff-flow-line" />
+      {animate ? <span className="mlff-flow-dot" style={{ animationDelay: `${delay}s` }} /> : null}
+      <span className="mlff-flow-arrowhead" />
+    </div>
+  );
+}
+
+function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reducedMotion: boolean }) {
+  const animate = !reducedMotion;
+  const stageClass = animate ? "mlff-flow-stage" : "";
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-1 px-3">
+      <div className={`w-full max-w-[15rem] border border-border bg-muted/30 px-3 py-2.5 text-center text-foreground ${stageClass}`} style={animate ? stageDelayStyle(0) : undefined}>
         <MathLabel
-          latex={String.raw`h_i^{(\ell)},\ \{h_j^{(\ell)},\mathbf r_{ij}\}_{j\in\mathcal N(i)}`}
+          latex={String.raw`\{\mathbf r_{ij}\}_{j\in\mathcal N(i)}`}
           className={MULTISCALE_TYPE.formulaCompact}
         />
         <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-          {ko ? "중심 원자와 이웃의 상대 기하" : "center atom and relative neighbor geometry"}
+          {ko ? "차단 반경 안 이웃의 상대 배치" : "relative arrangement of neighbors in the cutoff"}
         </p>
       </div>
 
-      <span className="text-lg leading-none text-cyan-200/72" aria-hidden="true">↓</span>
+      <FlowConnector animate={animate} delay={0.35} />
 
-      <div className="relative w-full max-w-[15rem] pt-2">
-        <span className="absolute inset-x-3 -top-0 h-full border border-violet-300/10 bg-violet-300/[0.018]" />
-        <span className="absolute inset-x-1 top-1 h-full border border-cyan-300/12 bg-cyan-300/[0.018]" />
-        <div className="relative border border-cyan-300/28 bg-[#080b18] p-3 shadow-[inset_0_0_28px_rgba(34,211,238,.035)]">
-          <div className="flex items-center justify-between gap-3">
-            <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "등변 상호작용" : "equivariant interaction"}</p>
-            <MathLabel latex={String.raw`\times L`} className="shrink-0 text-xs text-violet-200" />
-          </div>
-          <div className="mt-3 border-t border-white/8 pt-3 text-center text-slate-100">
+      <div className={`relative w-full max-w-[15rem] pt-2 ${stageClass}`} style={animate ? stageDelayStyle(1.2) : undefined}>
+        <span className="absolute inset-x-3 -top-0 h-full border border-border" />
+        <span className="absolute inset-x-1 top-1 h-full border border-border" />
+        <div className="relative border border-border-strong bg-card p-3">
+          <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "대칭 보존 표현" : "symmetry-preserving representation"}</p>
+          <div className="mt-3 border-t border-border pt-3 text-center text-foreground">
             <MathLabel
-              latex={String.raw`m_i^{(\ell)}=\Phi_\ell\!\left(\{h_j^{(\ell)},\mathbf r_{ij}\}\right)`}
+              latex={String.raw`D_i=D\!\left(\{\mathbf r_{ij}\}_{j\in\mathcal N(i)}\right)`}
               className={MULTISCALE_TYPE.formulaCompact}
             />
+            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
+              {ko ? "이동·회전·동일 원자 치환에 불변" : "invariant to translation, rotation, permutation"}
+            </p>
           </div>
-          <div className="mt-3 grid gap-2 border-t border-white/8 pt-3">
-            <div className="grid grid-cols-[4.6rem_1fr] items-center gap-2">
-              <span className={`${MULTISCALE_TYPE.schematicMeta} text-cyan-100`}>
-                <MathLabel latex={String.raw`s_i^{(\ell)}`} /> {ko ? "스칼라" : "scalar"}
-              </span>
-              <div className="flex items-center gap-1.5" aria-label={ko ? "회전 불변 스칼라 특징" : "rotation-invariant scalar features"}>
-                {[0, 1, 2, 3, 4].map((index) => <span key={index} className="h-2.5 w-2.5 rounded-full border border-cyan-200/55 bg-cyan-300/16" />)}
-              </div>
-            </div>
-            <div className="grid grid-cols-[4.6rem_1fr] items-center gap-2 border-t border-white/8 pt-2">
-              <span className={`${MULTISCALE_TYPE.schematicMeta} text-violet-100`}>
-                <MathLabel latex={String.raw`\mathbf v_i^{(\ell)}`} /> {ko ? "벡터" : "vector"}
-              </span>
-              <div className="flex items-center gap-2 text-sm leading-none text-violet-200" aria-label={ko ? "구조와 함께 회전하는 벡터 특징" : "vector features that co-rotate with the structure"}>
-                <span>↗</span><span>↑</span><span>←</span><span>↘</span>
-              </div>
-            </div>
+          <div className="mt-3 grid gap-1 border-t border-border pt-3 text-left">
+            <p className={`${MULTISCALE_TYPE.schematicMeta} text-cyan-800 dark:text-cyan-100`}>
+              {ko ? "불변 descriptor · SOAP · ACSF · DeePMD" : "invariant descriptors · SOAP · ACSF · DeePMD"}
+            </p>
+            <p className={`${MULTISCALE_TYPE.schematicMeta} text-violet-800 dark:text-violet-100`}>
+              {ko ? "등변 특징 · NequIP · MACE" : "equivariant features · NequIP · MACE"}
+            </p>
           </div>
         </div>
       </div>
 
-      <span className="text-lg leading-none text-cyan-200/72" aria-hidden="true">↓</span>
-      <div className="w-full max-w-[15rem] border border-violet-300/24 bg-violet-300/[0.04] px-3 py-2.5 text-center text-violet-100">
+      <FlowConnector animate={animate} delay={1.55} />
+      <div className={`w-full max-w-[15rem] border border-border-strong bg-card px-3 py-2.5 text-center text-foreground ${stageClass}`} style={animate ? stageDelayStyle(2.4) : undefined}>
         <MathLabel
-          latex={String.raw`\{\varepsilon_1,\varepsilon_2,\ldots,\varepsilon_N\}`}
+          latex={String.raw`\varepsilon_i=f_\theta(D_i),\ \ E=\textstyle\sum_i\varepsilon_i`}
           className={MULTISCALE_TYPE.formulaCompact}
         />
-        <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "원자별 에너지" : "atomic energies"}</p>
+        <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "원자별 에너지의 합" : "sum of atomic energies"}</p>
       </div>
     </div>
   );
@@ -1146,18 +1299,18 @@ function EquivariantInteractionCore({ ko }: { ko: boolean }) {
 
 function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | null; ko: boolean; className?: string }) {
   return (
-    <section data-mlff-panel="dataset" className={`relative min-h-0 overflow-hidden border border-white/12 bg-[#070914] ${className}`} aria-label={ko ? "DFT 학습 데이터" : "DFT training data"}>
-      <PanelHeader title={ko ? "DFT 참조 데이터" : "DFT reference data"} detail={ko ? "배치마다 총에너지와 원자별 힘을 계산" : "each configuration carries energy and force labels"} />
+    <section data-mlff-panel="dataset" className={`relative min-h-0 overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "DFT 학습 데이터" : "DFT training data"}>
+      <PanelHeader title={ko ? "DFT 참조 데이터" : "DFT reference data"} detail={ko ? "배치마다 총에너지와 원자별 힘을 계산" : "each configuration carries energy and force labels"} tone="dft" />
       <div className="absolute inset-x-0 bottom-0 top-[4.5rem]">
         <MlffMolstarViewport variant="dataset" data={data} label={ko ? "다섯 DFT 원자 배치의 Mol* 렌더" : "Mol* render of five DFT configurations"} />
       </div>
       <div className="pointer-events-none absolute inset-x-3 bottom-3 top-[4.8rem] z-10 grid grid-rows-5 gap-1.5">
         {[0, 1, 2, 3, 4].map((index) => (
-          <div key={index} className="relative border border-white/[0.075] bg-white/[0.012]">
-            <span className="absolute left-1.5 top-1 bg-[#050510]/76 px-1.5 py-0.5 text-xs text-slate-500 backdrop-blur-sm">
+          <div key={index} className="relative border border-border bg-card/70">
+            <span className="absolute left-1.5 top-1 bg-surface-raised/80 px-1.5 py-0.5 text-xs text-muted-foreground backdrop-blur-sm">
               <MathLabel latex={`k=${index + 1}`} />
             </span>
-            <span className="absolute bottom-1 right-1.5 bg-[#050510]/84 px-1.5 py-0.5 text-xs text-slate-300/90 backdrop-blur-sm">
+            <span className="absolute bottom-1 right-1.5 bg-surface-raised/85 px-1.5 py-0.5 text-xs text-muted-foreground backdrop-blur-sm">
               <MathLabel latex={`(\\mathbf R^{(${index + 1})},E_{\\mathrm{DFT}}^{(${index + 1})},\\mathbf F_{i,\\mathrm{DFT}}^{(${index + 1})})`} />
             </span>
           </div>
@@ -1167,115 +1320,143 @@ function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | nul
   );
 }
 
-function CompactPotentialModel({ ko }: { ko: boolean }) {
+function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMotion: boolean }) {
+  const animate = !reducedMotion;
+  const stageClass = animate ? "mlff-flow-stage" : "";
   return (
     <div className="flex h-full flex-col items-center justify-center px-3">
-      <div className="h-24 w-28">
+      <div className={`h-24 w-28 ${stageClass}`} style={animate ? stageDelayStyle(0) : undefined}>
         <LocalGraphGlyph />
       </div>
       <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
         {ko ? "국소 기하" : "local geometry"}
       </p>
-      <span className="my-2 text-lg leading-none text-cyan-200/72" aria-hidden="true">↓</span>
 
-      <div className="relative w-full max-w-[11rem] pt-2">
-        <span className="absolute inset-x-3 top-0 h-full border border-violet-300/10 bg-violet-300/[0.018]" />
-        <span className="absolute inset-x-1 top-1 h-full border border-cyan-300/12 bg-cyan-300/[0.018]" />
-        <div className="relative border border-cyan-300/30 bg-[#080b18] p-3 shadow-[inset_0_0_28px_rgba(34,211,238,.035)]">
-          <div className="flex items-start justify-between gap-2">
-            <p className={MULTISCALE_TYPE.schematicTitle}>
-              {ko ? "등변 상호작용" : "equivariant interaction"}
+      <FlowConnector animate={animate} delay={0.35} />
+
+      <div className={`relative w-full max-w-[11rem] pt-2 ${stageClass}`} style={animate ? stageDelayStyle(1.2) : undefined}>
+        <span className="absolute inset-x-3 top-0 h-full border border-border" />
+        <span className="absolute inset-x-1 top-1 h-full border border-border" />
+        <div className="relative border border-border-strong bg-card p-3 text-center">
+          <p className={MULTISCALE_TYPE.schematicTitle}>
+            {ko ? "대칭 보존 표현" : "symmetry-preserving representation"}
+          </p>
+          <div className="mt-2 border-t border-border pt-2 text-foreground">
+            <MathLabel latex={String.raw`D_i`} className="text-base" />
+            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
+              {ko ? "이동·회전·치환 불변" : "T / R / permutation invariant"}
             </p>
-            <MathLabel latex={String.raw`\times L`} className="shrink-0 text-xs text-violet-200" />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/8 pt-3">
-            <div className="border border-cyan-300/18 bg-cyan-300/[0.035] px-2 py-2 text-center text-cyan-100">
-              <MathLabel latex={String.raw`s_i`} className="text-base" />
-              <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "스칼라" : "scalar"}</p>
-            </div>
-            <div className="border border-violet-300/18 bg-violet-300/[0.035] px-2 py-2 text-center text-violet-100">
-              <MathLabel latex={String.raw`\mathbf v_i`} className="text-base" />
-              <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "벡터" : "vector"}</p>
-            </div>
           </div>
         </div>
       </div>
 
-      <span className="my-2 text-lg leading-none text-cyan-200/72" aria-hidden="true">↓</span>
-      <div className="w-full max-w-[11rem] border border-violet-300/22 bg-violet-300/[0.035] px-3 py-3 text-center">
-        <MathLabel latex={String.raw`E_\theta(\mathbf R)`} className={MULTISCALE_TYPE.formulaCompact} />
+      <FlowConnector animate={animate} delay={1.55} />
+      <div className={`w-full max-w-[11rem] border border-border-strong bg-card px-3 py-3 text-center ${stageClass}`} style={animate ? stageDelayStyle(2.4) : undefined}>
+        <MathLabel latex={String.raw`E_\theta=\textstyle\sum_i\varepsilon_i`} className={MULTISCALE_TYPE.formulaCompact} />
         <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>
           {ko ? "미분 가능한 학습 퍼텐셜" : "differentiable potential"}
         </p>
       </div>
+      <p className={`mt-2 text-center ${MULTISCALE_TYPE.schematicMeta} text-muted-foreground`}>
+        GAP · DeePMD · NequIP · MACE
+      </p>
     </div>
   );
 }
 
-function ModelPanel({ ko, className = "" }: { ko: boolean; className?: string }) {
+function ModelPanel({ ko, reducedMotion, className = "" }: { ko: boolean; reducedMotion: boolean; className?: string }) {
   return (
-    <section data-mlff-panel="model" className={`relative min-h-0 overflow-hidden border border-white/12 bg-white/[0.018] ${className}`} aria-label={ko ? "머신러닝 역장" : "machine learning force field"}>
-      <PanelHeader title={ko ? "등변 머신러닝 역장" : "equivariant ML force field"} align="center" />
+    <section data-mlff-panel="model" className={`relative min-h-0 overflow-hidden border border-border bg-card ${className}`} aria-label={ko ? "머신러닝 역장" : "machine learning force field"}>
+      <PanelHeader title={ko ? "머신러닝 역장" : "machine-learned force field"} align="center" tone="mlff" />
       <div className="absolute inset-x-1 bottom-3 top-[3.2rem]">
-        <CompactPotentialModel ko={ko} />
+        <CompactPotentialModel ko={ko} reducedMotion={reducedMotion} />
       </div>
     </section>
   );
 }
 
-function PesPanel({
-  data,
-  ko,
-  actionsRef,
-  className = "",
-}: {
-  data: MlffVisualData | null;
-  ko: boolean;
-  actionsRef?: MutableRefObject<ResearchCameraActions | null>;
-  className?: string;
-}) {
+function MlffValueSchematic({ ko }: { ko: boolean }) {
+  // Accuracy (y) vs accessible time & scale (x). DFT/AIMD is accurate but short
+  // and small; classical force fields reach long times and large systems but at
+  // low accuracy; the learned force field occupies the corner neither can — DFT
+  // accuracy together with beyond-nanosecond, large-scale sampling.
+  const clusterFills = ["#64748b", "#3b82f6", "#f43f5e", "#e2e8f0", "#64748b", "#94a3b8"];
   return (
-    <section data-mlff-panel="pes" className={`relative min-h-0 overflow-hidden border border-white/12 bg-[#070914] ${className}`} aria-label={ko ? "학습된 퍼텐셜 에너지면과 예측 힘" : "learned potential energy surface and predicted forces"}>
+    <svg
+      viewBox="0 0 340 250"
+      className="h-full w-full"
+      role="img"
+      aria-label={ko
+        ? "정확도와 접근 시간의 트레이드오프에서 학습된 역장은 DFT 정확도로 나노초를 넘는 대규모 샘플링에 도달한다"
+        : "on the accuracy versus timescale tradeoff, the learned force field reaches DFT accuracy with beyond-nanosecond, large-scale sampling"}
+    >
+      <defs>
+        <clipPath id="mlff-val-clip">
+          <rect x="184" y="34" width="138" height="88" rx="9" />
+        </clipPath>
+      </defs>
+
+      <line x1="48" y1="126" x2="322" y2="126" stroke="var(--plot-grid)" strokeOpacity="0.5" strokeWidth="1" strokeDasharray="4 5" />
+      <line x1="176" y1="30" x2="176" y2="210" stroke="var(--plot-grid)" strokeOpacity="0.5" strokeWidth="1" strokeDasharray="4 5" />
+
+      <path d="M48 210 H322 M316 205 L322 210 L316 215" fill="none" stroke="var(--plot-axis)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M48 210 V30 M43 36 L48 30 L53 36" fill="none" stroke="var(--plot-axis)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+
+      <text x="42" y="24" fill="var(--plot-label)" fontSize="10" fontWeight="600">{ko ? "정확도 ↑" : "accuracy ↑"}</text>
+      <text x="92" y="226" fill="var(--plot-text)" fontSize="9" textAnchor="middle">ps</text>
+      <text x="200" y="226" fill="var(--plot-text)" fontSize="9" textAnchor="middle">ns</text>
+      <text x="296" y="226" fill="var(--plot-text)" fontSize="9" textAnchor="middle">µs</text>
+      <text x="185" y="244" fill="var(--plot-label)" fontSize="10" fontWeight="600" textAnchor="middle">{ko ? "시간 · 규모 →" : "time · scale →"}</text>
+
+      <g>
+        <rect x="62" y="54" width="94" height="52" rx="7" fill="var(--lv-dft-wash)" stroke="var(--lv-dft-line)" strokeWidth="1.2" />
+        <text x="109" y="78" fill="var(--lv-dft)" fontSize="12" fontWeight="700" textAnchor="middle">DFT · AIMD</text>
+        <text x="109" y="94" fill="var(--sch-muted)" fontSize="9" textAnchor="middle">{ko ? "~10² 원자 · ps" : "~10² atoms · ps"}</text>
+      </g>
+
+      <g>
+        <rect x="184" y="150" width="138" height="48" rx="7" fill="var(--lv-meso-wash)" stroke="var(--lv-meso-line)" strokeWidth="1.2" />
+        <text x="253" y="170" fill="var(--muted-foreground)" fontSize="12" fontWeight="700" textAnchor="middle">{ko ? "고전 역장" : "classical force field"}</text>
+        <text x="253" y="186" fill="var(--sch-muted)" fontSize="9" textAnchor="middle">{ko ? "대규모·장시간, 정확도 낮음" : "large · long, low accuracy"}</text>
+      </g>
+
+      <g style={{ filter: "drop-shadow(0 0 9px var(--lv-mlff-line))" }}>
+        <rect x="184" y="34" width="138" height="88" rx="9" fill="var(--lv-mlff-wash)" stroke="var(--lv-mlff-line)" strokeWidth="1.6" />
+        <text x="253" y="52" fill="var(--lv-mlff)" fontSize="14" fontWeight="800" textAnchor="middle">MLFF</text>
+        <text x="253" y="66" fill="var(--sch-muted)" fontSize="8.5" textAnchor="middle">{ko ? "ab-initio 정확도" : "ab-initio accuracy"}</text>
+        <text x="253" y="77" fill="var(--sch-stretch)" fontSize="8.5" fontWeight="700" textAnchor="middle">{ko ? "~10³–10⁴ 원자 · ns–µs" : "~10³–10⁴ atoms · ns–µs"}</text>
+        {/* A dense atom slab clipped by the box reads as a large system continuing
+            beyond the frame; the long weaving path is beyond-ns dynamics. */}
+        <g clipPath="url(#mlff-val-clip)">
+          {Array.from({ length: 208 }, (_, index) => {
+            const col = index % 26;
+            const row = Math.floor(index / 26);
+            const cx = 184 + col * 5.6 + (row % 2) * 2.8;
+            const cy = 85 + row * 5.3 + Math.sin(col * 1.3) * 0.7;
+            return <circle key={index} cx={cx} cy={cy} r="1.4" fill={clusterFills[(col + row) % clusterFills.length]} opacity="0.9" />;
+          })}
+          <path d="M182 89 q14 -6 28 0 t28 0 t28 0 t28 0 t28 0 t28 0" fill="none" stroke="var(--sch-stretch)" strokeWidth="1.3" strokeLinecap="round" opacity="0.9" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+function PesPanel({ ko, className = "" }: { ko: boolean; className?: string }) {
+  return (
+    <section data-mlff-panel="pes" className={`relative min-h-0 overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "정확도와 규모를 동시에 확보하는 머신러닝 역장의 가치" : "the value of a machine-learned force field: accuracy and scale together"}>
       <PanelHeader
-        title={ko ? "학습 PES의 2차원 절단면" : "2D slice of the learned PES"}
-        detail={ko ? "등고선은 같은 에너지, 청록 경로는 MD 궤적" : "contours mark equal energy; the cyan path is the MD trajectory"}
+        title={ko ? "정확도와 규모를 한 번에" : "accuracy and scale, together"}
+        detail={ko ? "DFT의 정확도와 고전 역장의 규모·시간을 한 모델에서" : "DFT accuracy with the scale and time of a classical force field"}
+        tone="aa"
       />
-      <div className="absolute inset-x-0 bottom-[7.4rem] top-[4.4rem]">
-        <MlffMolstarViewport variant="pes" data={data} label={ko ? "Mol*로 렌더한 퍼텐셜 에너지면 위 분자와 힘" : "Mol* render of a molecule and forces on a potential energy surface"} actionsRef={actionsRef} />
-        <div data-mlff-pes-key className="pointer-events-none absolute left-3 top-3 z-10 border border-violet-300/22 bg-[#050510]/88 px-3 py-2.5 text-left backdrop-blur-sm">
-          <p className={`${MULTISCALE_TYPE.schematicMeta} text-violet-100/74`}>
-            {ko ? "배치 공간의 도식적 절단면" : "SCHEMATIC CONFIGURATION-SPACE SLICE"}
-          </p>
-          <MathLabel
-            latex={String.raw`\widetilde E_\theta(q_1,q_2)=E_\theta(\mathbf R_0+q_1\mathbf u_1+q_2\mathbf u_2)`}
-            className={`${MULTISCALE_TYPE.formulaCompact} mt-1 block text-violet-50`}
-          />
-          <div className={`mt-2 flex items-center gap-3 ${MULTISCALE_TYPE.schematicMeta}`}>
-            <span className="flex items-center gap-1.5"><span className="h-px w-5 bg-cyan-300" />{ko ? "등에너지선" : "isoenergy"}</span>
-            <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-white" />{ko ? "궤적" : "trajectory"}</span>
-          </div>
-        </div>
+      <div className="absolute inset-x-3 bottom-[3.4rem] top-[4.8rem]">
+        <MlffValueSchematic ko={ko} />
       </div>
-      <div className="absolute inset-x-3 bottom-3 border-t border-cyan-300/18 bg-[#070914]/88 pt-2.5 text-center backdrop-blur-sm">
-        <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-start gap-1.5">
-          <div>
-            <MathLabel latex={String.raw`E_\theta(\mathbf R)`} className={`${MULTISCALE_TYPE.formulaCompact} text-violet-100`} />
-            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "PES 절단면" : "PES slice"}</p>
-          </div>
-          <span className="pt-0.5 text-base text-cyan-200/70" aria-hidden="true">→</span>
-          <div>
-            <MathLabel latex={String.raw`\mathbf F_i`} className={`${MULTISCALE_TYPE.formulaCompact} text-cyan-50`} />
-            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "힘" : "forces"}</p>
-          </div>
-          <span className="pt-0.5 text-base text-cyan-200/70" aria-hidden="true">→</span>
-          <div>
-            <MathLabel latex={String.raw`\mathbf R(t+\Delta t)`} className={`${MULTISCALE_TYPE.formulaCompact} text-slate-100`} />
-            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>{ko ? "궤적" : "trajectory"}</p>
-          </div>
-        </div>
-        <div className="mt-2 border-t border-white/8 pt-2 text-cyan-50">
-          <MathLabel latex={String.raw`\mathbf F_i=-\nabla_{\mathbf R_i}E_\theta(\mathbf R)`} className={MULTISCALE_TYPE.formulaCompact} />
-        </div>
+      <div className="absolute inset-x-3 bottom-3 border-t border-border pt-2 text-center">
+        <p className={MULTISCALE_TYPE.schematicMeta}>
+          {ko ? "샘플링 결과: 평형 구조 · 동적 거동 · 열역학·수송 물성" : "sampled: equilibrium structure · dynamics · thermodynamic and transport properties"}
+        </p>
       </div>
     </section>
   );
@@ -1286,21 +1467,19 @@ function OverviewPage({
   ko,
   isMobile,
   reducedMotion,
-  actionsRef,
 }: {
   data: MlffVisualData | null;
   ko: boolean;
   isMobile: boolean;
   reducedMotion: boolean;
-  actionsRef?: MutableRefObject<ResearchCameraActions | null>;
 }) {
   return (
     <div className={isMobile ? "mlff-mobile-overview flex min-h-full flex-col gap-2" : "grid h-full min-h-0 grid-cols-[minmax(0,.98fr)_2rem_minmax(0,.66fr)_2rem_minmax(0,1.18fr)] gap-2"}>
       <DatasetPanel data={data} ko={ko} className={isMobile ? "h-[350px] flex-none" : ""} />
       <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} label={ko ? "학습" : "learn"} />
-      <ModelPanel ko={ko} className={isMobile ? "h-[470px] flex-none" : ""} />
-      <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} label={ko ? "평가" : "evaluate"} />
-      <PesPanel data={data} ko={ko} actionsRef={actionsRef} className={isMobile ? "h-[430px] flex-none" : ""} />
+      <ModelPanel ko={ko} reducedMotion={reducedMotion} className={isMobile ? "h-[470px] flex-none" : ""} />
+      <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} label={ko ? "활용" : "use"} />
+      <PesPanel ko={ko} className={isMobile ? "h-[430px] flex-none" : ""} />
     </div>
   );
 }
@@ -1334,7 +1513,7 @@ function LocalGraphPanel({
   }, [data?.system.focusIndex, geometry]);
 
   return (
-    <section data-mlff-panel="local-graph" className={`relative min-h-0 overflow-hidden border border-white/12 bg-[#070914] ${className}`} aria-label={ko ? "차단 반경 안의 국소 원자 그래프" : "local atomic graph inside the cutoff"}>
+    <section data-mlff-panel="local-graph" className={`relative min-h-0 overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "차단 반경 안의 국소 원자 그래프" : "local atomic graph inside the cutoff"}>
       <PanelHeader
         title={ko ? "국소 원자 그래프" : "local atomic graph"}
         detail={ko ? "실제 원자 좌표로 투영한 이웃 → 중심 메시지" : "neighbor-to-center messages projected from the actual atom coordinates"}
@@ -1353,8 +1532,8 @@ function LocalGraphPanel({
             : null}
         />
       </div>
-      <div className="absolute inset-x-3 bottom-3 border-t border-cyan-300/16 pt-3 text-center">
-        <div className="grid gap-0.5 text-cyan-50">
+      <div className="absolute inset-x-3 bottom-3 border-t border-border pt-3 text-center">
+        <div className="grid gap-0.5 text-foreground">
           <MathLabel
             latex={String.raw`j\in\mathcal N(i)\iff r_{ij}<r_{\mathrm{cut}}`}
             className={MULTISCALE_TYPE.formulaCompact}
@@ -1380,12 +1559,12 @@ function LocalGraphPanel({
   );
 }
 
-function InteractionPanel({ ko, className = "" }: { ko: boolean; className?: string }) {
+function InteractionPanel({ ko, reducedMotion, className = "" }: { ko: boolean; reducedMotion: boolean; className?: string }) {
   return (
-    <section data-mlff-panel="interaction" className={`relative min-h-0 overflow-hidden border border-white/12 bg-white/[0.018] ${className}`} aria-label={ko ? "등변 메시지 전달과 원자별 에너지" : "equivariant message passing and atomic energies"}>
-      <PanelHeader title={ko ? "등변 상호작용 블록" : "equivariant interaction block"} detail={ko ? "이웃 메시지로 스칼라·벡터 특징 갱신" : "neighbor messages update scalar and vector features"} />
+    <section data-mlff-panel="interaction" className={`relative min-h-0 overflow-hidden border border-border bg-card ${className}`} aria-label={ko ? "대칭 보존 표현과 원자별 에너지" : "symmetry-preserving representation and atomic energies"}>
+      <PanelHeader title={ko ? "대칭 보존 표현" : "symmetry-preserving representation"} detail={ko ? "국소 이웃을 대칭 불변 표현으로 인코딩" : "encode the local neighborhood into a symmetry-invariant representation"} />
       <div className="absolute inset-x-1 bottom-3 top-[5rem]">
-        <EquivariantInteractionCore ko={ko} />
+        <EquivariantInteractionCore ko={ko} reducedMotion={reducedMotion} />
       </div>
     </section>
   );
@@ -1403,7 +1582,7 @@ function EnergyForcePanel({
   className?: string;
 }) {
   return (
-    <section data-mlff-panel="energy-force" className={`relative min-h-0 overflow-hidden border border-white/12 bg-[#070914] ${className}`} aria-label={ko ? "원자별 에너지 합과 에너지 기울기에서 얻는 힘" : "atomic energy sum and forces from the energy gradient"}>
+    <section data-mlff-panel="energy-force" className={`relative min-h-0 overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자별 에너지 합과 에너지 기울기에서 얻는 힘" : "atomic energy sum and forces from the energy gradient"}>
       <PanelHeader
         title={ko ? "총에너지와 힘" : "total energy and forces"}
         detail={ko ? "원자별 기여의 합과 같은 에너지의 기울기" : "sum atomic contributions, then differentiate the same energy"}
@@ -1411,8 +1590,8 @@ function EnergyForcePanel({
       <div className="absolute inset-x-0 bottom-[8rem] top-[4.8rem]">
         <MlffMolstarViewport variant="forces" data={data} label={ko ? "Mol*로 렌더한 분자와 예측 힘" : "Mol* render of a molecule and predicted forces"} actionsRef={actionsRef} />
       </div>
-      <div className="absolute inset-x-3 bottom-3 border-t border-cyan-300/18 bg-[#070914]/88 pt-2.5 text-center backdrop-blur-sm">
-        <div className="border border-cyan-300/18 bg-cyan-300/[0.025] px-2 py-2.5 text-slate-100">
+      <div className="absolute inset-x-3 bottom-3 border-t border-border bg-surface-sunken/90 pt-2.5 text-center backdrop-blur-sm">
+        <div className="border border-lv-mlff-line bg-lv-mlff-wash px-2 py-2.5 text-foreground">
           <MathLabel
             display
             latex={String.raw`\begin{aligned} E_\theta(\mathbf R) &= \sum_i \varepsilon_i \\[0.45em] \mathbf F_i &= -\nabla_{\mathbf R_i}E_\theta(\mathbf R) \end{aligned}`}
@@ -1444,7 +1623,7 @@ function InsidePage({
     <div className={isMobile ? "mlff-mobile-inside flex min-h-full flex-col gap-2" : "grid h-full min-h-0 grid-cols-[minmax(0,.92fr)_2rem_minmax(0,.94fr)_2rem_minmax(0,1.28fr)] gap-2"}>
       <LocalGraphPanel data={data} ko={ko} isMobile={isMobile} className={isMobile ? "h-[430px] flex-none" : ""} />
       <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} label={ko ? "인코딩" : "encode"} />
-      <InteractionPanel ko={ko} className={isMobile ? "h-[515px] flex-none" : ""} />
+      <InteractionPanel ko={ko} reducedMotion={reducedMotion} className={isMobile ? "h-[515px] flex-none" : ""} />
       <FlowArrow
         vertical={isMobile}
         reducedMotion={reducedMotion}
@@ -1464,6 +1643,7 @@ export function MlffSchematicStage({
 }: MlffSchematicStageProps) {
   const [data, setData] = useState<MlffVisualData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const canvasColor = useMultiscaleCanvasColor();
   const ko = lang === "ko";
   const inside = sceneKey === "L5_energy_force";
 
@@ -1483,7 +1663,6 @@ export function MlffSchematicStage({
         if (!cancelled) setData({ molecule, system });
       })
       .catch((cause) => {
-        console.error(cause);
         if (!cancelled) setLoadError(cause instanceof Error ? cause.message : "MLFF visual data failed to load.");
       });
     return () => {
@@ -1493,27 +1672,21 @@ export function MlffSchematicStage({
 
   return (
     <div
-      className="mlff-schematic-stage relative h-full w-full overflow-hidden bg-[#050510]"
+      className="mlff-schematic-stage relative h-full w-full overflow-hidden"
+      style={{ backgroundColor: canvasColor }}
       data-testid="multiscale-render-surface"
       data-scene={inside ? "inside" : "overview"}
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-45"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(103,232,249,.024) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,.024) 1px, transparent 1px), radial-gradient(circle at 78% 28%, rgba(59,130,246,.11), transparent 34%), radial-gradient(circle at 24% 82%, rgba(139,92,246,.075), transparent 31%)",
-          backgroundSize: "32px 32px, 32px 32px, 100% 100%, 100% 100%",
-        }}
-      />
+      <div className="mlff-stage-backdrop pointer-events-none absolute inset-0 opacity-45" />
       <div className={`relative h-full ${isMobile ? "px-3 pb-4 pt-[8.6rem]" : "px-5 pb-5 pt-[10rem]"}`}>
         {loadError ? (
-          <div className="grid h-full place-items-center border border-rose-300/18 bg-rose-300/[0.025] px-8 text-center text-sm text-slate-300">
+          <div className="grid h-full place-items-center border border-primary/30 bg-accent/30 px-8 text-center text-sm text-muted-foreground">
             {ko ? "MLFF 도식 데이터를 불러오지 못했습니다." : "The MLFF schematic data could not be loaded."}
           </div>
         ) : inside ? (
           <InsidePage data={data} ko={ko} isMobile={isMobile} reducedMotion={reducedMotion} actionsRef={actionsRef} />
         ) : (
-          <OverviewPage data={data} ko={ko} isMobile={isMobile} reducedMotion={reducedMotion} actionsRef={actionsRef} />
+          <OverviewPage data={data} ko={ko} isMobile={isMobile} reducedMotion={reducedMotion} />
         )}
       </div>
     </div>

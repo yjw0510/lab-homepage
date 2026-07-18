@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import type { ResearchTopic } from "@/types/topic";
 import type { Publication } from "@/types/publication";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
-import { TopicIndex } from "./BentoGrid";
+import { TopicIndex } from "./TopicIndex";
 import { PaperOverview } from "./PaperOverview";
 import { TopicDrawer } from "./TopicDrawer";
 import { BezierOverlay } from "./BezierOverlay";

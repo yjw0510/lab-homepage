@@ -4,7 +4,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SetHtmlLang } from "@/components/layout/SetHtmlLang";
 import { getDictionary, hasLocale, locales } from "./dictionaries";
-import type { Dictionary } from "./dictionaries";
 
 export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));

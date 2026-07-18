@@ -88,7 +88,6 @@ export function SCFPlot({
         const thresholdY = yScale(data.threshold);
         const activePoint = chart[activeIndex];
         const activeX = xScale(activeIndex + 1);
-        const activeY = yScale(activePoint.deltaE);
 
         return {
           svg: (

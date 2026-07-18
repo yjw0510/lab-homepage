@@ -58,28 +58,6 @@ const COLOR_FAMILIES = {
   light_blue: { hMin: 190, hMax: 220, sMin: 0.2 },
 };
 
-function rgbToHsl(r, g, b) {
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  if (max === min) return [0, 0, l];
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = 0;
-  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-  else if (max === g) h = ((b - r) / d + 2) / 6;
-  else h = ((r - g) / d + 4) / 6;
-  return [h * 360, s, l];
-}
-
-function matchesColorFamily(r, g, b, family) {
-  const [h, s] = rgbToHsl(r, g, b);
-  if (s < family.sMin) return false;
-  if (h >= family.hMin && h <= family.hMax) return true;
-  if (family.hMin2 !== undefined && h >= family.hMin2 && h <= family.hMax2) return true;
-  return false;
-}
-
 async function analyzeImage(imagePath, page) {
   const buf = await fs.readFile(imagePath);
   const b64 = buf.toString("base64");

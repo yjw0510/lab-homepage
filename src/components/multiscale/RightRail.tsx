@@ -3,12 +3,10 @@
 import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { PaperCard } from "./PaperCard";
 import { EquationDisplay } from "./equations/EquationDisplay";
 import { PlotSlot } from "./plots/PlotSlot";
 import { DftScfSlider } from "./DftScfSlider";
-import { RDFBinSlider, type RdfBin } from "./RDFBinSlider";
-import { LEVELS, type LevelConfig, type ScrollState } from "./scrollState";
+import { LEVELS, type LevelConfig, type LevelId, type ScrollState } from "./scrollState";
 
 // Short scale labels for the flagship selector; the full level name sits in the
 // rail readout above, so the selector only needs to be scannable and jumpable.
@@ -18,8 +16,18 @@ const SCALE_SHORT: Record<string, { en: string; ko: string }> = {
   allatom: { en: "All-atom", ko: "전원자" },
   meso: { en: "Meso", ko: "메조" },
 };
+
+// Level identity chrome (mode-aware tokens in globals.css). Values are full
+// literal class strings so Tailwind can compile them: `text` is the level mark,
+// `line` the translucent hairline border, `tab` the active-tab text + 2px
+// underline color.
+export const LEVEL_CHROME: Record<LevelId, { text: string; line: string; tab: string }> = {
+  dft: { text: "text-lv-dft", line: "border-lv-dft-line", tab: "border-lv-dft text-lv-dft" },
+  mlff: { text: "text-lv-mlff", line: "border-lv-mlff-line", tab: "border-lv-mlff text-lv-mlff" },
+  allatom: { text: "text-lv-aa", line: "border-lv-aa-line", tab: "border-lv-aa text-lv-aa" },
+  meso: { text: "text-lv-meso", line: "border-lv-meso-line", tab: "border-lv-meso text-lv-meso" },
+};
 import type { StepConfig } from "./levelData";
-import type { Publication } from "@/types/publication";
 import { ConceptText } from "./ConceptText";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
 
@@ -34,11 +42,9 @@ export function RightRail({
   level,
   stepConfig,
   equationKey,
-  paper,
   lang,
   isMobile,
   scfActiveIndexOverride,
-  rdfActiveRadius,
   onNext,
   onPrev,
   canGoNext,
@@ -53,19 +59,11 @@ export function RightRail({
   onAllAtomReadoutHover,
   onAllAtomReadoutLeave,
   onAllAtomReadoutToggle,
-  onStepClick,
   onLevelSwitch,
-  variant = "rail",
   showDftScfSlider,
   dftSnapshots,
   scfValue,
   onScfChange,
-  onScfPointerStart,
-  onScfPointerEnd,
-  showRdfSlider,
-  rdfBins,
-  rdfBinIndex,
-  onRdfChange,
   stepTitles,
   previousStepTitle,
   nextStepTitle,
@@ -76,11 +74,9 @@ export function RightRail({
   level: LevelConfig;
   stepConfig: StepConfig;
   equationKey: string;
-  paper: Publication | null;
   lang: string;
   isMobile: boolean;
   scfActiveIndexOverride?: number;
-  rdfActiveRadius?: number;
   onNext: () => void;
   onPrev: () => void;
   canGoNext: boolean;
@@ -95,20 +91,11 @@ export function RightRail({
   onAllAtomReadoutHover?: (readout: AllAtomReadoutId) => void;
   onAllAtomReadoutLeave?: () => void;
   onAllAtomReadoutToggle?: (readout: AllAtomReadoutId) => void;
-  onStepClick: (localStep: number) => void;
   onLevelSwitch?: (levelIndex: number) => void;
-  // Sheet variant props
-  variant?: "rail" | "sheet" | "stack";
   showDftScfSlider?: boolean;
   dftSnapshots?: ScfSnapshotMeta[];
   scfValue?: number;
   onScfChange?: (index: number) => void;
-  onScfPointerStart?: () => void;
-  onScfPointerEnd?: () => void;
-  showRdfSlider?: boolean;
-  rdfBins?: RdfBin[];
-  rdfBinIndex?: number;
-  onRdfChange?: (index: number) => void;
   stepTitles: string[];
   previousStepTitle?: string;
   nextStepTitle?: string;
@@ -121,9 +108,7 @@ export function RightRail({
   const isAllAtomLevel = level.id === "allatom";
   const isAllAtomForceFieldStep = stepConfig.sceneKey === "A3_forcefield";
   const equationActiveTerms = stepConfig.activeTerms;
-  const isSheet = variant === "sheet";
-  const isStack = variant === "stack";
-  const isCompact = isSheet || isStack;
+  const isStack = isMobile;
   const currentStepTitle = stepTitles[scrollState.step] ?? `${lang === "ko" ? "단계" : "Step"} ${scrollState.step + 1}`;
   const previousLabel = previousStepTitle
     ? `${lang === "ko" ? "이전" : "Prev"}: ${previousStepTitle}`
@@ -134,7 +119,7 @@ export function RightRail({
   const previousButtonText = previousStepTitle ?? (lang === "ko" ? "이전" : "Prev");
   const nextButtonText = nextStepTitle ?? (lang === "ko" ? "다음" : "Next");
   const visualEvidenceBlock = (
-    <div className="mb-5 border-y border-white/10 py-3.5">
+    <div className="mb-5 border-y border-border py-3.5">
       <p className="text-sm font-medium text-muted-foreground">
         {lang === "ko" ? "화면에 보이는 근거" : "What the visual is based on"}
       </p>
@@ -185,17 +170,30 @@ export function RightRail({
     }
   }, [scrollState.level, scrollState.step]);
 
+  // Interactive controls wired to the live 3D view (SCF snapshot, RDF radius).
+  // On mobile the view sits above this panel, so these are hoisted to the top of
+  // the stack (below the status row) to stay co-visible with what they drive.
+  const scfSliderBlock =
+    showDftScfSlider && dftSnapshots && dftSnapshots.length > 1 && onScfChange ? (
+      <div className="mb-3 flex-shrink-0 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
+        <DftScfSlider
+          snapshots={dftSnapshots}
+          value={scfValue ?? 0}
+          lang={lang}
+          onChange={onScfChange}
+        />
+      </div>
+    ) : null;
+
+  const interactiveControls = scfSliderBlock;
+
   return (
     <div
       data-testid="multiscale-right-rail"
-      className={`dark flex min-h-0 flex-col ${
+      className={`flex min-h-0 flex-col bg-surface-sunken text-foreground ${
         isStack
           ? "h-auto justify-start px-4 py-5"
-          : isSheet
-            ? "h-full justify-start px-4 py-2"
-          : isMobile
-              ? "h-full justify-start px-4 py-2"
-              : "h-full justify-start px-6 py-8 pt-10"
+          : "h-full justify-start px-6 py-8 pt-10"
       }`}
     >
       <div
@@ -205,8 +203,10 @@ export function RightRail({
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           {`${level.label[lang as "en" | "ko"] ?? level.label.en}: ${currentStepTitle}`}
         </div>
-        {/* Level readout — rail only (sheet has it in status row) */}
-        {!isCompact && (
+        {/* Mobile/compact: interactive controls lead the panel so they stay
+            visible with the 3D view stacked above them. */}
+        {isStack && interactiveControls}
+        {!isStack && (
           <div className={`flex items-baseline gap-2.5 flex-shrink-0 ${isMobile ? "mb-3" : "mb-4"}`}>
             <span className="type-heading text-base text-foreground">
               {level.label[lang as "en" | "ko"] ?? level.label.en}
@@ -219,7 +219,7 @@ export function RightRail({
 
         {/* Scale selector — rail only. One flagship per scale, so this is the
             primary cross-scale jump; prev/next steps between the same four. */}
-        {!isCompact && onLevelSwitch && (
+        {!isStack && onLevelSwitch && (
           <div className={`flex gap-1 flex-shrink-0 ${isMobile ? "mb-3" : "mb-4"}`}>
             {LEVELS.map((entry, i) => {
               const isActive = i === scrollState.levelIndex;
@@ -230,7 +230,7 @@ export function RightRail({
                   type="button"
                   className={`type-mono-meta flex-1 border-b-2 px-1 pb-1.5 pt-1 text-xs transition-colors ${
                     isActive
-                      ? "border-primary text-foreground"
+                      ? LEVEL_CHROME[entry.id].tab
                       : "border-border text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => onLevelSwitch(i)}
@@ -245,7 +245,7 @@ export function RightRail({
         )}
 
         {/* Selection criterion — fixed so deep-linked pages remain self-contained. */}
-        <div className={`flex-shrink-0 border-y border-white/10 py-4 ${isCompact || isMobile ? "mb-3" : "mb-5"}`}>
+        <div className={`flex-shrink-0 border-y border-border py-4 ${isStack ? "mb-3" : "mb-5"}`}>
           <p className="mb-2 text-sm font-medium text-muted-foreground">
             {lang === "ko" ? "이 계층을 선택하는 기준" : "When this tier enters the stack"}
           </p>
@@ -256,7 +256,7 @@ export function RightRail({
 
         {/* Equation — fixed, non-scrolling */}
         {stepConfig.showEquation !== false && (
-          <div className={`flex-shrink-0 ${isCompact ? "mb-2" : isMobile ? "mb-2" : "mb-4"}`}>
+          <div className={`flex-shrink-0 ${isStack ? "mb-2" : "mb-4"}`}>
             <EquationDisplay
               equationKey={equationKey}
               activeTerms={equationActiveTerms}
@@ -273,34 +273,8 @@ export function RightRail({
           </div>
         )}
 
-        {/* Inline SCF slider — the surface control now lives in the rail on
-            every variant, since the on-canvas panel was removed. */}
-        {showDftScfSlider && dftSnapshots && dftSnapshots.length > 1 && onScfChange && (
-          <div className="mb-3 flex-shrink-0 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
-            <DftScfSlider
-              snapshots={dftSnapshots}
-              value={scfValue ?? 0}
-              lang={lang}
-              onChange={onScfChange}
-              onPointerStart={onScfPointerStart ?? (() => {})}
-              onPointerEnd={onScfPointerEnd ?? (() => {})}
-              inline
-            />
-          </div>
-        )}
-
-        {/* Inline RDF radius control — rail-hosted on every variant. */}
-        {showRdfSlider && rdfBins && rdfBins.length > 1 && onRdfChange && (
-          <div className="mb-3 flex-shrink-0 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
-            <RDFBinSlider
-              bins={rdfBins}
-              value={rdfBinIndex ?? 0}
-              lang={lang}
-              onChange={onRdfChange}
-              inline
-            />
-          </div>
-        )}
+        {/* Desktop controls sit beside the stage; mobile controls lead the stacked panel. */}
+        {!isStack && interactiveControls}
 
         {/* Measured contact readout — the exact O-H distance of the contact
             drawn on the observable page, updating as the trajectory plays. */}
@@ -334,7 +308,7 @@ export function RightRail({
             {!isStack && visualEvidenceBlock}
 
             {interactionHint && (
-              <p className="mb-5 border-y border-white/10 py-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mb-5 border-y border-border py-3 text-sm leading-relaxed text-muted-foreground">
                 {interactionHint}
               </p>
             )}
@@ -375,11 +349,10 @@ export function RightRail({
             <div className="mt-4">
               <PlotSlot
                 plotType={stepConfig.plotType}
-                progress={stepConfig.sceneKey === "D9_settle" ? 1 : scrollState.stepProgress}
+                progress={scrollState.stepProgress}
                 accentColor={level.color}
                 lang={lang}
                 activeIndexOverride={stepConfig.plotType === "scf" ? scfActiveIndexOverride : undefined}
-                rdfActiveRadius={stepConfig.plotType === "beadRDF" ? rdfActiveRadius : undefined}
                 activeTerm={allAtomActiveTerm}
                 selectedTerm={allAtomSelectedTerm}
                 onTermHover={onAllAtomTermHover}
@@ -394,20 +367,10 @@ export function RightRail({
             </div>
           )}
 
-          {paper && (
-            <div className="mt-4">
-              <PaperCard
-                publication={paper}
-                accentColor={level.color}
-                lang={lang}
-              />
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Navigation bar — desktop only (sheet has nav in MobileStatusRow) */}
-      {!isSheet && !isMobile && (
+      {!isMobile && (
         <div className="mt-3 flex-shrink-0 border-t border-border pt-3">
           <div className="flex items-center justify-between gap-2">
             <button

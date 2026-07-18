@@ -1,8 +1,8 @@
 "use client";
 
-import type { MutableRefObject, RefObject } from "react";
+import type { MutableRefObject } from "react";
 import type { ScrollState } from "./scrollState";
-import { ThreeMultiscaleStage } from "./ThreeMultiscaleStage";
+import { MesoStage } from "./MesoStage";
 import { AllAtomHybridStage } from "./allatom/AllAtomHybridStage";
 import { MlffSchematicStage } from "./mlff/MlffSchematicStage";
 import { MolstarDftStage } from "./molstar/MolstarDftStage";
@@ -12,13 +12,10 @@ import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomP
 export type { ResearchCameraActions } from "./molstar/shared";
 
 export function VisualStage({
-  progressRef,
   scrollState,
   isMobile,
-  autoRotateRef,
   actionsRef,
   dftManualSnapshotIndex,
-  rdfBinIndex,
   allAtomActiveTerm,
   allAtomActiveReadout,
   lang = "en",
@@ -27,37 +24,31 @@ export function VisualStage({
   hideMechanism = false,
   onMeasuredDistance,
 }: {
-  progressRef: RefObject<number>;
   scrollState: ScrollState;
   isMobile: boolean;
-  autoRotateRef: MutableRefObject<boolean>;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   dftManualSnapshotIndex?: number | null;
-  rdfBinIndex?: number;
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
   allAtomActiveReadout?: AllAtomReadoutId | null;
   lang?: string;
   sceneKey?: string;
   reducedMotion?: boolean;
-  // When true, the on-canvas HTML mechanism panel is not rendered; its content
-  // lives in the right rail instead so the 3D stage is never occluded.
   hideMechanism?: boolean;
   onMeasuredDistance?: (nm: number | null) => void;
 }) {
-  const commonProps = {
-    progressRef,
+  const molstarProps = {
     scrollState,
     isMobile,
-    autoRotateRef,
     actionsRef,
   };
 
   switch (scrollState.level) {
     case "meso":
       return (
-        <ThreeMultiscaleStage
-          {...commonProps}
-          rdfBinIndex={rdfBinIndex}
+        <MesoStage
+          scrollState={scrollState}
+          isMobile={isMobile}
+          actionsRef={actionsRef}
           sceneKey={sceneKey}
           reducedMotion={reducedMotion}
           lang={lang}
@@ -77,10 +68,9 @@ export function VisualStage({
     case "allatom":
       return (
         <AllAtomHybridStage
-          {...commonProps}
+          {...molstarProps}
           activeTerm={allAtomActiveTerm ?? null}
           activeReadout={allAtomActiveReadout ?? null}
-          sceneKey={sceneKey}
           reducedMotion={reducedMotion}
           lang={lang}
           hideMechanism={hideMechanism}
@@ -90,7 +80,7 @@ export function VisualStage({
     case "dft":
       return (
         <MolstarDftStage
-          {...commonProps}
+          {...molstarProps}
           manualSnapshotIndex={dftManualSnapshotIndex}
           lang={lang}
           sceneKey={sceneKey}
@@ -99,6 +89,6 @@ export function VisualStage({
         />
       );
     default:
-      return <div className="h-full w-full bg-[#050510]" />;
+      return <div className="h-full w-full bg-surface-sunken" />;
   }
 }

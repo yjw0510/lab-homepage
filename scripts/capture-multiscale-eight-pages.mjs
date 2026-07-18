@@ -27,7 +27,7 @@ const SCENES = [
   { key: "A6_observables", level: "allatom", step: 0 },
   { key: "A3_forcefield", level: "allatom", step: 1 },
   { key: "M5_collective", level: "meso", step: 0 },
-  { key: "M6_characterize", level: "meso", step: 1 },
+  { key: "M2_mapping", level: "meso", step: 1 },
 ];
 
 await fs.mkdir(EVIDENCE_DIR, { recursive: true });

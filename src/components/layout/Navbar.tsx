@@ -130,7 +130,7 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
       {mobileOpen && (
         <div
           id="mobile-nav-sheet"
-          className="absolute inset-x-0 top-full border-b border-border bg-background shadow-[0_8px_32px_oklch(14%_0.014_268_/_0.24)] lg:hidden"
+          className="absolute inset-x-0 top-full border-b border-border bg-background shadow-[0_8px_32px_rgba(16,15,15,0.24)] lg:hidden"
         >
           <div className="divide-y divide-border">
             <NavLinks

@@ -32,7 +32,6 @@ export function Page2Morph({
   reducedMotion = false,
 }: {
   assets: DNAAssets;
-  progress: number;
   reducedMotion?: boolean;
 }) {
   const [bpBeads, setBpBeads] = useState<Float32Array | null>(null);

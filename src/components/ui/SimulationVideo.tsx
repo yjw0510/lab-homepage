@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Play } from "lucide-react";
+import Image from "next/image";
 
 interface SimulationVideoProps {
   src: string;
@@ -46,16 +47,16 @@ export default function SimulationVideo({
             className="relative w-full aspect-video overflow-hidden bg-card border border-border group cursor-pointer"
             aria-label={`Play ${title}`}
           >
-            <img
+            <Image
               src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
               alt={title}
-              loading="lazy"
-              decoding="async"
+              fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, 768px"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-colors group-hover:bg-black/40">
-              <div className="flex h-16 w-16 items-center justify-center bg-foreground/90 flex items-center justify-center transition-transform group-hover:scale-110">
+              <div className="flex h-16 w-16 items-center justify-center bg-foreground/90 transition-transform group-hover:scale-110">
                 <Play className="w-7 h-7 text-primary-foreground ml-1" />
               </div>
             </div>
@@ -89,7 +90,6 @@ export default function SimulationVideo({
     );
   }
 
-  // Self-hosted video
   return (
     <figure className={className}>
       <div className="relative w-full aspect-video overflow-hidden bg-card border border-border">

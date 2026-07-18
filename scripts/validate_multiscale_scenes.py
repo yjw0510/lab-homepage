@@ -1,8 +1,4 @@
-"""Checklist-driven validation for multiscale scenes.
-
-Usage:
-  conda run -n research-md python scripts/validate_research_scenes.py
-"""
+"""Validate checklist-driven captures from ``capture:multiscale-scenes``."""
 
 from __future__ import annotations
 
@@ -419,8 +415,7 @@ def main() -> None:
         manifest_entry = manifest_by_scene.get(scene["sceneId"])
         if manifest_entry is None:
             raise RuntimeError(f"Missing screenshot manifest entry for {scene['sceneId']}")
-        level_data = get_level_data(scene["level"])
-        image, occupancy = masked_image(Path(manifest_entry["screenshotPath"]))
+        image, occupancy = masked_image(Path(manifest_entry["stableVisualPath"]))
         scene_report = {
             "sceneId": scene["sceneId"],
             "passed": True,
@@ -433,7 +428,9 @@ def main() -> None:
         numeric_checks = [*(checklist.get("defaults", {}).get("numericChecks", [])), *(scene.get("numericChecks", []))]
         image_checks = [*(checklist.get("defaults", {}).get("imageChecks", [])), *(scene.get("imageChecks", []))]
 
+        level_data = get_level_data(scene["level"]) if numeric_checks else None
         for check in numeric_checks:
+            assert level_data is not None
             passed, details = run_numeric_check(scene, level_data, check)
             details["passed"] = passed
             scene_report["numericChecks"].append(details)

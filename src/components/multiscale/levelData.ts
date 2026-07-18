@@ -17,6 +17,8 @@ export interface VisualLayerProvenance {
   label: Record<"en" | "ko", string>;
 }
 
+export type PlotType = "scf" | "allatomForceField" | "allatomReadout";
+
 export interface StepConfig {
   activeTerms: string[];
   equationKey?: string;
@@ -28,8 +30,7 @@ export interface StepConfig {
   takeaway: Record<"en" | "ko", string>;
   systemCaption: Record<"en" | "ko", string>;
   visualLayers: VisualLayerProvenance[];
-  plotType: string | null;
-  paperSlug: string | null;
+  plotType: PlotType | null;
   sceneKey: string;
 }
 
@@ -48,8 +49,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         equationDetailMode: "grouped",
         title: { en: "The Only Tier With Explicit Electrons", ko: "전자를 직접 다루는 유일한 계층" },
         question: {
-          en: "Does the answer depend on where the electrons go?",
-          ko: "결합, 전하, 스핀처럼 전자 상태가 답을 좌우하는가?",
+          en: "When the result turns on where the electrons go, only the tier that actually solves for them can produce it, because every cheaper model has parameterized the electrons away.",
+          ko: "결과가 전자의 거동에 달린 순간에는 전자를 직접 푸는 이 계층만이 그 답을 내며, 더 싼 모형에는 그 전자가 이미 남아 있지 않다.",
         },
         concept: {
           en: "This is the one tier where electrons are computed, not assumed. Reach for it when bonding, charge transfer, spin, or orbital character controls the result, because no cheaper model can produce those quantities. A DFT calculation keeps the electrons responsive to the nuclear geometry and returns the electron density together with the total energy and the force on every atom. The surface here cycles through that density and the signed HOMO and LUMO orbitals from a single B3LYP/6-31G* solve on metal-free phthalocyanine: the density shows where charge collects, and the frontier orbitals show which regions set reactivity. The price of that explicitness is steep, so only selected configurations are solved and the system stays small.",
@@ -67,7 +68,6 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "CALCULATED", label: { en: "Density and frontier orbitals", ko: "전자 밀도와 프런티어 오비탈" } },
         ],
         plotType: null,
-        paperSlug: null,
         sceneKey: "D6_outputs",
       },
       {
@@ -76,8 +76,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         equationDetailMode: "grouped",
         title: { en: "How the Density Is Actually Solved", ko: "밀도를 실제로 푸는 방법" },
         question: {
-          en: "How can the density set the Hamiltonian that in turn sets the density?",
-          ko: "밀도가 해밀토니안을 정하고 그 해밀토니안이 다시 밀도를 정하면 어떻게 해를 찾는가?",
+          en: "A DFT result earns its place in the reference record only once the density it came from is self-consistent, so this convergence loop is the gate every electronic answer must clear.",
+          ko: "DFT 결과는 그 밀도가 자기일관에 이른 뒤에야 참조 레코드에 들어갈 자격을 얻으므로, 이 수렴 고리는 모든 전자구조 답이 통과해야 하는 관문이다.",
         },
         concept: {
           en: "The electronic solve is self-consistent. Start from a trial density, build the density-dependent Hamiltonian, solve its orbitals, form a new density, apply the solver's update, and test convergence. Drag the control to step through actual SCF iterations and watch the total-density snapshots settle while the energy-change trace falls. Convergence is the numerical gate a result must pass before it enters the reference record. The displayed density surfaces use changing stated isovalues, so they are not meant for quantitative area comparison.",
@@ -96,7 +96,6 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "MECHANISM SCHEMATIC", label: { en: "SCF loop", ko: "SCF 반복 고리" } },
         ],
         plotType: "scf",
-        paperSlug: null,
         sceneKey: "D4_scf",
       },
     ],
@@ -110,8 +109,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "From DFT Data to a Learned Potential", ko: "DFT 데이터에서 학습 퍼텐셜까지" },
         question: {
-          en: "How can selected DFT calculations drive a much longer molecular trajectory?",
-          ko: "선별한 DFT 계산으로 어떻게 훨씬 긴 분자 궤적을 전개할 수 있는가?",
+          en: "Reach for a learned potential when you need DFT-level forces over more steps and larger systems than DFT can afford, across chemistry a fixed classical force field cannot represent.",
+          ko: "DFT로는 감당 못 할 만큼 많은 스텝과 큰 계에서, 고정된 고전 역장으로는 담지 못하는 화학까지, DFT 수준의 힘이 필요할 때 학습 퍼텐셜을 꺼내 든다.",
         },
         concept: {
           en: "DFT supplies reference configurations together with their total energies and atom-resolved forces. An MLFF fits a differentiable approximation to the potential energy surface covered by those examples. Once trained, the same model evaluates new configurations far more cheaply than solving the electronic structure again, so its forces can advance a long MD trajectory. The speedup is useful only within chemical and configurational regions represented and validated by the reference set.",
@@ -130,7 +129,6 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "MECHANISM SCHEMATIC", label: { en: "Learned PES, trajectory, and predicted forces", ko: "학습된 PES, 궤적, 예측 힘" } },
         ],
         plotType: null,
-        paperSlug: null,
         sceneKey: "L1_why",
       },
       {
@@ -138,8 +136,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "Inside the Machine Learning Force Field", ko: "머신러닝 역장 내부의 계산 흐름" },
         question: {
-          en: "How does the model respect physical symmetries while predicting consistent energies and forces?",
-          ko: "모델은 어떻게 물리적 대칭성을 지키면서 일관된 에너지와 힘을 예측하는가?",
+          en: "The learned forces can be trusted at DFT accuracy because the model reads each atom's neighborhood through a symmetry-preserving descriptor and takes every force as the exact gradient of one scalar energy.",
+          ko: "학습된 힘을 DFT 정확도로 믿을 수 있는 이유는, 모델이 각 원자의 이웃을 대칭성을 보존하는 descriptor로 읽고 모든 힘을 하나의 스칼라 에너지의 정확한 기울기로 얻기 때문이다.",
         },
         concept: {
           en: "For each atom, the model reads only neighbors inside a cutoff and converts their relative arrangement into a symmetry-preserving descriptor. Translation, rotation, and reordering of equivalent atoms therefore do not create a different physical input. A neural network maps each descriptor to an atomic energy contribution, and the contributions are summed into one total energy. Forces come from the negative gradient of that same learned energy, which keeps energy and force predictions mutually consistent.",
@@ -158,7 +156,6 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "MECHANISM SCHEMATIC", label: { en: "Atomic-energy sum and forces from its gradient", ko: "원자별 에너지 합과 그 기울기에서 얻는 힘" } },
         ],
         plotType: null,
-        paperSlug: null,
         sceneKey: "L5_energy_force",
       },
     ],
@@ -173,8 +170,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         equationDetailMode: "grouped",
         title: { en: "Where Sampling Becomes the Answer", ko: "표본이 곧 답이 되는 계층" },
         question: {
-          en: "Why give up reactive chemistry for cheap, repeatable forces?",
-          ko: "반응성 화학을 포기하면서까지 싸고 반복 가능한 힘을 쓰는 이유는 무엇인가?",
+          en: "When the answer is a statistical average over millions of fixed-chemistry configurations, only an analytic force field is cheap enough to sample that deeply, a reach even MLFF cannot afford.",
+          ko: "답이 화학이 고정된 수백만 배치의 통계 평균일 때, 그만큼 깊이 표본화할 만큼 값싼 것은 해석적 역장뿐이며 이는 MLFF조차 감당하지 못하는 도달 범위다.",
         },
         concept: {
           en: "This tier exists for statistics. An analytic force field fixes the chemistry and topology, which makes each force evaluation cheap enough to integrate for millions of steps. A single configuration is not the result here; the result is an ensemble average over many correlated frames. Select a readout to project the same production trajectory into a measurable quantity, such as a contact or packing metric, and watch its time trace and distribution build up. Every atom stays explicit, exactly as in MLFF-driven MD, but the potential is analytic with its own parameter provenance. The gain is the sheer reach of sampling; the cost is bond breaking, explicit electrons, and transferability beyond the parameterized chemistry.",
@@ -193,7 +190,6 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "MECHANISM SCHEMATIC", label: { en: "Block/replica convergence requirement", ko: "블록/반복 수렴 요구" } },
         ],
         plotType: "allatomReadout",
-        paperSlug: null,
         sceneKey: "A6_observables",
       },
       {
@@ -202,8 +198,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         equationDetailMode: "grouped",
         title: { en: "What the Analytic Force Field Models", ko: "해석적 역장이 담는 것" },
         question: {
-          en: "Which modeled interactions define the classical trajectory?",
-          ko: "고전 궤적을 정의하는 모형화된 상호작용은 무엇인가?",
+          en: "That depth of sampling is affordable only because a fixed analytic energy replaces the electronic solve, and its declared bonded and nonbonded terms are exactly what define and bound the trajectory.",
+          ko: "이만한 깊이의 표본화가 가능한 것은 고정된 해석적 에너지가 전자구조 계산을 대신하기 때문이며, 명시된 결합·비결합 항이 궤적을 규정하는 동시에 한계 짓는다.",
         },
         concept: {
           en: "The force field replaces the electronic solve with a fixed analytic energy, and that is what makes the sampling above affordable. Bond, angle, and torsion terms preserve the chosen molecular topology; Lennard-Jones and electrostatic terms govern nonbonded packing and orientation. Select a term in the equation or the diagram to isolate its contribution. Either nonbonded contribution can be attractive or repulsive depending on distance and charge. The selectable overlays use schematic cue values; the periodic trajectory itself evaluates long-range electrostatics with PME, and the displayed pair kernel only explains the local interaction form.",
@@ -222,7 +218,6 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "MECHANISM SCHEMATIC", label: { en: "Force-field term cues", ko: "역장 항 단서" } },
         ],
         plotType: "allatomForceField",
-        paperSlug: null,
         sceneKey: "A3_forcefield",
       },
     ],
@@ -236,8 +231,8 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "Where Collective Behavior Emerges", ko: "집단 거동이 창발하는 계층" },
         question: {
-          en: "Is the observable collective enough that atomistic detail is no longer the answer?",
-          ko: "관측량이 충분히 집단적이어서 원자 세부가 더 이상 답 자체가 아닌가?",
+          en: "When the behavior only emerges at sizes and times no atomistic run can reach, keeping every atom is not an option, and coarse-graining is the only route to the scale where that behavior lives.",
+          ko: "그 거동이 어떤 원자 계산으로도 닿지 못하는 크기와 시간에서만 나타난다면 모든 원자를 유지하는 선택지는 없고, 그 거동이 사는 규모에 이르는 길은 조대화뿐이다.",
         },
         concept: {
           en: "Some behavior only appears once the atoms are gone. Reach for a coarse-grained model when morphology, packing, entanglement, or phase behavior needs sizes and effective evolution beyond feasible atomistic sampling. Selected collective variables stay explicit while fast, local degrees of freedom are integrated out. The active trajectory is a generic linear-polymer melt of 100 chains, 80 beads each, over 500 stored frames. Reducing the degrees of freedom makes an 8,000-bead collective field affordable and exposes chains entangling and rearranging, motion no atomistic run of this reach could follow. The gain is reach; the cost is atomistic uniqueness, transferability across state points, and a direct map from simulated to physical time.",
@@ -255,36 +250,34 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "TRAJECTORY", label: { en: "8,000-bead collective trajectory", ko: "8,000비드 집단 궤적" } },
         ],
         plotType: null,
-        paperSlug: null,
         sceneKey: "M5_collective",
       },
       {
-        activeTerms: ["rdf"],
-        equationKey: "rdf",
-        title: { en: "Characterization Is Not Validation", ko: "특성 분석은 검증이 아니다" },
+        activeTerms: [],
+        showEquation: false,
+        title: { en: "How Coarse-Graining Buys That Reach", ko: "조대화가 그 도달 범위를 얻는 방식" },
         question: {
-          en: "What does this trajectory demonstrate, and what comparison is still missing?",
-          ko: "이 궤적이 보여 주는 것은 무엇이며, 어떤 비교가 아직 없는가?",
+          en: "The mapping that folds several atoms into one bead is what buys the longer timestep and larger system, and that same choice fixes how much atomic fidelity is traded for the reach.",
+          ko: "여러 원자를 비드 하나로 접는 매핑이 더 긴 적분 스텝과 더 큰 계를 사들이며, 바로 그 선택이 도달 범위를 위해 내주는 원자 수준 충실도를 정한다.",
         },
         concept: {
-          en: "Once the collective field exists, its structure can be measured. Move the radius control to count a periodic shell and build the all-bead g(r): a PBC-correct average over all beads and 500 frames, including bonded intrachain correlations and nonbonded packing. The 3D shell shows the counting geometry on one representative configuration while the plotted value comes from the full ensemble. This characterizes the trajectory; it does not by itself validate the model. Confirming it still needs a matched mapped-atomistic or experimental target at the same state point, which the current assets do not include.",
-          ko: "집단 장이 만들어지면 그 구조를 측정할 수 있다. 반경 조절기를 움직여 주기 경계의 구각을 세면 전체 비드 g(r)이 쌓인다. 모든 비드와 500개 프레임을 주기 경계로 평균한 값으로, 사슬 내부 결합 상관과 비결합 밀집을 함께 포함한다. 3D 껍질은 한 대표 배치에서 거리 계수 기하를 보여 주고, 그래프 값은 전체 앙상블에서 계산한다. 이는 궤적을 특성화하는 작업이며 그 자체로 모형을 검증하지는 못한다. 검증하려면 같은 상태점의 매핑 전원자 또는 실험 목표가 필요하고 현재 자산에는 없다.",
+          en: "A coarse-grained bead stands in for a chosen group of atoms, and its position follows from a fixed mapping such as the group's center of mass. Averaging the fast internal motion out of the model leaves fewer particles, softer effective forces, and a longer stable timestep, and those three compounding factors are what turn atomistic reach into mesoscale reach. The motif here fades one atomistic chain into its bead representation: the retained contour and connectivity are what later carry collective structure, while atom-specific packing and bond vibrations are deliberately dropped. The speedup is not a single fixed number, since it scales with how many atoms each bead absorbs and how soft the effective interactions become. What it consistently buys is access to chain counts, system sizes, and relaxation times no atomistic run of comparable cost could follow, paid for in atom-level detail and a direct map back to physical time.",
+          ko: "조대화 비드 하나는 선택한 원자 그룹을 대표하고, 그 위치는 그룹의 질량 중심 같은 고정된 매핑으로 정해진다. 빠른 내부 운동을 모형에서 평균해 없애면 입자 수가 줄고 유효 힘이 부드러워지며 안정적인 적분 스텝이 길어진다. 이 세 요인이 겹쳐 원자 해상도의 도달 범위를 메조스케일의 범위로 바꾼다. 화면의 모티프는 원자 사슬 하나가 그 비드 표현으로 서서히 바뀌는 과정을 보여 준다. 남긴 윤곽과 연결성은 뒤에서 집단 구조를 실어 나르고, 원자별 배치와 결합 진동은 의도적으로 버린다. 가속 배수는 하나로 정해지지 않는다. 비드 하나가 흡수하는 원자 수와 유효 상호작용이 부드러워지는 정도에 따라 달라진다. 그 대신 꾸준히 얻는 것은 같은 비용의 원자 계산으로는 따라갈 수 없는 사슬 수, 계 크기, 완화 시간이고, 값은 원자 수준 세부와 실제 시간으로의 직접 대응으로 치른다.",
         },
         takeaway: {
-          en: "The all-bead g(r), including bonded correlations, characterizes this trajectory; independent targets are still required for validation.",
-          ko: "결합 상관을 포함한 전체 비드 g(r)은 이 궤적을 특성화하며, 검증에는 여전히 독립 목표가 필요하다.",
+          en: "The mapping is a modeling choice, so a coarse-grained model is only as trustworthy as the atomistic or experimental targets its effective interactions were tuned to reproduce.",
+          ko: "매핑은 모형화 선택이므로, 조대화 모형의 신뢰도는 유효 상호작용을 맞춘 전원자 또는 실험 목표만큼만 확보된다.",
         },
         systemCaption: {
-          en: "Trajectory-derived PBC RDF · independent validation target not available",
-          ko: "궤적에서 계산한 PBC RDF · 독립 검증 목표 없음",
+          en: "Mapping-teaching motif · one chain to its bead representation · speedup is regime-dependent, not a reported benchmark",
+          ko: "매핑 학습용 모티프 · 사슬 하나의 비드 표현 · 가속은 조건에 따라 다르며 보고된 벤치마크가 아님",
         },
         visualLayers: [
-          { kind: "TRAJECTORY", label: { en: "PBC-correct RDF and neighborhood", ko: "PBC 보정 RDF와 이웃" } },
-          { kind: "TARGET NOT AVAILABLE", label: { en: "Matched atomistic or experimental target", ko: "동일 상태점 전원자/실험 목표" } },
+          { kind: "MECHANISM SCHEMATIC", label: { en: "Atom-to-bead mapping motif", ko: "원자→비드 매핑 모티프" } },
+          { kind: "MECHANISM SCHEMATIC", label: { en: "Degrees of freedom removed and the reach gained", ko: "제거된 자유도와 늘어난 도달 범위" } },
         ],
-        plotType: "beadRDF",
-        paperSlug: null,
-        sceneKey: "M6_characterize",
+        plotType: null,
+        sceneKey: "M2_mapping",
       },
     ],
   },

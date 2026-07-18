@@ -2,6 +2,7 @@
 
 import type { LevelId } from "./scrollState";
 
+export type ScheduledLevelId = Exclude<LevelId, "mlff">;
 export type TransitionMode = "hold-then-blend" | "snap";
 export type RangeWindow = [number, number];
 
@@ -43,149 +44,74 @@ export interface MultiscaleAnchorSpec {
 
 const DEFAULT_ZOOM_LADDER = [0.5, 0.65, 0.8, 1, 1.25, 1.6, 2.0];
 
+const DFT_VIEW_SPEC: MultiscaleViewSpec = {
+  cameraSubsetId: "molecule",
+  anchorId: "molecule_center",
+  azimuthDeg: 10,
+  elevationDeg: 14,
+  rollDeg: 0,
+  targetOffset: [0, 0, 0],
+  padding: 1.22,
+  nearFactor: 0.05,
+  farFactor: 6,
+  zoomLadder: DEFAULT_ZOOM_LADDER,
+  transitionMode: "snap",
+};
+
 type LevelSchedule = Record<number, MultiscaleViewSpec>;
 
-export const MULTISCALE_VIEW_SCHEDULE: Record<LevelId, LevelSchedule> = {
+export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> = {
   meso: {
-    // Camera geometry computed from pipeline data:
-    //   AA atoms: center=(14.72, 20.98, 8.82), bounding_r=22.79 Å
-    //   CG beads: center=(4.49, -0.75, 2.36), bounding_r=109.87 Å
-    //   bundle_center anchor (raw): (4.49, -0.75, 2.36) ≈ CG centroid
-    //   After centerMesoScheduleData with atoms=[]: no shift, bundle_center stays as-is
-    //   Page1 renders AA atoms centered at origin → targetOffset compensates the 5 Å gap
-    //   FOV=50°, tan(25°)=0.4663 → distance = radius × padding / 0.4663
-    //
-    //   All positions now in nm (÷10 from Å). System radii: AA=6.1 nm, CG=26.5 nm.
-    //   Page 1-2 (AA): padding=0.28 → dist ≈ 16 nm (frames 7.3 nm)
-    //   Pages 3-6 (CG): padding=1.3 → dist ≈ 74 nm (frames 34.5 nm)
-
     0: {
       cameraSubsetId: "bundle_overview",
       renderSubsetId: "all_beads",
       anchorId: "bundle_center",
-      azimuthDeg: 0,
-      elevationDeg: 5,
+      azimuthDeg: 25,
+      elevationDeg: 18,
       rollDeg: 0,
       targetOffset: [0, 0, 0],
-      padding: 0.24,
-      nearFactor: 0.02,
-      farFactor: 8,
+      padding: 1.35,
+      nearFactor: 0.05,
+      farFactor: 12,
       zoomLadder: DEFAULT_ZOOM_LADDER,
       transitionMode: "snap",
       timing: {
-        atomOpacity: [0.0, 0.2],
-        beadOpacity: [0.85, 1.0],
+        atomOpacity: [0, 0.2],
+        beadOpacity: [0.85, 1],
       },
     },
-    // Step 1 = M6_characterize (pair correlation g(r)). Frame the reference
-    // bead's local neighborhood, not the whole 8,000-bead box, so the probe
-    // shells and the surrounding beads read at a useful scale.
     1: {
-      cameraSubsetId: "pair_correlation_neighborhood",
+      cameraSubsetId: "bundle_overview",
       renderSubsetId: "all_beads",
-      anchorId: "pair_reference_center",
-      azimuthDeg: 35,
-      elevationDeg: 32,
+      anchorId: "bundle_center",
+      azimuthDeg: 28,
+      elevationDeg: 12,
       rollDeg: 0,
       targetOffset: [0, 0, 0],
-      padding: 1.18,
+      padding: 1.15,
       nearFactor: 0.05,
       farFactor: 12,
       zoomLadder: DEFAULT_ZOOM_LADDER,
       transitionMode: "snap",
-      timing: {
-        bundleOpacity: [0.0, 1.0],
-      },
-    },
-    // Steps 2-3: Same single-polymer view as step 1.
-    2: {
-      cameraSubsetId: "bundle_overview",
-      renderSubsetId: "all_beads",
-      anchorId: "bundle_center",
-      azimuthDeg: 0,
-      elevationDeg: 5,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 0.24,
-      nearFactor: 0.02,
-      farFactor: 8,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "snap",
-      timing: {
-        beadOpacity: [0.0, 0.3],
-        bondGlowOpacity: [0.25, 0.95],
-      },
-    },
-    3: {
-      cameraSubsetId: "bundle_overview",
-      renderSubsetId: "all_beads",
-      anchorId: "bundle_center",
-      azimuthDeg: 0,
-      elevationDeg: 5,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 0.24,
-      nearFactor: 0.02,
-      farFactor: 8,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "snap",
-      timing: {
-        thermalAmplitude: [0.1, 0.95],
-      },
-    },
-    4: {
-      cameraSubsetId: "bundle_overview",
-      renderSubsetId: "all_beads",
-      anchorId: "bundle_center",
-      azimuthDeg: 36,
-      elevationDeg: 20,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.6,
-      nearFactor: 0.05,
-      farFactor: 12,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "snap",
-      timing: {
-        shellRadius: [0.05, 0.95],
-        neighborReveal: [0.1, 0.95],
-      },
-    },
-    5: {
-      cameraSubsetId: "pair_correlation_neighborhood",
-      renderSubsetId: "all_beads",
-      anchorId: "pair_reference_center",
-      azimuthDeg: 35,
-      elevationDeg: 32,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.18,
-      nearFactor: 0.05,
-      farFactor: 12,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "snap",
-      timing: {
-        bundleOpacity: [0.0, 1.0],
-      },
     },
   },
   allatom: {
     0: {
-      cameraSubsetId: "scene_all",
-      renderSubsetId: "scene_all",
-      anchorId: "scene_center",
+      cameraSubsetId: "scene_focus",
+      renderSubsetId: "scene_focus",
+      anchorId: "focus_center",
       azimuthDeg: 34,
-      elevationDeg: 16,
+      elevationDeg: 18,
       rollDeg: 0,
       targetOffset: [0, 0, 0],
-      padding: 1.18,
-      nearFactor: 0.06,
+      padding: 1,
+      nearFactor: 0.05,
       farFactor: 6,
       zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
+      transitionMode: "snap",
       timing: {
-        systemOpacity: { enter: [0.0, 0.18] },
-        supportOpacity: { enter: [0.08, 0.26] },
+        systemOpacity: { enter: [0, 0.16] },
+        supportOpacity: { enter: [0.04, 0.18] },
       },
     },
     1: {
@@ -195,198 +121,30 @@ export const MULTISCALE_VIEW_SCHEDULE: Record<LevelId, LevelSchedule> = {
       azimuthDeg: 54,
       elevationDeg: 18,
       rollDeg: 0,
-      targetOffset: [0.0, 0.0, 0.0],
+      targetOffset: [0, 0, 0],
       padding: 0.96,
       nearFactor: 0.05,
       farFactor: 6,
       zoomLadder: DEFAULT_ZOOM_LADDER,
       transitionMode: "hold-then-blend",
       timing: {
-        systemOpacity: { enter: [0.0, 0.16] },
+        systemOpacity: { enter: [0, 0.16] },
         supportOpacity: { enter: [0.02, 0.18] },
-        bondedCue: { enter: [0.18, 0.34], exit: [0.46, 0.62] },
-        nonBondedCue: { enter: [0.5, 0.72] },
       },
-    },
-    2: {
-      cameraSubsetId: "scene_focus",
-      renderSubsetId: "scene_focus",
-      anchorId: "focus_center",
-      azimuthDeg: 58,
-      elevationDeg: 18,
-      rollDeg: 0,
-      targetOffset: [0.0, 0.0, 0.0],
-      padding: 0.98,
-      nearFactor: 0.05,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: {
-        systemOpacity: { enter: [0.0, 0.16] },
-        supportOpacity: { enter: [0.04, 0.2] },
-      },
-    },
-    3: {
-      cameraSubsetId: "scene_all",
-      renderSubsetId: "scene_all",
-      anchorId: "scene_center",
-      azimuthDeg: 34,
-      elevationDeg: 18,
-      rollDeg: 0,
-      targetOffset: [0.0, 0.0, 0.0],
-      padding: 1.28,
-      nearFactor: 0.05,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: {
-        systemOpacity: { enter: [0.0, 0.18] },
-        supportOpacity: { enter: [0.08, 0.24] },
-        referenceBoxCue: { enter: [0.0, 0.22], exit: [0.52, 0.68] },
-        trailCue: { enter: [0.12, 0.28], exit: [0.52, 0.68] },
-      },
-    },
-    4: {
-      cameraSubsetId: "scene_focus",
-      renderSubsetId: "scene_focus",
-      anchorId: "focus_center",
-      azimuthDeg: 34,
-      elevationDeg: 18,
-      rollDeg: 0,
-      targetOffset: [0.0, 0.0, 0.0],
-      padding: 1.0,
-      nearFactor: 0.05,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: {
-        systemOpacity: { enter: [0.0, 0.16] },
-        supportOpacity: { enter: [0.04, 0.18] },
-      },
-    },
-  },
-  mlff: {
-    0: {
-      cameraSubsetId: "expanded_local",
-      anchorId: "focus_center",
-      azimuthDeg: 32,
-      elevationDeg: 18,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.24,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: { atomOpacity: [0.0, 1.0] },
-    },
-    1: {
-      cameraSubsetId: "local_core",
-      anchorId: "focus_center",
-      azimuthDeg: 48,
-      elevationDeg: 24,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.14,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: {
-        cutoffRadius: [0.08, 0.46],
-        messageOpacity: [0.3, 0.72],
-        energyIntensity: [0.58, 0.9],
-        forceOpacity: [0.7, 0.96],
-      },
-    },
-    2: {
-      cameraSubsetId: "local_core",
-      anchorId: "focus_center",
-      azimuthDeg: 56,
-      elevationDeg: 18,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.22,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: { edgeOpacity: [0.2, 0.9] },
-    },
-    3: {
-      cameraSubsetId: "local_core",
-      anchorId: "focus_center",
-      azimuthDeg: 96,
-      elevationDeg: 12,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.12,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: { messageOpacity: [0.15, 0.9] },
-    },
-    4: {
-      cameraSubsetId: "local_core",
-      anchorId: "focus_center",
-      azimuthDeg: 48,
-      elevationDeg: 24,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.14,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: { energyIntensity: [0.15, 0.9] },
-    },
-    5: {
-      cameraSubsetId: "local_core",
-      anchorId: "focus_center",
-      azimuthDeg: 20,
-      elevationDeg: 26,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.14,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "hold-then-blend",
-      timing: { forceOpacity: [0.15, 0.9] },
-    },
-    6: {
-      cameraSubsetId: "expanded_local",
-      anchorId: "focus_center",
-      azimuthDeg: 32,
-      elevationDeg: 18,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.2,
-      nearFactor: 0.06,
-      farFactor: 6,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "snap",
-      timing: { atomOpacity: [0.0, 1.0] },
     },
   },
   dft: {
-    // All DFT steps share the same molecule-based camera: fixed atom framing, face-on orientation.
-    // Overlays (density, orbitals) change per step but camera stays anchored to molecule atoms.
-    0: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    1: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    2: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    3: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    4: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    5: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    6: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    7: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
-    8: { cameraSubsetId: "molecule", anchorId: "molecule_center", azimuthDeg: 10, elevationDeg: 14, rollDeg: 0, targetOffset: [0, 0, 0], padding: 1.22, nearFactor: 0.05, farFactor: 6, zoomLadder: DEFAULT_ZOOM_LADDER, transitionMode: "snap" },
+    0: DFT_VIEW_SPEC,
+    1: DFT_VIEW_SPEC,
   },
 };
 
-export function getViewSpec(level: LevelId, step: number) {
-  return MULTISCALE_VIEW_SCHEDULE[level][step];
+export function getViewSpec(level: ScheduledLevelId, step: number) {
+  const spec = MULTISCALE_VIEW_SCHEDULE[level][step];
+  if (!spec) {
+    throw new RangeError(`No scheduled ${level} view for step ${step}.`);
+  }
+  return spec;
 }
 
 export function getStepBlendT(stepProgress: number) {
@@ -398,7 +156,12 @@ export function lerpNumber(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-export function getTimedValue(timing: MultiscaleTimingSpec | undefined, key: string, stepProgress: number, fallback = 0) {
+export function getTimedValue(
+  timing: MultiscaleTimingSpec | undefined,
+  key: string,
+  stepProgress: number,
+  fallback = 0,
+) {
   const value = timing?.[key];
   if (typeof value === "number") return value;
   if (!value) return fallback;

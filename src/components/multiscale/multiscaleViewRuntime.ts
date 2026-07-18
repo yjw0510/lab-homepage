@@ -4,8 +4,13 @@ import * as THREE from "three";
 import { Vec3 } from "molstar/lib/mol-math/linear-algebra.js";
 import type { PluginLike, CameraSnapshotLike } from "./molstar/shared";
 import { computeCameraDistance } from "./cameraFraming";
-import { getStepBlendT, getViewSpec, lerpNumber, type MultiscaleAnchorSpec, type MultiscaleSubsetSpec, type MultiscaleViewSpec } from "./multiscaleViewSchedule";
-import type { LevelId } from "./scrollState";
+import {
+  getStepBlendT,
+  getViewSpec,
+  lerpNumber,
+  type MultiscaleViewSpec,
+  type ScheduledLevelId,
+} from "./multiscaleViewSchedule";
 
 export interface SubsetAwareData {
   anchors?: Record<string, number[]>;
@@ -26,9 +31,14 @@ export interface ScheduledViewResult {
   blendT: number;
 }
 
-export function getScheduledView(level: LevelId, step: number, stepProgress: number, stepCount?: number): ScheduledViewResult {
+export function getScheduledView(
+  level: ScheduledLevelId,
+  step: number,
+  stepProgress: number,
+  stepCount: number,
+): ScheduledViewResult {
   const spec = getViewSpec(level, step);
-  const hasNext = stepCount !== undefined ? step < stepCount - 1 : true;
+  const hasNext = step < stepCount - 1;
   const nextSpec = hasNext ? getViewSpec(level, step + 1) : null;
   return {
     spec,
@@ -120,8 +130,9 @@ export function computeScheduledPlacement({
   aspect,
   isMobile,
   zoomIndex,
+  boundsOverride,
 }: {
-  level: LevelId;
+  level: ScheduledLevelId;
   step: number;
   stepProgress: number;
   stepCount: number;
@@ -130,12 +141,17 @@ export function computeScheduledPlacement({
   aspect: number;
   isMobile: boolean;
   zoomIndex: number;
+  // Frame a scene whose geometry is not in `points` (e.g. the meso atom→bead
+  // morph, which renders its own teaching chain centered at the origin). When
+  // set, both the framed radius and the look-at center come from here instead
+  // of the subset bounds and schedule anchor.
+  boundsOverride?: { center: [number, number, number]; radius: number };
 }) {
   const { spec, nextSpec, blendT } = getScheduledView(level, step, stepProgress, stepCount);
   const currentIndices = getSubsetIndices(meta, spec.cameraSubsetId, points.length);
   const nextIndices = nextSpec ? getSubsetIndices(meta, nextSpec.cameraSubsetId, points.length) : currentIndices;
-  const currentBounds = computeBounds(subsetPoints(points, currentIndices));
-  const nextBounds = computeBounds(subsetPoints(points, nextIndices));
+  const currentBounds = boundsOverride ?? computeBounds(subsetPoints(points, currentIndices));
+  const nextBounds = boundsOverride ?? computeBounds(subsetPoints(points, nextIndices));
   const effectiveSpec = nextSpec ? blendSpec(spec, nextSpec, blendT) : spec;
   const computedCenter: [number, number, number] = [
     lerpNumber(currentBounds.center[0], nextBounds.center[0], blendT),
@@ -143,8 +159,10 @@ export function computeScheduledPlacement({
     lerpNumber(currentBounds.center[2], nextBounds.center[2], blendT),
   ];
   const computedRadius = lerpNumber(currentBounds.radius, nextBounds.radius, blendT);
-  const anchor = getAnchorPoint(meta, spec.anchorId);
-  const nextAnchor = nextSpec ? getAnchorPoint(meta, nextSpec.anchorId) : anchor;
+  const anchor = boundsOverride ? boundsOverride.center : getAnchorPoint(meta, spec.anchorId);
+  const nextAnchor = boundsOverride
+    ? boundsOverride.center
+    : nextSpec ? getAnchorPoint(meta, nextSpec.anchorId) : anchor;
   const blendedAnchor: [number, number, number] = [
     lerpNumber(anchor[0], nextAnchor[0], blendT),
     lerpNumber(anchor[1], nextAnchor[1], blendT),

@@ -62,21 +62,3 @@ export interface CGTopology {
   duplexCount: number;
   bpPerDuplex: number;
 }
-
-export interface CGMapping {
-  monomerMap: number[][];
-  cgMapping: Array<{
-    bead_id: number;
-    chain: string;
-    resname: string;
-    resid: number;
-    atom_indices: number[];
-  }>;
-}
-
-export interface RDFMeta {
-  shellRadii: number[];
-  nBins: number;
-  maxRadius: number;
-  referenceIndex: number;
-}

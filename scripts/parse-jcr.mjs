@@ -10,8 +10,6 @@
  *   node scripts/parse-jcr.mjs data/JCR_2025.xlsx
  *   node scripts/parse-jcr.mjs data/JCR_2025.xlsx --output data/impact-factors.json
  *
- * Requirements:
- *   npm install xlsx   (already in dependencies)
  */
 
 import { readFileSync, writeFileSync, existsSync } from "fs";

@@ -78,24 +78,24 @@ export function ObservableTrace({
       {
         label: lang === "ko" ? "카보닐-물 접촉 후보" : "carbonyl-water contact candidates",
         values: points.map((point) => point.hydrationContacts),
-        color: "#22d3ee",
+        color: "var(--sch-stretch)",
       },
       {
         label: lang === "ko" ? "최대 휴리스틱 적층 점수" : "max heuristic stacking score",
         values: points.map((point) => point.packingScore),
-        color: "#f59e0b",
+        color: "var(--sch-amber)",
       },
       {
         label: lang === "ko" ? "10 Å 이내 고리 중심 이웃" : "ring-center neighbors within 10 Å",
         values: points.map((point) => point.caffeineNeighbors),
-        color: "#cbd5e1",
+        color: "var(--sch-ink)",
       },
     ];
   }, [lang, points]);
 
   if (failed) {
     return (
-      <div className="border border-rose-300/20 bg-rose-950/18 px-3 py-4 font-mono text-xs text-rose-100/80">
+      <div className="border border-rose-700/25 bg-rose-100/50 px-3 py-4 font-mono text-xs text-rose-900/80 dark:border-rose-300/20 dark:bg-rose-950/18 dark:text-rose-100/80">
         {lang === "ko" ? "궤적 관측량을 불러오지 못했습니다." : "Trajectory observables are unavailable."}
       </div>
     );
@@ -104,7 +104,7 @@ export function ObservableTrace({
   if (!points) {
     return (
       <div
-        className={`h-[142px] border border-white/10 bg-white/[0.025] ${reducedMotion ? "" : "animate-pulse"}`}
+        className={`h-[142px] border border-border bg-muted/40 ${reducedMotion ? "" : "animate-pulse"}`}
         aria-label={lang === "ko" ? "궤적 관측량 불러오는 중" : "Loading trajectory observables"}
       />
     );
@@ -112,7 +112,7 @@ export function ObservableTrace({
 
   if (!tracks.length) {
     return (
-      <div className="border border-white/10 bg-white/[0.025] px-3 py-4 font-mono text-xs text-slate-300/78">
+      <div className="border border-border bg-muted/40 px-3 py-4 font-mono text-xs text-muted-foreground">
         {lang === "ko" ? "사용 가능한 NVT 표본이 없습니다." : "No NVT samples are available."}
       </div>
     );
@@ -143,7 +143,7 @@ export function ObservableTrace({
                 x2={width}
                 y1={rowY}
                 y2={rowY}
-                stroke="#64748b"
+                stroke="var(--plot-axis)"
                 strokeOpacity={0.24}
                 strokeDasharray="3 5"
               />
@@ -155,7 +155,7 @@ export function ObservableTrace({
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
-              {track.values.map((value, pointIndex) => {
+              {track.values.map((_, pointIndex) => {
                 const normalized = normalize(track.values)[pointIndex];
                 const x = track.values.length <= 1 ? 0 : (pointIndex / (track.values.length - 1)) * width;
                 const y = rowY + 10 - normalized * 20;
@@ -174,7 +174,7 @@ export function ObservableTrace({
           </div>
         );
       })}
-      <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-2 font-mono text-xs text-slate-400">
+      <div className="flex items-center justify-between gap-4 border-t border-border pt-2 font-mono text-xs text-muted-foreground">
         <span>{lang === "ko" ? "각 추적선 독립 정규화" : "each trace independently normalized"}</span>
         <span>{points[0]?.timePs.toFixed(1)}-{points.at(-1)?.timePs.toFixed(1)} ps</span>
       </div>

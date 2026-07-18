@@ -1,60 +1,59 @@
 import { describe, expect, it } from "vitest";
+import { getViewSpec } from "../../multiscaleViewSchedule";
 import {
   ALLATOM_PAGE_POLICY,
   ALLATOM_SCENE_KEYS,
   getAllAtomAssetSnapshotId,
   getAllAtomPagePolicy,
   getAllAtomSceneKey,
-  getAllAtomViewStep,
-  normalizeAllAtomSceneKey,
 } from "../allAtomConfig";
 
 describe("classical all-atom scene routing", () => {
-  it("declares the complete seven-scene descent in order", () => {
-    expect(ALLATOM_SCENE_KEYS).toEqual([
-      "A1_branch",
-      "A2_pbc",
-      "A3_forcefield",
-      "A4_integrate",
-      "A5_ensemble",
-      "A6_observables",
-      "A7_mapping",
-    ]);
-  });
-
-  it("routes the reduced all-atom spine to the observable flagship and force-field depth", () => {
-    // The spine exposes two pages: the sampling-becomes-observable flagship,
-    // then the force-field mechanism. The remaining scene tables stay intact
-    // so deep links and the mechanism article can still reach every scene.
+  it("declares only the scenes exposed by the current choreography", () => {
+    expect(ALLATOM_SCENE_KEYS).toEqual(["A6_observables", "A3_forcefield"]);
     expect(getAllAtomSceneKey(0)).toBe("A6_observables");
     expect(getAllAtomSceneKey(1)).toBe("A3_forcefield");
-    expect(
-      ALLATOM_SCENE_KEYS.every((key) => Number.isInteger(getAllAtomViewStep(key))),
-    ).toBe(true);
+    expect(getAllAtomSceneKey(99)).toBe("A6_observables");
   });
 
-  it("keeps legacy scene keys compatible during central integration", () => {
-    expect(normalizeAllAtomSceneKey("A1_resolution")).toBe("A2_pbc");
-    expect(normalizeAllAtomSceneKey("A2_forcefield")).toBe("A3_forcefield");
-    expect(normalizeAllAtomSceneKey("A4_ensemble")).toBe("A5_ensemble");
-    expect(normalizeAllAtomSceneKey("unknown", 6)).toBe("A7_mapping");
+  it("maps live scenes to their existing trajectory snapshots", () => {
+    expect(getAllAtomAssetSnapshotId("A6_observables")).toBe("A5_readout");
+    expect(getAllAtomAssetSnapshotId("A3_forcefield")).toBe("A2_forcefield");
   });
 
-  it("reuses genuine trajectory assets without inventing missing simulations", () => {
-    expect(getAllAtomAssetSnapshotId("A1_branch")).toBe("A1_resolution");
-    expect(getAllAtomAssetSnapshotId("A4_integrate")).toBe("A2_forcefield");
-    expect(getAllAtomAssetSnapshotId("A5_ensemble")).toBe("A4_ensemble");
-    expect(getAllAtomAssetSnapshotId("A7_mapping")).toBe("A5_readout");
+  it("keeps playback and framing policies aligned with the two live scenes", () => {
+    expect(Object.keys(ALLATOM_PAGE_POLICY)).toEqual(["A6_observables", "A3_forcefield"]);
+    expect(getAllAtomPagePolicy(0)).toEqual({
+      maxSupportObjects: 6,
+      frameIntervalMs: 240,
+      targetOccupancy: 0.52,
+    });
+    expect(getAllAtomPagePolicy(1)).toEqual({
+      maxSupportObjects: 4,
+      frameIntervalMs: 220,
+      targetOccupancy: 0.76,
+    });
   });
 
-  it("maps the seven pages onto the established camera schedule", () => {
-    expect(ALLATOM_SCENE_KEYS.map(getAllAtomViewStep)).toEqual([0, 0, 1, 1, 3, 4, 4]);
+  it("reindexes the retained camera views without changing their framing", () => {
+    expect(getViewSpec("allatom", 0)).toMatchObject({
+      cameraSubsetId: "scene_focus",
+      anchorId: "focus_center",
+      azimuthDeg: 34,
+      elevationDeg: 18,
+      padding: 1,
+      transitionMode: "snap",
+    });
+    expect(getViewSpec("allatom", 1)).toMatchObject({
+      cameraSubsetId: "scene_focus",
+      anchorId: "focus_center",
+      azimuthDeg: 54,
+      elevationDeg: 18,
+      padding: 0.96,
+    });
   });
 
-  it("uses honest playback semantics for preparation and mapping", () => {
-    expect(Object.keys(ALLATOM_PAGE_POLICY)).toHaveLength(7);
-    expect(getAllAtomPagePolicy(4).playbackMode).toBe("one-way");
-    expect(getAllAtomPagePolicy(6).playbackMode).toBe("hold");
-    expect(getAllAtomPagePolicy(2).allowedCueFamilies).toEqual(["bonded", "nonbonded"]);
+  it("rejects schedule steps that have no live scene", () => {
+    expect(() => getViewSpec("allatom", 2)).toThrow(RangeError);
   });
 });

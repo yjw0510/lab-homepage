@@ -16,17 +16,11 @@ export function DftScfSlider({
   value,
   lang,
   onChange,
-  onPointerStart,
-  onPointerEnd,
-  inline,
 }: {
   snapshots: ScfSnapshotMeta[];
   value: number;
   lang: string;
   onChange: (nextIndex: number) => void;
-  onPointerStart: () => void;
-  onPointerEnd: () => void;
-  inline?: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [trackWidth, setTrackWidth] = useState(0);
@@ -61,10 +55,7 @@ export function DftScfSlider({
   if (snapshots.length <= 1) return null;
 
   return (
-    <div className={inline
-      ? "dark"
-      : "dark absolute bottom-24 left-1/2 z-10 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 border border-border-strong bg-surface-raised px-4 py-3"
-    }>
+    <div>
       <div className="type-mono-meta mb-3 flex items-center justify-between text-xs text-muted-foreground">
         <span>{lang === "ko" ? "SCF 진행" : "SCF Progress"}</span>
         <span className="text-foreground">
@@ -73,7 +64,6 @@ export function DftScfSlider({
       </div>
 
       <div className="relative">
-        {/* Invisible native input for semantics + keyboard + pointer */}
         <input
           type="range"
           min={min}
@@ -81,15 +71,10 @@ export function DftScfSlider({
           step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          onPointerDown={onPointerStart}
-          onPointerUp={onPointerEnd}
-          onTouchStart={onPointerStart}
-          onTouchEnd={onPointerEnd}
           aria-label={lang === "ko" ? "SCF iteration slider" : "SCF iteration slider"}
           className="absolute inset-0 z-20 h-7 w-full cursor-ew-resize opacity-0"
         />
 
-        {/* Custom visible track */}
         <div ref={trackRef} className="relative h-7">
           <div
             className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-border-strong"
@@ -108,7 +93,6 @@ export function DftScfSlider({
           />
         </div>
 
-        {/* Ticks + labels from the same coordinate model */}
         <div className="type-mono-meta relative mt-3 h-10 text-xs">
           {ticks.map(({ snapshot, index, x }) => {
             const active = index === value;
@@ -116,8 +100,6 @@ export function DftScfSlider({
               <button
                 key={`${snapshot.index}-${snapshot.iteration}`}
                 type="button"
-                onMouseDown={onPointerStart}
-                onMouseUp={onPointerEnd}
                 onClick={() => onChange(index)}
                 className="absolute top-0 flex min-h-9 min-w-6 -translate-x-1/2 items-start justify-center"
                 style={{ left: `${x}px` }}

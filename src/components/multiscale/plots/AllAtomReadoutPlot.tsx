@@ -50,7 +50,6 @@ export function AllAtomReadoutPlot({
   progress: number;
   accentColor: string;
   lang?: string;
-  rdfActiveRadius?: number;
   activeReadout?: AllAtomReadoutId | null;
   selectedReadout?: AllAtomReadoutId | null;
   onReadoutHover?: (readout: AllAtomReadoutId) => void;

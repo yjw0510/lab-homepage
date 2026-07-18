@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
@@ -96,19 +96,11 @@ export function PlotContainer({
   const innerWidth = Math.max(220, width - margin.left - margin.right);
   const innerHeight = Math.max(150, height - margin.top - margin.bottom);
 
-  const rendered = useMemo(() => children({ width, height, innerWidth, innerHeight, margin, font }), [
-    children,
-    font,
-    height,
-    innerHeight,
-    innerWidth,
-    margin,
-    width,
-  ]);
+  const rendered = children({ width, height, innerWidth, innerHeight, margin, font });
 
   return (
     <div
-      className={`border border-border/40 bg-muted/20 p-3 dark:border-white/10 dark:bg-white/[0.045] ${className ?? ""}`}
+      className={`border border-border bg-card p-3 ${className ?? ""}`}
       role="img"
       aria-label={ariaLabel}
     >
@@ -161,7 +153,3 @@ export const PLOT_COLORS = {
   grid: "var(--plot-grid)",
   text: "var(--plot-text)",
 } as const;
-
-export const FONT = { axisLabel: 15, tick: 13, annotation: 13 } as const;
-
-export const MARGIN = { top: 20, right: 24, bottom: 48, left: 56 } as const;

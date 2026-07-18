@@ -71,9 +71,6 @@ export interface ScrollState {
   masterProgress: number;
 }
 
-// Transition zone width (fraction of master progress) on each side of a boundary
-export const TRANSITION_ZONE = 0.025;
-
 export function getScrollState(progress: number): ScrollState {
   const p = Math.max(0, Math.min(1, progress));
 
@@ -106,18 +103,6 @@ export function getScrollState(progress: number): ScrollState {
 }
 
 /**
- * Returns snap positions for GSAP ScrollTrigger.
- * One snap point per step boundary + level boundaries.
- */
-export function getSnapPositions(): number[] {
-  const positions: number[] = [0];
-  for (let i = 0; i < TOTAL_STEPS; i++) {
-    positions.push((i + 1) / TOTAL_STEPS);
-  }
-  return positions;
-}
-
-/**
  * Convert level index + local step to a global step index.
  */
 export function globalStepFromLevel(levelIndex: number, localStep: number): number {
@@ -126,23 +111,4 @@ export function globalStepFromLevel(levelIndex: number, localStep: number): numb
     global += LEVELS[i].steps;
   }
   return global + localStep;
-}
-
-/**
- * Check if master progress is in a transition zone between levels.
- * Returns null if not in transition, or { from, to, t } where t is 0–1.
- */
-export function getTransition(
-  progress: number
-): { fromIndex: number; toIndex: number; t: number } | null {
-  for (let i = 0; i < BOUNDARIES.length - 1; i++) {
-    const boundary = BOUNDARIES[i].end;
-    const zoneStart = boundary - TRANSITION_ZONE;
-    const zoneEnd = boundary + TRANSITION_ZONE;
-    if (progress >= zoneStart && progress <= zoneEnd) {
-      const t = (progress - zoneStart) / (zoneEnd - zoneStart);
-      return { fromIndex: i, toIndex: i + 1, t };
-    }
-  }
-  return null;
 }

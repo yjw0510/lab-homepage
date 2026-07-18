@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { BeadLayer, type BeadLayerHandle } from "../layers/BeadLayer";
 import { BondLayer, type BondLayerHandle } from "../layers/BondLayer";
-import { useTrajectorySampler } from "../layers/TrajectoryPlayer";
+import { useTrajectorySampler } from "../layers/useTrajectorySampler";
 import type { DNAAssets } from "../useDNAAssets";
 
 /** Page 6: Full CG trajectory settle — all terms active. */
@@ -13,7 +13,6 @@ export function Page6Settle({
   reducedMotion = false,
 }: {
   assets: DNAAssets;
-  progress: number;
   reducedMotion?: boolean;
 }) {
   const { cgTrajectory, cgPositions, cgTopology, manifest } = assets;

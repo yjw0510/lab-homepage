@@ -8,6 +8,15 @@ const rulerMarks = [
   { slug: "meso", scale: "10 nm–μm", ko: "집단 변수 · 메조", en: "collective variables · meso" },
 ];
 
+/* Level identity text colors (mode-aware tokens in globals.css). Full literal
+   class strings so Tailwind can compile them; the atomistic fork carries the
+   MLFF mark. */
+const rulerMarkText: Record<string, string> = {
+  dft: "text-lv-dft",
+  atomistic: "text-lv-mlff",
+  meso: "text-lv-meso",
+};
+
 export function MultiscaleOverview({
   areas,
   lang,
@@ -39,7 +48,7 @@ export function MultiscaleOverview({
             {rulerMarks.map((mark, i) => (
               <span
                 key={mark.slug}
-                className={`type-mono-meta whitespace-nowrap text-xs text-muted-foreground ${
+                className={`type-mono-meta whitespace-nowrap text-xs ${rulerMarkText[mark.slug] ?? "text-muted-foreground"} ${
                   i === 1 ? "sm:justify-self-center" : i === 2 ? "sm:justify-self-end" : ""
                 }`}
               >

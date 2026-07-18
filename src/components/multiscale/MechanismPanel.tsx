@@ -4,18 +4,23 @@ import {
   MULTISCALE_TYPE,
 } from "./visualRules";
 
-type Tone = "amber" | "sky" | "neutral";
+// Tone names are legacy keys mapped to level-identity triads (amber -> aa, sky -> dft).
+type Tone = "amber" | "sky" | "mlff" | "meso" | "neutral";
 
 const HEADER_TONE: Record<Tone, string> = {
-  amber: "border-amber-300/25 bg-amber-950/16",
-  sky: "border-sky-300/25 bg-sky-950/12",
-  neutral: "border-white/12 bg-[#080812]/80",
+  amber: "border-lv-aa-line bg-lv-aa-wash",
+  sky: "border-lv-dft-line bg-lv-dft-wash",
+  mlff: "border-lv-mlff-line bg-lv-mlff-wash",
+  meso: "border-lv-meso-line bg-lv-meso-wash",
+  neutral: "border-border bg-muted/40",
 };
 
 const TITLE_TONE: Record<Tone, string> = {
-  amber: "text-amber-100",
-  sky: "text-sky-100",
-  neutral: "text-slate-50",
+  amber: "text-lv-aa",
+  sky: "text-lv-dft",
+  mlff: "text-lv-mlff",
+  meso: "text-lv-meso",
+  neutral: "text-foreground",
 };
 
 export function MechanismPanel({
@@ -61,4 +66,3 @@ export function MechanismHeader({
     </header>
   );
 }
-

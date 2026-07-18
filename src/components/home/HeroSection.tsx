@@ -102,7 +102,7 @@ export function HeroSection({
             <div data-hero-line className="mt-10 flex flex-wrap gap-4">
               <Link
                 href={`/${lang}/research-topics`}
-                className="pointer-events-auto inline-flex min-h-11 items-center justify-center bg-foreground px-6 py-3 font-[600] text-background transition-[transform,background-color] duration-[180ms] hover:-translate-y-px hover:bg-foreground/90 active:translate-y-0"
+                className="pointer-events-auto inline-flex min-h-11 items-center justify-center bg-primary px-6 py-3 font-[600] text-primary-foreground transition-[transform,background-color] duration-[180ms] hover:-translate-y-px hover:bg-primary/90 active:translate-y-0"
               >
                 {dict.home.exploreMultiscale}
               </Link>

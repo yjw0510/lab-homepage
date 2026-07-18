@@ -120,7 +120,7 @@ export function TopicDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: dur ?? 0.25 }}
-            className="fixed inset-0 z-40 bg-[oklch(14%_0.014_268_/_0.45)]"
+            className="fixed inset-0 z-40 bg-[rgba(16,15,15,0.45)]"
             onClick={onClose}
             aria-hidden
           />
@@ -140,8 +140,8 @@ export function TopicDrawer({
             }
             className={
               isDesktop
-                ? "fixed top-0 right-0 z-50 h-full w-[55vw] max-w-3xl border-l border-border-strong bg-background shadow-[0_8px_32px_oklch(14%_0.014_268_/_0.24)] overflow-y-auto"
-                : "fixed bottom-0 left-0 right-0 z-50 h-[85vh] border-t border-border-strong bg-background shadow-[0_8px_32px_oklch(14%_0.014_268_/_0.24)] overflow-y-auto"
+                ? "fixed top-0 right-0 z-50 h-full w-[55vw] max-w-3xl border-l border-border-strong bg-background shadow-[0_8px_32px_rgba(16,15,15,0.24)] overflow-y-auto"
+                : "fixed bottom-0 left-0 right-0 z-50 h-[85vh] border-t border-border-strong bg-background shadow-[0_8px_32px_rgba(16,15,15,0.24)] overflow-y-auto"
             }
           >
             <TopicDrawerContent

@@ -8,32 +8,54 @@ import {
   animate,
   useReducedMotion,
 } from "framer-motion";
+import { MathSvg } from "./MathSvg";
+import { MATH_SVG } from "./mathSvgData";
+import { schematicScale } from "./schematicType";
+
+/* shared type + spacing scale (viewBox width 760) */
+const TZ = schematicScale(760);
+
+/* place a formula centred horizontally at xc with its baseline at yb, sized to
+   the shared formula role so all cards render math at one consistent size */
+function fdim(key: string) {
+  const [, minY, vbW, vbH] = MATH_SVG[key].viewBox.split(/\s+/).map(Number);
+  const s = TZ.formulaEm / 1000;
+  return { w: +(vbW * s).toFixed(1), h: +(vbH * s).toFixed(1), ascent: +(-minY * s).toFixed(1) };
+}
+function Fx({ k, xc, yb, color }: { k: string; xc: number; yb: number; color: string }) {
+  const d = fdim(k);
+  return <MathSvg formulaKey={k} x={xc} y={yb - d.ascent} width={d.w} height={d.h} color={color} anchor="middle" />;
+}
 
 /**
  * DFT essence schematic — single phase drives everything.
  *
- * Cloud: Fourier contour model with centroid lock + area preservation.
- * Ring: active sweep arc + head marker.
- * All geometry scaled uniformly by SCALE = 1.3.
+ * Left  : nuclear configuration (fixed nuclei, external potential).
+ * Center: the SCF cycle — an animated electron-density cloud (Fourier contour
+ *         with centroid lock + area preservation) wrapped by a sweeping ring
+ *         whose head lights up at build / solve / update stages.
+ * Right : converged output — total-energy functional and the MO ladder.
  */
 
-/* ── scale system ── */
-const SCALE = 1.3;
-const u = (n: number) => +(n * SCALE).toFixed(1);
+/* ── palette ── */
+const INK = "var(--sch-ink)";
+const MUTED = "var(--sch-muted)";
+const BOND = "var(--sch-bond)";
+const AMBER = "var(--sch-amber)";
+const AMBER_LABEL = "var(--sch-amber-label)";
+const DENSITY = "var(--sch-density)";
+const HAIRLINE = "#cbd5e1";
 
-/* font tokens — sized for actual render scale (viewBox 910 at ~528px = 0.58×) */
-const FS_MATH = +(22 * SCALE).toFixed(1);     // 28.6 → ~16.6px rendered
-const FS_CAPTION = +(18 * SCALE).toFixed(1);  // 23.4 → ~13.6px rendered
-const FS_SUB = +(16.5 * SCALE).toFixed(1);    // 21.5 → ~12.4px rendered
-const FS_FRONTIER = +(20 * SCALE).toFixed(1); // 26.0 → ~15.1px rendered
-const FS_ATOM = +(16 * SCALE).toFixed(1);     // 20.8 → ~12.1px rendered
+/* type roles from the shared scale (viewBox width 760) */
+const FS_CAPTION = TZ.labelLg;  // build · solve · update · SCF cycle
+const FS_SUB = TZ.labelMd;      // badge title: nuclear configuration
+const FS_FRONTIER = TZ.labelMd; // MO ladder tags: LUMO · HOMO
+const FS_ATOM_C = 30;           // atom letter — sized to the sphere, not the type scale
+const FS_ATOM_O = 32;
 
-const MATH_FILL = "var(--sch-ink)";
-const MATH_OPACITY = 0.85;
-const MATH_WEIGHT = 500;
-
-/* ring geometry (scaled) */
-const RCX = u(340), RCY = u(100), RRX = u(115), RRY = u(70);
+/* ── geometry ── */
+const RCX = 380, RCY = 262;               // cloud / ring center
+const RRX = 140, RRY = 104;               // ring radii
 const TAU = Math.PI * 2;
 
 /* ── Fourier contour helpers ── */
@@ -45,12 +67,10 @@ function phaseDiff(p: number, c: number) {
   d -= Math.round(d);
   return d;
 }
-
 function bump(p: number, c: number, w: number) {
   const z = phaseDiff(p, c) / w;
   return Math.exp(-0.5 * z * z);
 }
-
 function polygonAreaCentroid(pts: Pt[]) {
   let twiceA = 0, cx = 0, cy = 0;
   for (let i = 0; i < pts.length; i++) {
@@ -63,26 +83,11 @@ function polygonAreaCentroid(pts: Pt[]) {
   const area = twiceA / 2;
   return { area, cx: cx / (3 * twiceA), cy: cy / (3 * twiceA) };
 }
-
 function pointsToClosedPath(pts: Pt[]) {
   return pts
     .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
     .join(" ") + " Z";
 }
-
-/**
- * Molecular-orbital-like contour generator.
- *
- * r(θ) is built from:
- *   1. Atom-centered Gaussian lobes (O at θ=0,π ; C perpendicular at π/2,3π/2)
- *   2. Nodal concavities between bonds (dips at π/4, 3π/4, 5π/4, 7π/4)
- *   3. Phase-dependent asymmetric breathing (dipolar + quadrupolar)
- *   4. High-frequency texture (harmonics 5,7,9,11) for organic irregularity
- *   5. Anisotropic stretch (area-preserving exp(σ)/exp(-σ))
- *
- * No first-harmonic (cos θ, sin θ) — centroid drift suppressed analytically.
- * Residual centroid and area corrected numerically after sampling.
- */
 function makeCloudPath(
   p: number, centerX: number, centerY: number,
   baseRx: number, baseRy: number, targetArea: number, inner: boolean,
@@ -91,59 +96,66 @@ function makeCloudPath(
   const gB = bump(p, 0.22, 0.10);
   const gM = bump(p, 0.50, 0.14);
   const gS = bump(p, 0.78, 0.10);
-
   const amp = inner ? 0.55 : 0.85;
-
-  /* anisotropic stretch — mild, avoids excessive horizontal elongation */
   const sigma = (inner ? 0.7 : 1) * (0.06 + 0.03 * (gB + gS) - 0.02 * gM);
   const ex = Math.exp(sigma), ey = Math.exp(-sigma);
-
-  /* Gaussian helper: exp(-x²) */
   const g = (x: number) => Math.exp(-(x * x));
 
   const pts: Pt[] = [];
   for (let i = 0; i < N; i++) {
     const th = (TAU * i) / N;
     const thWrap = th > Math.PI ? th - TAU : th;
-
-    /* atom-centered lobes — large, pronounced */
     const lobeR = amp * 0.50 * g(thWrap / 0.50);
     const lobeL = amp * 0.50 * g((th - Math.PI) / 0.50);
     const lobeT = amp * 0.28 * g((th - Math.PI / 2) / 0.40);
     const lobeB = amp * 0.28 * g((th - 3 * Math.PI / 2) / 0.40);
-
-    /* nodal concavities — deep */
     const nodal = -amp * 0.22 * (
       g((th - Math.PI / 4) / 0.30) +
       g((th - 3 * Math.PI / 4) / 0.30) +
       g((th - 5 * Math.PI / 4) / 0.30) +
       g((th - 7 * Math.PI / 4) / 0.30)
     );
-
-    /* phase-dependent asymmetric breathing — exaggerated */
     const asym = amp * 0.25 * (gB - gS) * Math.cos(th)
                + amp * 0.14 * gM * Math.cos(2 * th);
-
-    /* high-frequency organic texture — stronger */
     let texture = 0.040 * Math.sin(5 * th + 0.7 * TAU * p)
                 + 0.028 * Math.cos(7 * th - 1.3 * TAU * p)
                 + 0.018 * Math.sin(9 * th + 2.1 * TAU * p)
                 + 0.012 * Math.cos(11 * th + 0.3);
     if (inner) texture *= 0.5;
-
     let rho = 1.0 + lobeR + lobeL + lobeT + lobeB + nodal + asym + texture;
     rho = Math.max(0.45, rho);
-
-    pts.push({
-      x: baseRx * ex * rho * Math.cos(th),
-      y: baseRy * ey * rho * Math.sin(th),
-    });
+    pts.push({ x: baseRx * ex * rho * Math.cos(th), y: baseRy * ey * rho * Math.sin(th) });
   }
-
   const { area, cx, cy } = polygonAreaCentroid(pts);
   const s = Math.sqrt(targetArea / Math.abs(area));
   return pointsToClosedPath(
     pts.map(pt => ({ x: centerX + (pt.x - cx) * s, y: centerY + (pt.y - cy) * s })),
+  );
+}
+
+/* ── dimensional CPK atom ── */
+function Atom({
+  cx, cy, r, grad, label, fs,
+}: {
+  cx: number; cy: number; r: number; grad: string; label?: string; fs: number;
+}) {
+  return (
+    <g>
+      {/* contact shadow */}
+      <ellipse cx={cx} cy={cy + r * 0.96} rx={r * 0.8} ry={r * 0.2}
+        fill="rgba(15,23,42,0.2)" filter="url(#dft-atom-shadow)" />
+      {/* sphere body */}
+      <circle cx={cx} cy={cy} r={r} fill={`url(#${grad})`} />
+      {/* rim */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(17,20,28,0.14)" strokeWidth={Math.max(0.5, r * 0.045)} />
+      {/* soft highlight */}
+      <ellipse cx={cx - r * 0.28} cy={cy - r * 0.32} rx={r * 0.52} ry={r * 0.42} fill="url(#dft-atom-hl)" />
+      {/* crisp specular hotspot */}
+      <circle cx={cx - r * 0.36} cy={cy - r * 0.4} r={Math.max(0.8, r * 0.12)} fill="#ffffff" fillOpacity="0.9" />
+      {label ? (
+        <text x={cx} y={cy + fs * 0.34} textAnchor="middle" fontSize={fs} fontWeight="600" fill="#ffffff" fillOpacity="0.92">{label}</text>
+      ) : null}
+    </g>
   );
 }
 
@@ -155,321 +167,197 @@ export function DFTSchematic({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active || reducedMotion) { phase.set(0); return; }
-    const c = animate(phase, 1, {
-      duration: 6, ease: "linear", repeat: Infinity, repeatType: "loop",
-    });
+    const c = animate(phase, 1, { duration: 6, ease: "linear", repeat: Infinity, repeatType: "loop" });
     return () => c.stop();
   }, [active, reducedMotion, phase]);
 
-  /* ── derived motion values ── */
   const outerD = useTransform(phase, p =>
-    makeCloudPath(p, RCX, RCY, u(76), u(72), Math.PI * u(76) * u(72), false),
-  );
+    makeCloudPath(p, RCX, RCY, 96, 90, Math.PI * 96 * 90, false));
   const innerD = useTransform(phase, p =>
-    makeCloudPath(p, RCX, RCY, u(52), u(48), Math.PI * u(52) * u(48), true),
-  );
+    makeCloudPath(p, RCX, RCY, 66, 62, Math.PI * 66 * 62, true));
   const outerOp = useTransform(phase, [0, 0.22, 0.5, 0.78, 1], [0.75, 1.0, 0.85, 1.0, 0.75]);
   const innerOp = useTransform(phase, [0, 0.22, 0.5, 0.78, 1], [0.70, 1.0, 0.80, 1.0, 0.70]);
 
   const sweepD = useTransform(phase, v => {
     const head = Math.PI / 2 + v * TAU, tail = head - 0.6;
-    const x0 = (RCX + RRX * Math.cos(tail)).toFixed(1);
-    const y0 = (RCY + RRY * Math.sin(tail)).toFixed(1);
-    const x1 = (RCX + RRX * Math.cos(head)).toFixed(1);
-    const y1 = (RCY + RRY * Math.sin(head)).toFixed(1);
-    return `M${x0},${y0} A${RRX},${RRY} 0 0,1 ${x1},${y1}`;
+    return `M${(RCX + RRX * Math.cos(tail)).toFixed(1)},${(RCY + RRY * Math.sin(tail)).toFixed(1)} `
+      + `A${RRX},${RRY} 0 0,1 ${(RCX + RRX * Math.cos(head)).toFixed(1)},${(RCY + RRY * Math.sin(head)).toFixed(1)}`;
   });
   const ghostD = useTransform(phase, v => {
     const head = Math.PI / 2 + v * TAU, gt = head - 2.0, gh = head - 0.6;
-    const x0 = (RCX + RRX * Math.cos(gt)).toFixed(1);
-    const y0 = (RCY + RRY * Math.sin(gt)).toFixed(1);
-    const x1 = (RCX + RRX * Math.cos(gh)).toFixed(1);
-    const y1 = (RCY + RRY * Math.sin(gh)).toFixed(1);
-    return `M${x0},${y0} A${RRX},${RRY} 0 0,1 ${x1},${y1}`;
+    return `M${(RCX + RRX * Math.cos(gt)).toFixed(1)},${(RCY + RRY * Math.sin(gt)).toFixed(1)} `
+      + `A${RRX},${RRY} 0 0,1 ${(RCX + RRX * Math.cos(gh)).toFixed(1)},${(RCY + RRY * Math.sin(gh)).toFixed(1)}`;
   });
-
   const headX = useTransform(phase, v => RCX + RRX * Math.cos(Math.PI / 2 + v * TAU));
   const headY = useTransform(phase, v => RCY + RRY * Math.sin(Math.PI / 2 + v * TAU));
   const headGlowR = useTransform(phase, v => {
-    const d = Math.min(
-      Math.abs(v - 0.22), Math.abs(v - 0.50), Math.abs(v - 0.78),
-      Math.abs(v), Math.abs(v - 1),
-    );
-    return u(5) + u(5) * Math.max(0, 1 - d * 14);
+    const d = Math.min(Math.abs(v - 0.22), Math.abs(v - 0.50), Math.abs(v - 0.78), Math.abs(v), Math.abs(v - 1));
+    return 6 + 7 * Math.max(0, 1 - d * 14);
   });
   const headGlowOp = useTransform(phase, v => {
-    const d = Math.min(
-      Math.abs(v - 0.22), Math.abs(v - 0.50), Math.abs(v - 0.78),
-      Math.abs(v), Math.abs(v - 1),
-    );
+    const d = Math.min(Math.abs(v - 0.22), Math.abs(v - 0.50), Math.abs(v - 0.78), Math.abs(v), Math.abs(v - 1));
     return 0.15 + 0.2 * Math.max(0, 1 - d * 14);
   });
 
   const f = active ? "animate-fade-in" : "opacity-0";
 
-  /* badge anchor for output ladder */
-  const BX = u(510), BY = u(36);
+  /* left badge (wide enough for the title role + {R_A,Z_A}) */
+  const LBX = 18, LBY = 128, LBW = 188, LBH = 268, LCX = LBX + LBW / 2;
+  /* right badge */
+  const RBX = 554, RBW = 188, RBY = 128, RBH = 268, RBCX = RBX + RBW / 2;
+  /* mini molecule bond geometry */
+  const mOD = 34, mOR = 12, mCR = 10.5;
 
   return (
-    <svg viewBox="0 0 910 300" className="w-full h-44 sm:h-56" style={{ shapeRendering: "geometricPrecision" }}
-      role="img" aria-label="DFT self-consistency cycle: electron density around fixed nuclei converging to total energy">
+    <svg viewBox="0 96 760 344" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
+      role="img" aria-label="DFT self-consistency cycle: electron density around fixed nuclei converging to total energy and orbital levels">
       <defs>
-        <marker id="dft-a" markerWidth={u(8)} markerHeight={u(8)} refX={u(7)} refY={u(4)} orient="auto">
-          <path d={`M0,0 L${u(8)},${u(4)} L0,${u(8)} z`} fill="var(--sch-muted)" />
+        <marker id="dft-a" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill={MUTED} />
         </marker>
-        <marker id="dft-al" markerWidth={u(8)} markerHeight={u(8)} refX={u(7)} refY={u(4)} orient="auto">
-          <path d={`M0,0 L${u(8)},${u(4)} L0,${u(8)} z`} fill="var(--sch-amber)" />
+        <marker id="dft-al" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill={AMBER} />
         </marker>
         <radialGradient id="dft-co" cx="50%" cy="50%">
-          <stop offset="0%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.48" />
-          <stop offset="35%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.32" />
-          <stop offset="65%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.16" />
-          <stop offset="88%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.05" />
-          <stop offset="100%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0" />
+          <stop offset="0%" stopColor={DENSITY} stopOpacity="0.48" />
+          <stop offset="35%" stopColor={DENSITY} stopOpacity="0.32" />
+          <stop offset="65%" stopColor={DENSITY} stopOpacity="0.16" />
+          <stop offset="88%" stopColor={DENSITY} stopOpacity="0.05" />
+          <stop offset="100%" stopColor={DENSITY} stopOpacity="0" />
         </radialGradient>
         <radialGradient id="dft-cin" cx="50%" cy="50%">
-          <stop offset="0%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.52" />
-          <stop offset="40%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.30" />
-          <stop offset="75%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0.10" />
-          <stop offset="100%" style={{ stopColor: "var(--sch-density)" }} stopOpacity="0" />
+          <stop offset="0%" stopColor={DENSITY} stopOpacity="0.52" />
+          <stop offset="40%" stopColor={DENSITY} stopOpacity="0.30" />
+          <stop offset="75%" stopColor={DENSITY} stopOpacity="0.10" />
+          <stop offset="100%" stopColor={DENSITY} stopOpacity="0" />
         </radialGradient>
-        <filter id="dft-cb"><feGaussianBlur stdDeviation={u(8)} /></filter>
-        <filter id="dft-sb"><feGaussianBlur stdDeviation={u(3)} /></filter>
+        <radialGradient id="dft-o-sphere" cx="34%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#ffe6e6" />
+          <stop offset="26%" stopColor="#f77a7a" />
+          <stop offset="62%" stopColor="#dd4141" />
+          <stop offset="86%" stopColor="#b62828" />
+          <stop offset="100%" stopColor="#8d1b1b" />
+        </radialGradient>
+        <radialGradient id="dft-c-sphere" cx="34%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#eef1f5" />
+          <stop offset="28%" stopColor="#adb4bf" />
+          <stop offset="64%" stopColor="#6f7783" />
+          <stop offset="88%" stopColor="#454c57" />
+          <stop offset="100%" stopColor="#2a2f38" />
+        </radialGradient>
+        <radialGradient id="dft-atom-hl" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
+          <stop offset="52%" stopColor="#ffffff" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        <filter id="dft-cb"><feGaussianBlur stdDeviation="10" /></filter>
+        <filter id="dft-sb"><feGaussianBlur stdDeviation="3.4" /></filter>
+        <filter id="dft-atom-shadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="1.6" />
+        </filter>
       </defs>
 
-      {/* ═══ 1. Nuclei badge ═══ */}
-      {(() => {
-        const NX = u(2);            // box left
-        const NY = u(30);           // box top
-        const NW = u(148);          // box width (wider for margin)
-        const NH = u(140);          // box height (taller for margin)
-        const NCX = NX + NW / 2;    // center x
+      {/* ═══ 1. Nuclear configuration ═══ */}
+      <g className={f} style={{ animationDelay: "0.1s" }}>
+        <rect x={LBX} y={LBY} width={LBW} height={LBH} rx={18}
+          fill="none" stroke={HAIRLINE} strokeWidth="1.4" />
+        <text x={LCX} y={LBY + 28} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">nuclear</text>
+        <text x={LCX} y={LBY + 28 + FS_SUB} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">configuration</text>
 
-        return <g className={f} style={{ animationDelay: "0.1s" }}>
-          <rect x={NX} y={NY} width={NW} height={NH} rx={u(16)}
-            fill="none" stroke="#cbd5e1" strokeWidth={u(1.5)} />
+        {/* mini O=C=O */}
+        {(() => {
+          const MY = LBY + 118;
+          return <>
+            <line x1={LCX - mOD + mOR} y1={MY - 3} x2={LCX - mCR} y2={MY - 3} stroke={BOND} strokeWidth="2" strokeLinecap="round" />
+            <line x1={LCX - mOD + mOR} y1={MY + 3} x2={LCX - mCR} y2={MY + 3} stroke={BOND} strokeWidth="2" strokeLinecap="round" />
+            <line x1={LCX + mCR} y1={MY - 3} x2={LCX + mOD - mOR} y2={MY - 3} stroke={BOND} strokeWidth="2" strokeLinecap="round" />
+            <line x1={LCX + mCR} y1={MY + 3} x2={LCX + mOD - mOR} y2={MY + 3} stroke={BOND} strokeWidth="2" strokeLinecap="round" />
+            <Atom cx={LCX - mOD} cy={MY} r={mOR} grad="dft-o-sphere" fs={0} />
+            <Atom cx={LCX} cy={MY} r={mCR} grad="dft-c-sphere" fs={0} />
+            <Atom cx={LCX + mOD} cy={MY} r={mOR} grad="dft-o-sphere" fs={0} />
+          </>;
+        })()}
 
-          {/* title */}
-          <text x={NCX} y={NY + u(20)} textAnchor="middle" fontSize={FS_CAPTION}
-            fill="var(--sch-muted)" fillOpacity="0.7" fontWeight="500">nuclear</text>
-          <text x={NCX} y={NY + u(34)} textAnchor="middle" fontSize={FS_CAPTION}
-            fill="var(--sch-muted)" fillOpacity="0.7" fontWeight="500">configuration</text>
+        <Fx k="ra_za" xc={LCX} yb={LBY + 186} color={INK} />
+        <Fx k="vext" xc={LCX} yb={LBY + 186 + TZ.formulaStack} color={INK} />
+      </g>
 
-          {/* mini O=C=O — proportional to center molecule, double bonds */}
-          {(() => {
-            const MY = NY + u(54);   // molecule y center
-            const OD = u(27);        // O-C distance (proportional to center: 27/50 ≈ 7/13)
-            const OR = u(7);         // O radius
-            const CR = u(6);         // C radius
-            const BD = u(2.5);       // bond line offset from center (for double bond)
-
-            return <>
-              {/* left O=C double bond */}
-              <line x1={NCX - OD + OR} y1={MY - BD} x2={NCX - CR} y2={MY - BD}
-                stroke="var(--sch-bond)" strokeWidth={u(1.6)} />
-              <line x1={NCX - OD + OR} y1={MY + BD} x2={NCX - CR} y2={MY + BD}
-                stroke="var(--sch-bond)" strokeWidth={u(1.6)} />
-              {/* right C=O double bond */}
-              <line x1={NCX + CR} y1={MY - BD} x2={NCX + OD - OR} y2={MY - BD}
-                stroke="var(--sch-bond)" strokeWidth={u(1.6)} />
-              <line x1={NCX + CR} y1={MY + BD} x2={NCX + OD - OR} y2={MY + BD}
-                stroke="var(--sch-bond)" strokeWidth={u(1.6)} />
-              {/* atoms */}
-              <circle cx={NCX - OD} cy={MY} r={OR} fill="#ef4444" fillOpacity="0.7" />
-              <circle cx={NCX} cy={MY} r={CR} fill="var(--sch-carbon)" fillOpacity="0.7" />
-              <circle cx={NCX + OD} cy={MY} r={OR} fill="#ef4444" fillOpacity="0.7" />
-              <text x={NCX - OD} y={MY + u(3)} textAnchor="middle" fontSize={u(16)}
-                fontWeight="700" fill="white" fillOpacity="0.8">O</text>
-              <text x={NCX} y={MY + u(3)} textAnchor="middle" fontSize={u(16)}
-                fontWeight="700" fill="white" fillOpacity="0.8">C</text>
-              <text x={NCX + OD} y={MY + u(3)} textAnchor="middle" fontSize={u(16)}
-                fontWeight="700" fill="white" fillOpacity="0.8">O</text>
-            </>;
-          })()}
-
-          {/* {R_A, Z_A} — gap below molecule */}
-          <text x={NCX} y={NY + u(90)} textAnchor="middle"
-            fontSize={FS_MATH} fill={MATH_FILL} fillOpacity={MATH_OPACITY} fontWeight={MATH_WEIGHT}>
-            {"{"}
-            <tspan fontStyle="italic">R</tspan>
-            <tspan fontSize={FS_SUB} dy={u(4)}>A</tspan>
-            <tspan dy={-u(4)}>,{" "}</tspan>
-            <tspan fontStyle="italic">Z</tspan>
-            <tspan fontSize={FS_SUB} dy={u(4)}>A</tspan>
-            <tspan dy={-u(4)}>{"}"}</tspan>
-          </text>
-
-          {/* V_ext(r) */}
-          <text x={NCX} y={NY + u(116)} textAnchor="middle"
-            fontSize={FS_MATH} fill={MATH_FILL} fillOpacity={MATH_OPACITY} fontWeight={MATH_WEIGHT}>
-            <tspan fontStyle="italic">V</tspan>
-            <tspan fontSize={FS_SUB} dy={u(3)}>ext</tspan>
-            <tspan dy={-u(3)}>(</tspan>
-            <tspan fontStyle="italic">r</tspan>
-            <tspan>)</tspan>
-          </text>
-        </g>;
-      })()}
-
-      {/* ═══ Arrow: nuclei → density ═══ */}
-      <path d={`M${u(152)},${u(100)} L${u(222)},${u(100)}`} stroke="var(--sch-muted)" strokeWidth={u(2)}
+      {/* arrow → cloud */}
+      <path d={`M${LBX + LBW + 8},${RCY} L${RCX - RRX - 12},${RCY}`} stroke={MUTED} strokeWidth="2"
         fill="none" markerEnd="url(#dft-a)" className={f} style={{ animationDelay: "0.18s" }} />
 
-      {/* ═══ 2. Cloud — Fourier contour ═══ */}
-      <g className={active ? "animate-scale-in" : "opacity-0"}
-        style={{ animationDelay: "0.25s", transformOrigin: `${RCX}px ${RCY}px` }}>
-        <motion.path d={outerD} fill="var(--sch-density)" fillOpacity={0.14} filter="url(#dft-cb)" />
+      {/* ═══ 2. Density cloud ═══ */}
+      <g className={active ? "animate-scale-in" : "opacity-0"} style={{ animationDelay: "0.25s", transformOrigin: `${RCX}px ${RCY}px` }}>
+        <motion.path d={outerD} fill={DENSITY} fillOpacity={0.14} filter="url(#dft-cb)" />
         <motion.path d={outerD} fill="url(#dft-co)" style={{ opacity: outerOp }} />
         <motion.path d={innerD} fill="url(#dft-cin)" style={{ opacity: innerOp }} />
       </g>
 
-      {/* ═══ O=C=O — radii reflect C(77pm)>O(73pm), scaled ~40% for bond visibility ═══ */}
+      {/* ═══ O=C=O at nuclei ═══ */}
       <g className={f} style={{ animationDelay: "0.3s" }}>
-        {/* double bonds: dark navy, thicker for visibility */}
-        <line x1={u(290) + u(13)} y1={u(96)} x2={u(340) - u(12)} y2={u(96)}
-          stroke="var(--sch-bond)" strokeWidth={u(2.5)} strokeOpacity="0.7" />
-        <line x1={u(290) + u(13)} y1={u(104)} x2={u(340) - u(12)} y2={u(104)}
-          stroke="var(--sch-bond)" strokeWidth={u(2.5)} strokeOpacity="0.7" />
-        <line x1={u(340) + u(12)} y1={u(96)} x2={u(390) - u(13)} y2={u(96)}
-          stroke="var(--sch-bond)" strokeWidth={u(2.5)} strokeOpacity="0.7" />
-        <line x1={u(340) + u(12)} y1={u(104)} x2={u(390) - u(13)} y2={u(104)}
-          stroke="var(--sch-bond)" strokeWidth={u(2.5)} strokeOpacity="0.7" />
-        {/* O atoms: r_O ∝ 73pm → u(13) */}
-        <circle cx={u(290)} cy={u(100)} r={u(13)} fill="#ef4444" fillOpacity="0.85" />
-        <circle cx={u(390)} cy={u(100)} r={u(13)} fill="#ef4444" fillOpacity="0.85" />
-        {/* C atom: r_C ∝ 77pm → u(12) (slightly smaller circle for visual, C<O in VdW) */}
-        <circle cx={u(340)} cy={u(100)} r={u(12)} fill="var(--sch-carbon)" fillOpacity="0.85" />
-        <text x={u(290)} y={u(100) + u(5)} textAnchor="middle" fontSize={FS_ATOM} fontWeight="700"
-          fill="white" fillOpacity="0.9">O</text>
-        <text x={u(340)} y={u(100) + u(4.5)} textAnchor="middle" fontSize={FS_ATOM} fontWeight="700"
-          fill="white" fillOpacity="0.9">C</text>
-        <text x={u(390)} y={u(100) + u(5)} textAnchor="middle" fontSize={FS_ATOM} fontWeight="700"
-          fill="white" fillOpacity="0.9">O</text>
+        <line x1={RCX - 66 + 17} y1={RCY - 4} x2={RCX - 16} y2={RCY - 4} stroke={BOND} strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
+        <line x1={RCX - 66 + 17} y1={RCY + 4} x2={RCX - 16} y2={RCY + 4} stroke={BOND} strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
+        <line x1={RCX + 16} y1={RCY - 4} x2={RCX + 66 - 17} y2={RCY - 4} stroke={BOND} strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
+        <line x1={RCX + 16} y1={RCY + 4} x2={RCX + 66 - 17} y2={RCY + 4} stroke={BOND} strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
+        <Atom cx={RCX - 66} cy={RCY} r={17} grad="dft-o-sphere" label="O" fs={FS_ATOM_O} />
+        <Atom cx={RCX + 66} cy={RCY} r={17} grad="dft-o-sphere" label="O" fs={FS_ATOM_O} />
+        <Atom cx={RCX} cy={RCY} r={15} grad="dft-c-sphere" label="C" fs={FS_ATOM_C} />
       </g>
 
-      {/* ρ(r) + update tag */}
+      {/* update ρ(r) */}
       <g className={f} style={{ animationDelay: "0.35s" }}>
-        <text x={u(282)} y={u(192)} textAnchor="end" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
-          fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">update</text>
-        <text x={u(340)} y={u(192)} textAnchor="middle"
-          fontSize={FS_MATH} fontWeight={MATH_WEIGHT} fill={MATH_FILL} fillOpacity={MATH_OPACITY}>
-          <tspan fontStyle="italic">ρ</tspan>
-          <tspan fontStyle="normal">(</tspan>
-          <tspan fontStyle="italic">r</tspan>
-          <tspan fontStyle="normal">)</tspan>
-        </text>
+        <text x={RCX - 46} y={RCY + RRY + 40} textAnchor="end" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">update</text>
+        <Fx k="rho" xc={RCX + 16} yb={RCY + RRY + 40} color={INK} />
       </g>
 
-      {/* ═══ 3. SCF ring — base ═══ */}
-      <path d={`M${RCX - u(6)},${RCY + RRY} A${RRX},${RRY} 0 1,1 ${RCX + u(6)},${RCY + RRY}`}
-        fill="none" stroke="var(--sch-amber)" strokeWidth={u(1.5)} strokeOpacity="0.2"
-        markerEnd="url(#dft-al)" className={f} style={{ animationDelay: "0.45s" }} />
-
-      {/* stage anchor dots */}
+      {/* ═══ 3. SCF ring ═══ */}
+      <path d={`M${RCX - 6},${RCY + RRY} A${RRX},${RRY} 0 1,1 ${RCX + 6},${RCY + RRY}`}
+        fill="none" stroke={AMBER} strokeWidth="1.6" strokeOpacity="0.2" markerEnd="url(#dft-al)"
+        className={f} style={{ animationDelay: "0.45s" }} />
       <g className={f} style={{ animationDelay: "0.45s" }}>
         {[0.22, 0.50, 0.78].map((p, i) => {
           const a = Math.PI / 2 + p * TAU;
-          return (
-            <circle key={`sa${i}`}
-              cx={Math.round(RCX + RRX * Math.cos(a))}
-              cy={Math.round(RCY + RRY * Math.sin(a))}
-              r={u(2.5)} fill="var(--sch-amber)" fillOpacity={0.35} />
-          );
+          return <circle key={`sa${i}`} cx={Math.round(RCX + RRX * Math.cos(a))} cy={Math.round(RCY + RRY * Math.sin(a))} r={3} fill={AMBER} fillOpacity={0.35} />;
         })}
       </g>
-
-      {/* ═══ 3b. Active sweep ═══ */}
       <g className={f} style={{ animationDelay: "0.6s" }}>
-        <motion.path d={ghostD} fill="none" stroke="var(--sch-amber)" strokeWidth={u(6)}
-          strokeOpacity={0.06} strokeLinecap="round" filter="url(#dft-sb)" />
-        <motion.path d={sweepD} fill="none" stroke="var(--sch-amber)" strokeWidth={u(12)}
-          strokeOpacity={0.12} strokeLinecap="round" filter="url(#dft-sb)" />
-        <motion.path d={sweepD} fill="none" stroke="var(--sch-amber)" strokeWidth={u(3.5)}
-          strokeOpacity={0.9} strokeLinecap="round" />
-        <motion.circle cx={headX} cy={headY} r={headGlowR} fill="var(--sch-amber)"
-          style={{ fillOpacity: headGlowOp }} filter="url(#dft-sb)" />
-        <motion.circle cx={headX} cy={headY} r={u(3.2)} fill="var(--sch-amber)" />
+        <motion.path d={ghostD} fill="none" stroke={AMBER} strokeWidth="7" strokeOpacity={0.06} strokeLinecap="round" filter="url(#dft-sb)" />
+        <motion.path d={sweepD} fill="none" stroke={AMBER} strokeWidth="14" strokeOpacity={0.12} strokeLinecap="round" filter="url(#dft-sb)" />
+        <motion.path d={sweepD} fill="none" stroke={AMBER} strokeWidth="4" strokeOpacity={0.9} strokeLinecap="round" />
+        <motion.circle cx={headX} cy={headY} r={headGlowR} fill={AMBER} style={{ fillOpacity: headGlowOp }} filter="url(#dft-sb)" />
+        <motion.circle cx={headX} cy={headY} r={4} fill={AMBER} />
       </g>
 
-      {/* ═══ Ring labels — pushed away from ring to avoid overlap ═══ */}
+      {/* ring labels — top row, clear of badges and ring */}
       <g className={f} style={{ animationDelay: "0.45s" }}>
-        <text x={u(340)} y={u(10)} textAnchor="middle" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
-          fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">
-          SCF cycle
-        </text>
-
-        {/* build V_eff[ρ] — upper-left, well above ring */}
-        <text x={u(238)} y={u(22)} textAnchor="middle" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
-          fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">build</text>
-        <text x={u(238)} y={u(40)} textAnchor="middle"
-          fontSize={FS_MATH} fill={MATH_FILL} fillOpacity={MATH_OPACITY} fontWeight={MATH_WEIGHT}>
-          <tspan fontStyle="italic">V</tspan>
-          <tspan fontSize={FS_SUB} dy={u(4)}>eff</tspan>
-          <tspan dy={-u(4)}>[ρ]</tspan>
-        </text>
-
-        {/* solve φ_i, ε_i — upper-right, well above ring */}
-        <text x={u(442)} y={u(22)} textAnchor="middle" fontSize={FS_CAPTION} fill="var(--sch-amber-label)"
-          fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">solve</text>
-        <text x={u(442)} y={u(40)} textAnchor="middle"
-          fontSize={FS_MATH} fill={MATH_FILL} fillOpacity={MATH_OPACITY} fontWeight={MATH_WEIGHT}
-          fontStyle="italic">
-          φ<tspan fontSize={FS_SUB} dy={u(4)}>i</tspan>
-          <tspan dy={-u(4)}>,{" "}ε</tspan>
-          <tspan fontSize={FS_SUB} dy={u(4)}>i</tspan>
-        </text>
+        <text x={RCX} y={132} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">SCF cycle</text>
+        <text x={264} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">build</text>
+        <Fx k="veff" xc={264} yb={124 + TZ.labelToFormula} color={INK} />
+        <text x={496} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">solve</text>
+        <Fx k="phi_eps" xc={496} yb={124 + TZ.labelToFormula} color={INK} />
       </g>
 
-      {/* ═══ Arrow: density → output ═══ */}
-      <path d={`M${u(458)},${u(100)} L${u(507)},${u(100)}`} stroke="var(--sch-muted)" strokeWidth={u(2)}
+      {/* arrow → output */}
+      <path d={`M${RCX + RRX + 12},${RCY} L${RBX - 8},${RCY}`} stroke={MUTED} strokeWidth="2"
         fill="none" markerEnd="url(#dft-a)" className={f} style={{ animationDelay: "0.5s" }} />
 
-      {/* ═══ 4. Output badge ═══ */}
+      {/* ═══ 4. Output — E[ρ] + MO ladder ═══ */}
       <g className={f} style={{ animationDelay: "0.55s" }}>
+        <rect x={RBX} y={RBY} width={RBW} height={RBH} rx={18} fill="none" stroke={HAIRLINE} strokeWidth="1.4" />
+        <Fx k="erho" xc={RBCX} yb={RBY + 40} color={INK} />
         {(() => {
-          const BW = u(155) + 14;
-          const BH = u(130) + 36;
-          const BCX = BX + BW / 2;
-          const LX = BX + 24;       // lines start (left side)
-          const LW = 70;             // faint line width
-          const LWF = 80;            // frontier line width
-          const LBX = LX + LWF + 12; // label x (right of lines)
-
+          const LX = RBX + 20, LW = 52, LBLX = LX + LW + 10;
+          const top = RBY + 74, gap = 20;
           return <>
-            <rect x={BX} y={BY} width={BW} height={BH} rx={u(18)}
-              fill="none" stroke="#cbd5e1" strokeWidth={u(1.5)} />
-
-            {/* E[ρ] — upper center */}
-            <text x={BCX} y={BY + u(32)} textAnchor="middle"
-              fontSize={FS_MATH} fontWeight={MATH_WEIGHT} fill={MATH_FILL} fillOpacity={MATH_OPACITY}>
-              <tspan fontStyle="italic">E</tspan>
-              <tspan fontStyle="normal">[</tspan>
-              <tspan fontStyle="italic">ρ</tspan>
-              <tspan fontStyle="normal">]</tspan>
-            </text>
-
-            {/* MO ladder: all lines same width (LW), HOMO/LUMO thicker stroke */}
-            {/* even spacing: 15px between each level */}
-            {[68, 83, 98].map((dy, i) => (
-              <line key={`virt-${i}`}
-                x1={LX} x2={LX + LW} y1={BY + dy} y2={BY + dy}
-                stroke="#cbd5e1" strokeWidth={u(1.4)} strokeOpacity="0.8" />
+            {[0, 1, 2].map((i) => (
+              <line key={`v${i}`} x1={LX} x2={LX + LW} y1={top + i * gap} y2={top + i * gap} stroke={HAIRLINE} strokeWidth="1.6" strokeOpacity="0.8" />
             ))}
-
-            <line x1={LX} x2={LX + LW} y1={BY + 113} y2={BY + 113}
-              stroke="#94a3b8" strokeWidth={u(2.8)} />
-            <text x={LBX} y={BY + 119} fontSize={FS_FRONTIER}
-              fontWeight="500" fill="#94a3b8">LUMO</text>
-
-            <line x1={LX} x2={LX + LW} y1={BY + 143} y2={BY + 143}
-              stroke="#f97316" strokeWidth={u(2.8)} />
-            <text x={LBX} y={BY + 149} fontSize={FS_FRONTIER}
-              fontWeight="500" fill="#f97316">HOMO</text>
-
-            {[158, 173, 188].map((dy, i) => (
-              <line key={`occ-${i}`}
-                x1={LX} x2={LX + LW} y1={BY + dy} y2={BY + dy}
-                stroke="#cbd5e1" strokeWidth={u(1.4)} strokeOpacity="0.8" />
+            <line x1={LX} x2={LX + LW} y1={top + 3.4 * gap} y2={top + 3.4 * gap} stroke="#94a3b8" strokeWidth="3.2" strokeLinecap="round" />
+            <text x={LBLX} y={top + 3.4 * gap + 6} fontSize={FS_FRONTIER} fontWeight="500" fill="#94a3b8">LUMO</text>
+            <line x1={LX} x2={LX + LW} y1={top + 4.9 * gap} y2={top + 4.9 * gap} stroke="#f97316" strokeWidth="3.2" strokeLinecap="round" />
+            <text x={LBLX} y={top + 4.9 * gap + 6} fontSize={FS_FRONTIER} fontWeight="500" fill="#f97316">HOMO</text>
+            {[0, 1, 2].map((i) => (
+              <line key={`o${i}`} x1={LX} x2={LX + LW} y1={top + (6.3 + i) * gap} y2={top + (6.3 + i) * gap} stroke={HAIRLINE} strokeWidth="1.6" strokeOpacity="0.8" />
             ))}
           </>;
         })()}

@@ -5,12 +5,13 @@ emitting code. Extend or amend this file when the system needs to grow; never
 improvise a value that is not declared here.
 
 Direction: **"Ledger & Instrument"** — a printed scientific journal for the site
-chrome, a precision instrument for the interactive science. Light mode reads as
-a typeset research ledger (cool paper, hairline rules, mono metadata). Dark mode
-and every WebGL/Molstar viewer read as the lab's instrument: deep blue-black,
-lifted panels, the same vermilion signal accent. The two registers share one
-hue system so the dark viewers sitting inside light pages look intentional,
-not accidental.
+chrome, a precision instrument for the interactive science. Light mode is
+**Korean 오방색 on White** (L21, koreancoloratlas.com): neutral white paper,
+near-black ink, and the five cardinal colors as working roles — 적 red signals,
+청 blue links, 황 yellow highlights. Dark mode is **Flexoki Dark** (D9,
+stephango.com/flexoki): warm black (not pure black), analog paper-ink text,
+watercolor ink accents. Interactive viewers follow the selected mode while
+scientific marks retain their domain colors.
 
 - Genre: editorial (hallmark), brand register (impeccable)
 - Dials: `DESIGN_VARIANCE: 6` · `MOTION_INTENSITY: 4` · `VISUAL_DENSITY: 5`
@@ -20,64 +21,103 @@ not accidental.
   scales**. Hairline "scale rulers" with real tick marks and mono scale
   annotations (Å → nm → µm) structure the home page and the footer colophon.
 
-## 1. Color — OKLCH only, one accent
+## 1. Color — palette-exact hex, three accent roles
 
-Anchor hues: neutrals lean cool blue (hue 250–268, chroma 0.004–0.015);
-accent is **vermilion** (hue 35–45). Zero other chromatic hues in chrome.
-(Scientific content — CPK atoms, plots, orbital surfaces — keeps its own
-domain palette; chrome never borrows from it.)
+Anchor palettes are external systems chosen deliberately (color-palettes-v2:
+light **L21 Korean 오방색 on White**, dark **D9 Flexoki Dark**). Token values
+are the exact published hex — no OKLCH re-derivation, no improvised tints
+beyond the derived neutrals declared below. (Scientific content — CPK atoms,
+plots, orbital surfaces, schematic accents — keeps its own domain palette;
+chrome never borrows from it.)
 
-Accent discipline: accent occupies ≤ 3% of any viewport. It marks: active nav
-item, links, focus rings, the scale-ruler tick origin, small square heading
-anchors, PI name highlight in author lists. It never fills buttons or sections.
+Accent policy (rev.2 — the palettes must be FELT, not glimpsed). Hue held
+across modes; color appears through fixed roles, several of them broad-area:
 
-### Light ("ledger")
+- **Signal red** (적 `#C3272B` / Flexoki red `#D14D41`): active nav underline,
+  focus rings, square heading anchors, scale-ruler origin tick, PI name
+  highlight, and the **primary button fill** (light `#C3272B`+`#F5F5F5` text,
+  dark `#D14D41`+`#FFFCF0` text).
+- **Link blue** (청 `#1E4C9A` / Flexoki blue `#4385BE`): links, ledger
+  year/date numerals in margin columns.
+- **Highlight yellow** (황 wash `#F6EFD3` / Flexoki yellow tint `#2F2610`):
+  selection and active-toggle background tint; never text on background.
+- **Level identity colors** — the four length scales each own a color, used
+  wherever a surface belongs to that level (instrument tabs, scene titles,
+  mechanism panel headers and boxes, scale-ruler segment labels, home method
+  rows): DFT **청** · MLFF **적** · 전원자 **황** · 메조 **묵**. Declared as
+  `--lv-{dft,mlff,aa,meso}` triads (mark/ink + `-line` hairline + `-wash`
+  broad tint) in globals.css; light values derive from L21, dark from the
+  Flexoki 400 inks (`#4385BE` `#D14D41` `#D0A215`) and base-300. Washes are
+  broad-area by design (whole panel headers, plot boxes) — the old ≤3% cap
+  applies only to signal-red marks. Colored text on a wash: headings and
+  labels ≥14px; body text on washes stays `--foreground`.
+- Remaining Flexoki accents (orange `#DA702C`, green `#879A39`, cyan
+  `#3AA99F`, purple `#8B7EC8`, magenta `#CE5D97`) stay reserved for the
+  scientific layer.
+
+### Light ("ledger" — 오방색 on White)
 
 ```css
 :root {
   color-scheme: light;
-  --background:        oklch(97.6% 0.004 250);  /* paper */
-  --foreground:        oklch(21%   0.015 260);  /* ink */
-  --primary:           oklch(58%   0.19  35);   /* vermilion — marks, large type only */
-  --accent-ink:        oklch(46%   0.165 35);   /* text-grade vermilion (links) ≥4.5:1 */
-  --primary-foreground: oklch(97.6% 0.004 250);
-  --card:              oklch(99%   0.002 250);  /* raised surface (rare; prefer rules) */
-  --muted:             oklch(93%   0.006 250);  /* recessed fills */
-  --muted-foreground:  oklch(43%   0.012 255);  /* secondary text ≥5:1 */
-  --border:            oklch(88.5% 0.006 250);  /* hairline rule */
-  --border-strong:     oklch(72%   0.01  252);  /* emphasis rule / double rules */
-  --accent:            oklch(94%   0.025 45);   /* pale vermilion wash (active bg tint) */
-  --accent-foreground: oklch(40%   0.15  35);
-  --surface-raised:    oklch(99%   0.002 250);
-  --surface-sunken:    oklch(95.2% 0.005 250);
+  --background:        #F5F5F5;  /* 백 — neutral white */
+  --foreground:        #1A1A1A;  /* 흑 — ink, 16:1 */
+  --primary:           #C3272B;  /* 적 — signal red (marks) 5.3:1 */
+  --accent-ink:        #1E4C9A;  /* 청 — link blue 7.5:1 */
+  --primary-foreground: #F5F5F5;
+  --card:              #FCFCFC;  /* raised surface (rare; prefer rules) */
+  --muted:             #E9E9E9;  /* recessed fills */
+  --muted-foreground:  #565656;  /* secondary text 6.7:1 */
+  --border:            #DCDCDC;  /* hairline rule */
+  --border-strong:     #ACACAC;  /* emphasis rule / double rules */
+  --accent:            #F6EFD3;  /* 황 wash (selection, active bg tint) */
+  --accent-foreground: #6E5A0A;  /* ochre text on 황 wash 5.9:1 */
+  --surface-raised:    #FCFCFC;
+  --surface-sunken:    #EEEEEE;
 }
 ```
 
-### Dark ("instrument")
+### Dark ("instrument" — Flexoki)
 
 ```css
 .dark {
   color-scheme: dark;
-  --background:        oklch(14%   0.014 268);
-  --foreground:        oklch(92.5% 0.008 255);
-  --primary:           oklch(68%   0.155 42);
-  --accent-ink:        oklch(72%   0.14  45);
-  --primary-foreground: oklch(13%  0.014 268);
-  --card:              oklch(17.5% 0.014 266);
-  --muted:             oklch(21%   0.014 265);
-  --muted-foreground:  oklch(71%   0.01  255);
-  --border:            oklch(27%   0.012 264);
-  --border-strong:     oklch(38%   0.012 262);
-  --accent:            oklch(24%   0.04  45);
-  --accent-foreground: oklch(78%   0.12  48);
-  --surface-raised:    oklch(17.5% 0.014 266);
-  --surface-sunken:    oklch(11.5% 0.012 270);
+  --background:        #100F0F;  /* Flexoki black — warm, not pure */
+  --foreground:        #CECDC3;  /* tx (base-200) 11.9:1 */
+  --primary:           #D14D41;  /* red-400 — signal marks, button fill */
+  --accent-ink:        #4385BE;  /* blue-400 — links 4.8:1 */
+  --primary-foreground: #FFFCF0;  /* paper label on red fill */
+  --card:              #1C1B1A;  /* base-950 */
+  --muted:             #282726;  /* base-900 */
+  --muted-foreground:  #878580;  /* tx-2 (base-500) 5.2:1 */
+  --border:            #343331;  /* base-850 */
+  --border-strong:     #575653;  /* base-700 */
+  --accent:            #2F2610;  /* yellow-tint active bg */
+  --accent-foreground: #D0A215;  /* yellow-400, 6.6:1 on the tint */
+  --surface-raised:    #1C1B1A;
+  --surface-sunken:    #0A0909;  /* below-black viewer well */
 }
 ```
 
-Rules: no pure #000/#fff anywhere. Dark-mode elevation = lighter surface, never
-shadows. Never switch hue between modes. The Molstar viewport keeps `#050510`
-(instrument canvas); panels above it use the dark tokens.
+Level triads (`--lv-{dft,mlff,aa,meso}` + `-line` + `-wash`, globals.css):
+
+```css
+/* light inks */  #1E4C9A  #C3272B  #7A6000 /* 황 text-grade */  #1A1A1A
+/* dark inks  */  #4385BE  #D14D41  #D0A215  #B7B5AC /* base-300 */
+/* lines/washes = rgba() of the ink (light: 황 wash from #F9D537) */
+```
+
+Rules: no pure #000/#fff anywhere — Flexoki black `#100F0F` and paper
+`#FFFCF0` are the extremes, and paper is reserved (body text is tx `#CECDC3`
+per the Flexoki dark spec). Dark-mode elevation = lighter surface, never
+shadows. Accent roles never switch hue between modes; the neutral axis is
+neutral in light (오방색 백) and warm in dark (Flexoki base) — that
+temperature split is the theme, not drift. Scrim and sheet-shadow color is
+`rgba(16, 15, 15, α)` in both modes. Unused Flexoki accents (orange `#DA702C`,
+green `#879A39`, cyan `#3AA99F`, purple `#8B7EC8`, magenta `#CE5D97`) are
+declared reserves — never in chrome. WebGL and Molstar viewports derive their
+background from the active site theme; scientific representations keep their
+domain palette in both modes.
 
 Existing Tailwind semantic names (`bg-background`, `text-foreground`,
 `text-primary`, `border-border`, `bg-card`, `text-muted-foreground`,
@@ -128,25 +168,26 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
 
 - **Nav (masthead)**: hairline bottom rule; wordmark left = `Yu Lab` display-650
   + mono `MMCC` tag; links right, `text-[13.5px]` weight 500; active item =
-  `text-foreground` + 2px vermilion underline (offset 6px); inactive
+  `text-foreground` + 2px signal-red underline (offset 6px); inactive
   `text-muted-foreground`. No pill backgrounds, no backdrop-blur glass. Height
   64px. Mobile: full-width sheet below masthead, hairline-separated rows.
 - **Footer (colophon)**: double rule top; one dense band: wordmark + lab full
   name, mono address/email block, inline link row; beneath it the **scale
   ruler**: a full-width hairline with tick marks and mono labels
   `Å · nm · µm` linking DFT → MLFF → all-atom → meso pages; mono copyright line.
-- **Buttons**: primary = ink fill (`bg-foreground text-background`), sharp,
-  `px-6 py-3`, weight 600, label ≤ 3 words; hover = translateY(-1px) +
-  `bg-foreground/90`; active = translateY(0). Secondary = 1px `border-strong`
-  hairline, transparent bg; hover = `bg-muted`. Focus (all interactives):
-  2px vermilion ring, 2px offset, instant.
+- **Buttons**: primary = signal-red fill (`bg-primary text-primary-foreground`
+  with light `#F5F5F5` / dark `#FFFCF0` label), sharp, `px-6 py-3`, weight
+  600, label ≤ 3 words; hover = translateY(-1px) + `bg-primary/90`; active =
+  translateY(0). Secondary = 1px `border-strong` hairline, transparent bg;
+  hover = `bg-muted`. Focus (all interactives): 2px signal-red ring, 2px
+  offset, instant.
 - **Links**: `text-accent-ink`, underline 1px, `underline-offset-[3px]`;
   hover → `text-primary`. External links keep ↗ icon (lucide, 14px).
 - **Ledger row** (publications, news, funding, topic index): `border-t
   border-border` on each row group; left margin column mono metadata; row
   hover = `bg-muted/50`; no boxes.
 - **Section heading**: display-650 28–37px, left-aligned. Every top-level
-  section heading carries the 10px vermilion square anchor (the ruler-origin
+  section heading carries the 10px signal-red square anchor (the ruler-origin
   mark); in the three sanctioned scale-ruler locations the ruler itself is the
   section's mark and sits below the anchored heading. Subsection headings
   inside a document (CV blocks, drawer internals) stay plain. Never an anchor
@@ -177,7 +218,8 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
 Flat + hairlines. No box-shadows in light mode (rules carry structure). Dark
 mode: elevation via surface lightness steps only. The single permitted shadow:
 the mobile nav sheet and the topic drawer may use
-`0 8px 32px oklch(14% 0.014 268 / 0.24)`.
+`0 8px 32px rgba(16, 15, 15, 0.24)`; the drawer scrim is
+`rgba(16, 15, 15, 0.45)`.
 
 ## 7. Signature system — the scale ruler
 
@@ -205,13 +247,14 @@ plain headings elsewhere.
   block reads as a short letter with a hairline frame.
 - **Research topics**: margin-column index rows mapped to the drawer (bento
   grid retired; rainbow accents retired).
-- **Multiscale**: instrument register preserved structurally; chrome retinted
-  to tokens (dark panels, sharp corners, mono readouts). The dark viewer inside
-  light pages is intentional and framed by a hairline + mono caption.
+- **Multiscale**: instrument register preserved structurally; chrome, panels,
+  plots, and viewer backgrounds derive from the site tokens (sharp corners,
+  mono readouts). Scientific representation colors remain mode-stable.
 
 ## What every page MUST share
 
-- The token palette (one vermilion accent, zero other chrome hues).
+- The token palette (signal red, link blue, highlight yellow; zero other
+  chrome hues).
 - Pretendard weight roles + Geist Mono metadata register.
 - Sharp shape lock, hairline rule language, margin-column grid.
 - CTA voice (one contact-intent label: `연구실 참여` / `Join the lab`).
@@ -225,19 +268,18 @@ plain headings elsewhere.
 
 ## Appendix — scientific layer (declared domain tokens)
 
-Chrome never uses these; they belong to schematics, plots, and the Molstar
-instrument canvas. Declared here so the compliance gate can verify chrome
+Chrome never uses these; they belong to schematics, plots, and the molecular
+viewers. Declared here so the compliance gate can verify chrome
 against them. Light: `#334155` `#64748b` `#2B2D42` `#6b7280` `#475569`
 `#cbd5e1` `#94a3b8`. Dark: `#9ca3af` `#57606b` `#c8d0db` `#3d4450` `#b2bcc8`
-`#f8fafc` `#6f7a89`. Instrument canvas: `#050510` plus the msp-no-webgl
-fallback gradient stops `rgba(17,24,39,.92)` `rgba(5,5,16,.98)`
-`rgba(241,245,249,.9)`. CPK/element colors inside WebGL scenes are data,
-not design tokens.
+`#f8fafc` `#6f7a89`. The WebGL bridge uses `#ededed` in light mode and
+`#0a0909` in dark mode; its no-WebGL state derives from the semantic surface
+tokens. CPK/element colors inside WebGL scenes are data, not design tokens.
 
 Schematic accent tokens (`--sch-*` in globals.css): every chromatic accent a
 schematic animates (SCF ring, packets, force-field term colors, electron
 density) is declared as a light/dark pair. Hue is held across modes; dark
-raises lightness one step so animated strokes read on the instrument ground.
+raises lightness one step so animated strokes read on the viewer ground.
 Light: `--sch-amber #d97706` `--sch-amber-bright #f59e0b` `--sch-amber-label
 #92400e` `--sch-density #1d4ed8` `--sch-stretch #0891b2` `--sch-angle #16a34a`
 `--sch-lj #7e22ce` `--sch-coulomb #4f46e5` `--sch-delta-plus #2563eb`
@@ -245,9 +287,10 @@ Light: `--sch-amber #d97706` `--sch-amber-bright #f59e0b` `--sch-amber-label
 `--sch-meso-n #7c8db0` `--sch-meso-o #b07c7c`. Dark: `#f59e0b` `#fbbf24`
 `#fbbf24` `#60a5fa` `#22d3ee` `#4ade80` `#c084fc` `#818cf8` `#60a5fa`
 `#e879f9` `#fb7185` `#94a3b8` `#9fb0d0` `#cf9d9d`. Mode-stable scientific
-literals (CPK-adjacent mid tones, HOMO/LUMO, frame hairlines) stay inline:
-`#ef4444` `#dc2626` `#f1f5f9` `#3b82f6` `#06b6d4` `#f97316` `#9ca3af`
-`#cbd5e1`. MLFF force-arrow magnitude interpolants (data, `#3b82f6`→`#ef4444`
+literals (CPK-adjacent mid tones, HOMO/LUMO, frame hairlines, MLFF cyan
+packets, MLFF glyph atoms/PES mesh) stay inline: `#ef4444` `#dc2626`
+`#f1f5f9` `#3b82f6` `#06b6d4` `#f97316` `#9ca3af` `#cbd5e1` `#67e8f9`
+`#a5f3fc` `#f43f5e` `#8b5cf6` `#e2e8f0` `#111a3e`. MLFF force-arrow magnitude interpolants (data, `#3b82f6`→`#ef4444`
 per-atom): `#3e80f2` `#3f80f1` `#427fee` `#497ce7` `#4b7ce5` `#5678da`
 `#5e75d2` `#6374ce` `#6573cc` `#6d70c4` `#6f6fc1` `#786cb9` `#97629a`
 `#9f5f92` `#a05f91` `#a55d8c` `#a75c8a` `#aa5b88` `#ac5a85` `#b7577a`

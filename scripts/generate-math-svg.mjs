@@ -69,6 +69,15 @@ const FORMULAS = [
     key: "ra_za",
     latex: String.raw`\{R_A, Z_A\}`,
   },
+  // MLFFSchematic formulas
+  {
+    key: "eglobal",
+    latex: String.raw`E_{\text{global}}`,
+  },
+  {
+    key: "ei_fi",
+    latex: String.raw`E_i,\;\mathbf{F}_i`,
+  },
 ];
 
 // ─── MathJax setup ────────────────────────────────────────────────────

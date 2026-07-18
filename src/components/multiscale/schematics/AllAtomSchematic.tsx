@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { MathSvg } from "./MathSvg";
 import { MATH_SVG } from "./mathSvgData";
+import { AtomDefs, AtomPaintProvider, AtomSphere } from "./AtomSphere";
 
 /**
  * AllAtomSchematic — Propanal force-field diagram.
@@ -29,13 +30,15 @@ const S = {
   arrow: u(3.2),
 };
 
+// Five long display equations share this compact local scale so their leader
+// lines remain inside the schematic viewBox.
 const T = {
   atom: u(23 * 1.4),
   term: u(18 * 1.4),
-  var: u(24),         // r, θ, φ — NOT scaled
+  var: u(24),
   sub: u(12 * 1.4),
   delta: u(16 * 1.4),
-  desc: u(14 * 1.4),  // formula descriptions
+  desc: u(14 * 1.4),
 };
 
 const C = {
@@ -180,10 +183,9 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
     }, 900);
 
     return () => { clearTimeout(timer); cancelAnimationFrame(rafRef.current); };
-  }, [active]);
+  }, [active, emAngHO, emAngOH, emHR, emOR, emHaStart.x, emHaStart.y, emOxStart.x, emOxStart.y]);
 
   const bond = v(Ca, Cp);
-  const nUp = { x: bond.uy, y: -bond.ux };
 
   const cbCa = v(Cb, Ca);
   const cbCaN = { x: -cbCa.uy, y: cbCa.ux };
@@ -234,7 +236,9 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
 
   return (
     <svg viewBox="-50 0 850 480" className="w-full h-52 sm:h-64" style={{ shapeRendering: "geometricPrecision" }}>
+      <AtomPaintProvider>
       <defs>
+        <AtomDefs />
         <mask id="aa-mask">
           <rect x="-50" width="850" height="480" fill="white" />
           {[Ca, Cp, Ox, Ha].map((a, i) => (
@@ -273,18 +277,12 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
             stroke="var(--sch-peripheral)" strokeWidth={u(1.3)} strokeLinecap="round" />;
         })}
         {([
-          { a: Cb, fill: C.carbon, label: "C" },
-          { a: Ha2, fill: C.hydrogen }, { a: Hald, fill: C.hydrogen },
-          { a: Hm1, fill: C.hydrogen }, { a: Hm2, fill: C.hydrogen }, { a: Hm3, fill: C.hydrogen },
+          { a: Cb, grad: "atomg-c", label: "C" },
+          { a: Ha2, grad: "atomg-h" }, { a: Hald, grad: "atomg-h" },
+          { a: Hm1, grad: "atomg-h" }, { a: Hm2, grad: "atomg-h" }, { a: Hm3, grad: "atomg-h" },
         ] as const).map((item, i) => (
-          <g key={`n${i}`}>
-            <circle cx={item.a.cx} cy={item.a.cy} r={item.a.r} fill={item.fill}
-              stroke={item.fill === C.hydrogen ? "#94a3b8" : "none"} strokeWidth={u(0.8)} />
-            {"label" in item && (
-              <text x={item.a.cx} y={item.a.cy + u(8)} textAnchor="middle"
-                fontSize={u(20)} fontWeight="700" fill="white">{item.label}</text>
-            )}
-          </g>
+          <AtomSphere key={`n${i}`} cx={item.a.cx} cy={item.a.cy} r={item.a.r} grad={item.grad}
+            label={"label" in item ? item.label : undefined} fs={u(20)} shadow={false} />
         ))}
       </g>
 
@@ -374,19 +372,12 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
       {/* ═══ L5: Quartet atoms ═══ */}
       <g {...anim(0.15)}>
         {([
-          { a: Ca, fill: C.carbon, label: "C" },
-          { a: Cp, fill: C.carbon, label: "C" },
-          { a: Ox, fill: C.oxygen, label: "O" },
-          { a: Ha, fill: C.hydrogen, stroke: "#94a3b8", label: "" },
-        ]).map(({ a, fill, stroke, label }, i) => (
-          <g key={`a${i}`}>
-            <circle cx={a.cx} cy={a.cy} r={a.r} fill={fill}
-              stroke={stroke || "none"} strokeWidth={stroke ? u(2) : 0} />
-            {label && (
-              <text x={a.cx} y={a.cy + u(8)} textAnchor="middle"
-                fontSize={T.atom} fontWeight="700" fill="white">{label}</text>
-            )}
-          </g>
+          { a: Ca, grad: "atomg-c", label: "C" },
+          { a: Cp, grad: "atomg-c", label: "C" },
+          { a: Ox, grad: "atomg-o", label: "O" },
+          { a: Ha, grad: "atomg-h", label: "" },
+        ]).map(({ a, grad, label }, i) => (
+          <AtomSphere key={`a${i}`} cx={a.cx} cy={a.cy} r={a.r} grad={grad} label={label || undefined} fs={T.atom} />
         ))}
       </g>
 
@@ -508,6 +499,7 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
       })()}
 
       </g>{/* end centering transform */}
+      </AtomPaintProvider>
     </svg>
   );
 }

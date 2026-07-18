@@ -16,6 +16,13 @@ const schematicMap: Record<string, React.ComponentType<{ active: boolean }>> = {
   dft: DFTSchematic,
 };
 
+const levelTextMap: Record<string, string> = {
+  dft: "text-lv-dft",
+  mlff: "text-lv-mlff",
+  allatom: "text-lv-aa",
+  meso: "text-lv-meso",
+};
+
 export function MultiscaleHighlights({
   areas,
   lang,
@@ -80,13 +87,17 @@ export function MultiscaleHighlights({
               >
                 {/* Margin column: mono scale annotation */}
                 <div className="col-span-12 sm:col-span-3">
-                  <span className="type-mono-meta text-[12px] text-muted-foreground">
+                  <span
+                    className={`type-mono-meta text-[12px] ${
+                      levelTextMap[area.slug] ?? "text-muted-foreground"
+                    }`}
+                  >
                     {area.scale}
                   </span>
                 </div>
 
                 {/* Content */}
-                <div className="col-span-12 min-w-0 sm:col-span-9 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,4fr)] md:gap-8">
+                <div className="col-span-12 min-w-0 sm:col-span-9 md:grid md:grid-cols-[minmax(0,9fr)_minmax(0,10fr)] md:gap-8">
                   <div>
                     <h3 className="type-heading text-xl text-foreground">
                       {lang === "ko" && area.titleKo ? area.titleKo : area.title}

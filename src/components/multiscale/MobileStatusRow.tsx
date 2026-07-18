@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LEVELS, type LevelConfig, type ScrollState } from "./scrollState";
+import { LEVEL_CHROME } from "./RightRail";
 
 interface Props {
   scrollState: ScrollState;
@@ -17,7 +18,6 @@ interface Props {
   previousStepTitle?: string;
   nextStepTitle?: string;
   scfLabel?: string | null;
-  rdfLabel?: string | null;
   onChipTap?: () => void;
 }
 
@@ -35,10 +35,9 @@ export function MobileStatusRow({
   previousStepTitle,
   nextStepTitle,
   scfLabel,
-  rdfLabel,
   onChipTap,
 }: Props) {
-  const chipLabel = scfLabel ?? rdfLabel ?? null;
+  const chipLabel = scfLabel ?? null;
   const previousLabel = previousStepTitle
     ? `${lang === "ko" ? "이전" : "Previous"}: ${previousStepTitle}`
     : lang === "ko" ? "이전 단계" : "Previous step";
@@ -47,7 +46,7 @@ export function MobileStatusRow({
     : lang === "ko" ? "다음 단계" : "Next step";
 
   return (
-    <div className="dark flex-shrink-0 border-t border-border bg-surface-sunken">
+    <div className="flex-shrink-0 border-t border-border bg-surface-sunken text-foreground">
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {`${level.label[lang as "en" | "ko"] ?? level.label.en}: ${stepTitles[scrollState.step] ?? scrollState.step + 1}`}
       </div>
@@ -61,7 +60,7 @@ export function MobileStatusRow({
               type="button"
               className={`type-mono-meta flex min-h-11 flex-shrink-0 items-center border-b-2 px-3 py-2 text-xs transition-colors ${
                 isActive
-                  ? "border-primary text-foreground"
+                  ? LEVEL_CHROME[l.id].tab
                   : "border-transparent text-muted-foreground"
               }`}
               onClick={() => onLevelSwitch(i)}

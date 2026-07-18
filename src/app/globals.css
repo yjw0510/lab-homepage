@@ -8,22 +8,37 @@
 
 :root {
   color-scheme: light;
-  /* ledger */
-  --background: oklch(97.6% 0.004 250);
-  --foreground: oklch(21% 0.015 260);
-  --primary: oklch(58% 0.19 35);
-  --accent-ink: oklch(46% 0.165 35);
-  --primary-foreground: oklch(97.6% 0.004 250);
-  --card: oklch(99% 0.002 250);
-  --card-foreground: oklch(21% 0.015 260);
-  --muted: oklch(93% 0.006 250);
-  --muted-foreground: oklch(43% 0.012 255);
-  --border: oklch(88.5% 0.006 250);
-  --border-strong: oklch(72% 0.01 252);
-  --accent: oklch(94% 0.025 45);
-  --accent-foreground: oklch(40% 0.15 35);
-  --surface-raised: oklch(99% 0.002 250);
-  --surface-sunken: oklch(95.2% 0.005 250);
+  /* ledger — L21 Korean 오방색 on White (DESIGN.md §1) */
+  --background: #f5f5f5;
+  --foreground: #1a1a1a;
+  --primary: #c3272b;
+  --accent-ink: #1e4c9a;
+  --primary-foreground: #f5f5f5;
+  --card: #fcfcfc;
+  --card-foreground: #1a1a1a;
+  --muted: #e9e9e9;
+  --muted-foreground: #565656;
+  --border: #dcdcdc;
+  --border-strong: #acacac;
+  --accent: #f6efd3;
+  --accent-foreground: #6e5a0a;
+  --surface-raised: #fcfcfc;
+  --surface-sunken: #eeeeee;
+
+  /* Level identity colors (DESIGN.md §1) — 청/적/황/묵 from L21.
+     Triads: mark+ink / hairline / broad wash. */
+  --lv-dft: #1e4c9a;
+  --lv-dft-line: rgba(30, 76, 154, 0.35);
+  --lv-dft-wash: rgba(30, 76, 154, 0.08);
+  --lv-mlff: #c3272b;
+  --lv-mlff-line: rgba(195, 39, 43, 0.35);
+  --lv-mlff-wash: rgba(195, 39, 43, 0.07);
+  --lv-aa: #7a6000;
+  --lv-aa-line: rgba(176, 143, 10, 0.45);
+  --lv-aa-wash: rgba(249, 213, 55, 0.16);
+  --lv-meso: #1a1a1a;
+  --lv-meso-line: rgba(26, 26, 26, 0.3);
+  --lv-meso-wash: rgba(26, 26, 26, 0.05);
 
   /* motion */
   --ease-ledger: cubic-bezier(0.16, 1, 0.3, 1);
@@ -65,22 +80,36 @@
 
 .dark {
   color-scheme: dark;
-  /* instrument */
-  --background: oklch(14% 0.014 268);
-  --foreground: oklch(92.5% 0.008 255);
-  --primary: oklch(68% 0.155 42);
-  --accent-ink: oklch(72% 0.14 45);
-  --primary-foreground: oklch(13% 0.014 268);
-  --card: oklch(17.5% 0.014 266);
-  --card-foreground: oklch(92.5% 0.008 255);
-  --muted: oklch(21% 0.014 265);
-  --muted-foreground: oklch(71% 0.01 255);
-  --border: oklch(27% 0.012 264);
-  --border-strong: oklch(38% 0.012 262);
-  --accent: oklch(24% 0.04 45);
-  --accent-foreground: oklch(78% 0.12 48);
-  --surface-raised: oklch(17.5% 0.014 266);
-  --surface-sunken: oklch(11.5% 0.012 270);
+  /* instrument — D9 Flexoki Dark (DESIGN.md §1) */
+  --background: #100f0f;
+  --foreground: #cecdc3;
+  --primary: #d14d41;
+  --accent-ink: #4385be;
+  --primary-foreground: #fffcf0;
+  --card: #1c1b1a;
+  --card-foreground: #cecdc3;
+  --muted: #282726;
+  --muted-foreground: #878580;
+  --border: #343331;
+  --border-strong: #575653;
+  --accent: #2f2610;
+  --accent-foreground: #d0a215;
+  --surface-raised: #1c1b1a;
+  --surface-sunken: #0a0909;
+
+  /* Level identity colors — Flexoki 400 inks, hue held vs light */
+  --lv-dft: #4385be;
+  --lv-dft-line: rgba(67, 133, 190, 0.42);
+  --lv-dft-wash: rgba(67, 133, 190, 0.14);
+  --lv-mlff: #d14d41;
+  --lv-mlff-line: rgba(209, 77, 65, 0.42);
+  --lv-mlff-wash: rgba(209, 77, 65, 0.13);
+  --lv-aa: #d0a215;
+  --lv-aa-line: rgba(208, 162, 21, 0.42);
+  --lv-aa-wash: rgba(208, 162, 21, 0.12);
+  --lv-meso: #b7b5ac;
+  --lv-meso-line: rgba(183, 181, 172, 0.35);
+  --lv-meso-wash: rgba(183, 181, 172, 0.08);
 
   /* Schematic structural colors — flipped for dark bg */
   --sch-ink: #cbd5e1;
@@ -129,6 +158,18 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
+  --color-lv-dft: var(--lv-dft);
+  --color-lv-dft-line: var(--lv-dft-line);
+  --color-lv-dft-wash: var(--lv-dft-wash);
+  --color-lv-mlff: var(--lv-mlff);
+  --color-lv-mlff-line: var(--lv-mlff-line);
+  --color-lv-mlff-wash: var(--lv-mlff-wash);
+  --color-lv-aa: var(--lv-aa);
+  --color-lv-aa-line: var(--lv-aa-line);
+  --color-lv-aa-wash: var(--lv-aa-wash);
+  --color-lv-meso: var(--lv-meso);
+  --color-lv-meso-line: var(--lv-meso-line);
+  --color-lv-meso-wash: var(--lv-meso-wash);
   --font-sans: var(--font-pretendard);
   --font-mono: var(--font-geist-mono);
   --ease-ledger: var(--ease-ledger);
@@ -154,11 +195,6 @@ body {
 .dark body {
   font-weight: 400;
   line-height: 1.75;
-}
-
-/* Theme-change transitions, scoped to surfaces (never `*`) */
-.theme-surface {
-  transition: background-color 200ms ease-in-out, border-color 200ms ease-in-out;
 }
 
 /* Type roles (DESIGN.md §2) */
@@ -202,7 +238,7 @@ body {
   font-size: 1.03em;
 }
 
-/* Focus: instant vermilion ring on every interactive element */
+/* Focus: instant signal-red ring on every interactive element */
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
@@ -227,7 +263,7 @@ body {
 
 /* Signature system: the scale ruler (DESIGN.md §7).
    Hairline baseline, minor ticks every 24px, major ticks every 120px,
-   vermilion origin tick. Used ONLY on home scale-index, footer colophon,
+   signal-red origin tick. Used ONLY on home scale-index, footer colophon,
    multiscale overview header. */
 .scale-ruler {
   position: relative;
@@ -253,24 +289,20 @@ body {
 /* Reveal policy (DESIGN.md §5): content is visible without JS.
    Client components add `.pre-reveal` on mount BEFORE observing, then
    `.visible` on intersect. No CSS hides content by default. */
-.multiscale-reveal,
 .multiscale-card-reveal {
   transition: opacity var(--dur-slow) var(--ease-ledger),
     transform var(--dur-slow) var(--ease-ledger);
 }
 
-.multiscale-reveal.pre-reveal:not(.visible),
 .multiscale-card-reveal.pre-reveal:not(.visible) {
   opacity: 0;
   transform: translateY(24px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .multiscale-reveal,
   .multiscale-card-reveal {
     transition: none;
   }
-  .multiscale-reveal.pre-reveal:not(.visible),
   .multiscale-card-reveal.pre-reveal:not(.visible) {
     opacity: 1;
     transform: none;
@@ -291,6 +323,19 @@ body {
   .multiscale-scene-title-inner { animation: none; }
 }
 
+/* Hi-res framing appears only when real margin exists around the capped shell. */
+@media (min-width: 2600px) {
+  .multiscale-hires-frame {
+    border: 1px solid var(--border);
+  }
+
+  .dark .multiscale-hires-frame {
+    box-shadow:
+      0 40px 140px -48px rgba(16, 15, 15, 0.9),
+      0 0 72px -12px rgba(255, 252, 240, 0.05);
+  }
+}
+
 /* Scientific scene animations (schematics/plots) */
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0); }
@@ -300,17 +345,6 @@ body {
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
-}
-
-@keyframes signal {
-  0% { opacity: 0; stroke-dashoffset: 200; }
-  30% { opacity: 0.8; }
-  100% { opacity: 0; stroke-dashoffset: 0; }
 }
 
 .animate-scale-in {
@@ -323,20 +357,9 @@ body {
   opacity: 0;
 }
 
-.animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
-}
-
-.animate-signal {
-  stroke-dasharray: 200;
-  animation: signal 1.5s ease-in-out infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .animate-scale-in,
-  .animate-fade-in,
-  .animate-pulse-slow,
-  .animate-signal {
+  .animate-fade-in {
     animation: none;
     opacity: 1;
     transform: none;
@@ -379,7 +402,7 @@ body {
 }
 
 .multiscale-molstar .msp-viewport {
-  background: #050510;
+  background: var(--surface-sunken);
 }
 
 .multiscale-molstar .msp-layout-standard .msp-layout-top,
@@ -396,8 +419,8 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: radial-gradient(circle at top, rgba(17, 24, 39, 0.92), rgba(5, 5, 16, 0.98));
-  color: rgba(241, 245, 249, 0.9);
+  background: radial-gradient(circle at top, var(--surface-raised), var(--surface-sunken));
+  color: var(--foreground);
   text-align: center;
 }
 
@@ -407,7 +430,24 @@ body {
 
 .mlff-schematic-stage .multiscale-molstar .msp-viewport,
 .mlff-schematic-stage .multiscale-molstar canvas {
-  background: #070914;
+  background: var(--surface-sunken);
+}
+
+/* MLFF stage backdrop: faint neutral blueprint grid on light paper; the
+   instrument nebula glows belong to the dark ground only. */
+.mlff-stage-backdrop {
+  background-image:
+    linear-gradient(rgba(26, 26, 26, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 26, 26, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px, 32px 32px;
+}
+.dark .mlff-stage-backdrop {
+  background-image:
+    linear-gradient(rgba(103, 232, 249, 0.024) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 232, 249, 0.024) 1px, transparent 1px),
+    radial-gradient(circle at 78% 28%, rgba(59, 130, 246, 0.11), transparent 34%),
+    radial-gradient(circle at 24% 82%, rgba(139, 92, 246, 0.075), transparent 31%);
+  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%;
 }
 
 .mlff-schematic-stage .mlff-katex .katex {
@@ -564,6 +604,74 @@ body {
     opacity: 0.68;
     transform: translate(var(--message-mid-x), var(--message-mid-y));
   }
+}
+
+/* Equivariant force-field schematic: workflow flow cues.
+   A glowing packet falls stage→stage and a glow travels down the pipeline so
+   the schematic reads as a workflow in motion rather than a static stack. */
+.mlff-flow-conn {
+  position: relative;
+  width: 100%;
+  height: 1.9rem;
+  margin: 0.15rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mlff-flow-line {
+  position: absolute;
+  top: 2px;
+  bottom: 7px;
+  width: 1.5px;
+  background: linear-gradient(to bottom, rgb(103 232 249 / 0.06), rgb(103 232 249 / 0.42), rgb(103 232 249 / 0.06));
+}
+.mlff-flow-arrowhead {
+  position: absolute;
+  bottom: 2px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid rgb(103 232 249 / 0.6);
+  border-bottom: 1.5px solid rgb(103 232 249 / 0.6);
+  transform: rotate(45deg);
+}
+.mlff-flow-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: #a5f3fc;
+  box-shadow: 0 0 8px 2px rgb(103 232 249 / 0.85);
+  opacity: 0;
+  animation: mlff-flow-fall 3.6s cubic-bezier(0.55, 0, 0.45, 1) infinite;
+  will-change: top, opacity;
+}
+@keyframes mlff-flow-fall {
+  0% { top: 0; opacity: 0; }
+  4% { opacity: 1; }
+  22% { top: calc(100% - 8px); opacity: 1; }
+  27%, 100% { top: calc(100% - 8px); opacity: 0; }
+}
+
+.mlff-flow-stage {
+  animation: mlff-flow-stagelit 3.6s ease-in-out infinite;
+  animation-delay: var(--stage-delay, 0s);
+  will-change: filter;
+}
+@keyframes mlff-flow-stagelit {
+  0% { filter: drop-shadow(0 0 0 rgb(103 232 249 / 0)); }
+  8% { filter: drop-shadow(0 0 6px rgb(103 232 249 / 0.55)); }
+  24%, 100% { filter: drop-shadow(0 0 0 rgb(103 232 249 / 0)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mlff-flow-dot,
+  .mlff-flow-stage {
+    animation: none;
+  }
+  .mlff-flow-dot { opacity: 0; }
 }
 
 /* Ruby annotations never break across lines (orphan superscript fix) */

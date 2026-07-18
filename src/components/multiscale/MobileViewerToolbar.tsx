@@ -46,7 +46,7 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
   return (
     <div
       ref={panelRef}
-      className="dark absolute right-3 top-3 z-10"
+      className="absolute right-3 top-3 z-10"
       data-testid="mobile-viewer-toolbar"
     >
       {/* Trigger stays anchored beside the title. */}

@@ -30,7 +30,7 @@ export function LabNews({
             >
               {/* Margin column: mono date + category */}
               <div className="col-span-12 sm:col-span-3">
-                <p className="type-mono-meta text-[12px] text-muted-foreground">
+                <p className="type-mono-meta text-[12px] text-accent-ink">
                   {formatDate(item.date, lang)}
                 </p>
                 <p className="type-mono-meta mt-0.5 text-[12px] text-muted-foreground">

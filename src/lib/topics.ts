@@ -6,10 +6,6 @@ export function getAllTopics(): ResearchTopic[] {
   return topics;
 }
 
-export function getTopicById(id: string): ResearchTopic | undefined {
-  return topics.find((t) => t.id === id);
-}
-
 export function getPublicationsForTopic(
   topic: ResearchTopic,
   pubs: Publication[],

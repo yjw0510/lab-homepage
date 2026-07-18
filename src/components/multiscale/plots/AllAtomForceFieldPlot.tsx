@@ -33,10 +33,8 @@ export function AllAtomForceFieldPlot({
   onTermLeave,
   onTermToggle,
 }: {
-  progress: number;
   accentColor: string;
   lang?: string;
-  rdfActiveRadius?: number;
   activeTerm?: AllAtomForceFieldTerm | null;
   selectedTerm?: AllAtomForceFieldTerm | null;
   onTermHover?: (term: AllAtomForceFieldTerm) => void;

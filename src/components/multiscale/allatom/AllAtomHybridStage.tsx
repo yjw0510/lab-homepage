@@ -1,80 +1,59 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { MutableRefObject, RefObject } from "react";
+import { useEffect, useState } from "react";
+import type { MutableRefObject } from "react";
 import { MolstarAllAtomStage } from "../molstar/MolstarAllAtomStage";
-import type { CameraSnapshotLike, ResearchCameraActions } from "../molstar/shared";
+import type { ResearchCameraActions } from "../molstar/shared";
 import { AllAtomMechanism } from "../overlays/AllAtomMechanism";
-import { useReducedMotionPreference } from "../overlays/allatom/useReducedMotionPreference";
-import { AllAtomOverlayStage } from "./AllAtomOverlayStage";
-import { normalizeAllAtomSceneKey } from "./allAtomConfig";
-import type { AllAtomCameraState } from "./allAtomVisuals";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { getAllAtomSceneKey, type AllAtomCameraState } from "./allAtomConfig";
 import type { ScrollState } from "../scrollState";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allAtomPagePolicy";
+import { useMultiscaleCanvasColor } from "../useMultiscaleCanvasColor";
 
 const BASE_ZOOM_INDEX = 2;
 const MIN_ZOOM_INDEX = 0;
 const MAX_ZOOM_INDEX = 4;
 
 export function AllAtomHybridStage({
-  progressRef,
   scrollState,
   isMobile,
-  autoRotateRef,
   actionsRef,
   activeTerm,
   activeReadout,
   lang,
-  sceneKey,
   reducedMotion,
   hideMechanism = false,
   onMeasuredDistance,
 }: {
-  progressRef: RefObject<number>;
   scrollState: ScrollState;
   isMobile: boolean;
-  autoRotateRef: MutableRefObject<boolean>;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   activeTerm: AllAtomForceFieldTerm | null;
   activeReadout: AllAtomReadoutId | null;
   lang?: string;
-  sceneKey?: string;
   reducedMotion?: boolean;
   hideMechanism?: boolean;
   onMeasuredDistance?: (nm: number | null) => void;
 }) {
+  const canvasColor = useMultiscaleCanvasColor();
   const [cameraState, setCameraState] = useState<AllAtomCameraState>({
     zoomIndex: BASE_ZOOM_INDEX,
     viewRevision: 0,
   });
   const [mechanismTerm, setMechanismTerm] = useState<AllAtomForceFieldTerm>("Ubond");
   const [mechanismReadout, setMechanismReadout] = useState<AllAtomReadoutId>("orientation");
-  const cameraSnapshotRef = useRef<CameraSnapshotLike | null>(null);
-  const displayAtomsRef = useRef<{ atoms: number[][]; elements: string[]; charges: number[] } | null>(null);
-  const activeSceneKey = normalizeAllAtomSceneKey(sceneKey, scrollState.step);
+  const activeSceneKey = getAllAtomSceneKey(scrollState.step);
   const effectiveLang =
     lang ??
     (typeof document !== "undefined" ? document.documentElement.lang || "en" : "en");
-  const motionReduced = useReducedMotionPreference(reducedMotion);
+  const motionReduced = useReducedMotion(reducedMotion);
   const effectiveTerm =
     activeTerm ?? (activeSceneKey === "A3_forcefield" ? mechanismTerm : null);
   const effectiveReadout =
     activeReadout ?? (activeSceneKey === "A6_observables" ? mechanismReadout : null);
   const separateMobileMechanism = isMobile;
-  const mobileMechanismHeight =
-    activeSceneKey === "A1_branch"
-      ? "750px"
-      : activeSceneKey === "A2_pbc"
-        ? "800px"
-        : activeSceneKey === "A3_forcefield"
-          ? "720px"
-          : activeSceneKey === "A4_integrate"
-            ? "670px"
-            : activeSceneKey === "A5_ensemble"
-              ? "650px"
-              : activeSceneKey === "A6_observables"
-                ? "720px"
-                : "620px";
+  const mobileMechanismHeight = "720px";
 
   useEffect(() => {
     if (!actionsRef) return;
@@ -112,32 +91,21 @@ export function AllAtomHybridStage({
 
   return (
     <div
-      className={`relative h-full w-full overflow-hidden bg-[#050510] ${
+      className={`relative h-full w-full overflow-hidden bg-surface-sunken ${
         separateMobileMechanism ? "flex flex-col" : ""
       }`}
       data-testid="multiscale-render-surface"
     >
       <div className={`relative min-h-0 w-full ${separateMobileMechanism ? "flex-1" : "h-full"}`}>
         <MolstarAllAtomStage
-          progressRef={progressRef}
           scrollState={scrollState}
           isMobile={isMobile}
-          autoRotateRef={autoRotateRef}
           cameraState={cameraState}
-          cameraSnapshotRef={cameraSnapshotRef}
-          displayAtomsRef={displayAtomsRef}
           activeTerm={effectiveTerm}
           activeReadout={effectiveReadout}
           reducedMotion={motionReduced}
           onMeasuredDistance={onMeasuredDistance}
-        />
-        <AllAtomOverlayStage
-          scrollState={scrollState}
-          isMobile={isMobile}
-          cameraState={cameraState}
-          activeTerm={effectiveTerm}
-          displayAtomsRef={displayAtomsRef}
-          reducedMotion={motionReduced}
+          canvasColor={canvasColor}
         />
         {!separateMobileMechanism && !hideMechanism ? (
           <AllAtomMechanism
@@ -154,7 +122,7 @@ export function AllAtomHybridStage({
       </div>
       {separateMobileMechanism ? (
         <div
-          className="relative w-full flex-shrink-0 border-t border-white/12 bg-[#050510]"
+          className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken"
           style={{ height: mobileMechanismHeight }}
         >
           <AllAtomMechanism

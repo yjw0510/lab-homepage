@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { MutableRefObject, RefObject } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { MutableRefObject } from "react";
 import type { AllAtomSystemData, AllAtomTrajectoryData } from "../data/allatomSolvent";
 import { cachedAllAtomJsonFetch } from "../data/allatomCache";
 import type { ScrollState } from "../scrollState";
@@ -10,7 +10,6 @@ import {
   getScheduledAllAtomSnapshot,
   getAllAtomPagePolicy,
   getAllAtomSceneKey,
-  getAllAtomViewStep,
   type AllAtomCameraState,
   type AllAtomForceFieldTerm,
   type AllAtomReadoutId,
@@ -28,44 +27,36 @@ import {
   type CameraSnapshotLike,
   type PluginLike,
   type ResearchCameraActions,
-  applySpinSetting,
+  applyResearchCanvasBackground,
   commitResearchLayers,
   mountResearchPlugin,
   updateResearchLayerParams,
 } from "./shared";
 
 export function MolstarAllAtomStage({
-  progressRef,
   scrollState,
   isMobile,
-  autoRotateRef,
   actionsRef,
   cameraState,
-  cameraSnapshotRef,
-  displayAtomsRef,
   activeTerm,
   activeReadout,
   reducedMotion = false,
   onMeasuredDistance,
+  canvasColor,
 }: {
-  progressRef: RefObject<number>;
   scrollState: ScrollState;
   isMobile: boolean;
-  autoRotateRef: MutableRefObject<boolean>;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   cameraState?: AllAtomCameraState;
-  cameraSnapshotRef?: MutableRefObject<CameraSnapshotLike | null>;
-  displayAtomsRef?: MutableRefObject<{ atoms: number[][]; elements: string[]; charges: number[] } | null>;
   activeTerm: AllAtomForceFieldTerm | null;
   activeReadout: AllAtomReadoutId | null;
   reducedMotion?: boolean;
   onMeasuredDistance?: (nm: number | null) => void;
+  canvasColor: string;
 }) {
-  void progressRef;
-  void isMobile;
-
   const containerRef = useRef<HTMLDivElement>(null);
   const pluginRef = useRef<PluginLike | null>(null);
+  const canvasColorRef = useRef(canvasColor);
   const dataRef = useRef<AllAtomStageData | null>(null);
   const defaultSnapshotRef = useRef<CameraSnapshotLike | null>(null);
   const sceneKeyRef = useRef("");
@@ -78,10 +69,12 @@ export function MolstarAllAtomStage({
   const effectiveZoomIndex = cameraState?.zoomIndex ?? zoomIndex;
   const effectiveViewRevision = cameraState?.viewRevision ?? viewRevision;
 
-  const phase = useMemo(() => Math.round(scrollState.stepProgress * 6) / 6, [scrollState.stepProgress]);
+  useEffect(() => {
+    canvasColorRef.current = canvasColor;
+  }, [canvasColor]);
+
   const sceneKey = getAllAtomSceneKey(scrollState.step);
-  const viewStep = getAllAtomViewStep(sceneKey);
-  const [initialBuild] = useState(() => ({ scrollState, phase, sceneKey }));
+  const [initialBuild] = useState(() => ({ scrollState, sceneKey }));
 
   const applyScheduledCamera = useCallback(
     (durationMs = 160, zoomLevel = effectiveZoomIndex) => {
@@ -104,9 +97,9 @@ export function MolstarAllAtomStage({
       const aspect = (container?.clientWidth ?? 1) / Math.max(1, container?.clientHeight ?? 1);
       const placement = computeScheduledPlacement({
         level: "allatom",
-        step: viewStep,
+        step: scrollState.step,
         stepProgress: scrollState.stepProgress,
-        stepCount: 5,
+        stepCount: scrollState.stepCount,
         meta: referenceSnapshot,
         points: referenceSnapshot.atoms,
         aspect,
@@ -114,9 +107,8 @@ export function MolstarAllAtomStage({
         zoomIndex: zoomLevel,
       });
       defaultSnapshotRef.current = applyMolstarPlacement(plugin, placement, durationMs);
-      if (cameraSnapshotRef) cameraSnapshotRef.current = defaultSnapshotRef.current;
     },
-    [cameraSnapshotRef, effectiveZoomIndex, isMobile, scrollState.step, scrollState.stepProgress, viewStep],
+    [effectiveZoomIndex, isMobile, scrollState.step, scrollState.stepCount, scrollState.stepProgress],
   );
 
   const activeTermRef = useRef(activeTerm);
@@ -138,7 +130,7 @@ export function MolstarAllAtomStage({
     rebuildingRef.current = true;
     try {
       const fi = nextFrameIndex ?? frameTimeRef.current;
-      const layers = buildAllAtomLayers(data, scrollState, phase, activeTermRef.current, activeReadoutRef.current, fi);
+      const layers = buildAllAtomLayers(data, scrollState, activeTermRef.current, activeReadoutRef.current, fi);
       await commitResearchLayers(plugin, layers);
       if (resetCamera) applyScheduledCamera(0, effectiveZoomIndex);
       // Report the exact drawn-contact distance to the rail, from the same
@@ -158,7 +150,7 @@ export function MolstarAllAtomStage({
     } finally {
       rebuildingRef.current = false;
     }
-  }, [applyScheduledCamera, effectiveZoomIndex, phase, scrollState]);
+  }, [applyScheduledCamera, effectiveZoomIndex, scrollState]);
 
   useEffect(() => {
     if (cameraState) return;
@@ -178,7 +170,8 @@ export function MolstarAllAtomStage({
         setMountError(null);
         const { plugin, error } = await mountResearchPlugin({
           container,
-          autoRotate: autoRotateRef.current,
+          autoRotate: false,
+          backgroundColor: canvasColorRef.current,
           actionsRef: undefined,
           defaultSnapshotRef,
         });
@@ -203,14 +196,10 @@ export function MolstarAllAtomStage({
         sceneKeyRef.current = initialBuild.sceneKey;
         await commitResearchLayers(
           plugin,
-          buildAllAtomLayers(dataRef.current, initialBuild.scrollState, initialBuild.phase, activeTerm, activeReadout, 0),
+          buildAllAtomLayers(dataRef.current, initialBuild.scrollState, activeTerm, activeReadout, 0),
         );
-        if (cameraSnapshotRef) {
-          cameraSnapshotRef.current = (plugin.canvas3d?.camera.getSnapshot() as CameraSnapshotLike | undefined) ?? null;
-        }
         if (!cancelled) setIsReady(true);
       } catch (error) {
-        console.error(error);
         setMountError(error instanceof Error ? error.message : "Failed to initialize the Mol* viewer.");
         mountedPlugin?.dispose();
       }
@@ -224,7 +213,13 @@ export function MolstarAllAtomStage({
       plugin?.dispose();
       container?.replaceChildren();
     };
-  }, [actionsRef, activeReadout, activeTerm, autoRotateRef, cameraSnapshotRef, initialBuild]);
+  }, [actionsRef, activeReadout, activeTerm, initialBuild]);
+
+  useEffect(() => {
+    const plugin = pluginRef.current;
+    if (!plugin || !isReady) return;
+    void applyResearchCanvasBackground(plugin, canvasColor);
+  }, [canvasColor, isReady]);
 
   useEffect(() => {
     const plugin = pluginRef.current;
@@ -241,8 +236,7 @@ export function MolstarAllAtomStage({
     lastRebuildTimeRef.current = 0;
   }, [scrollState.step]);
 
-  // Page-aware trajectory playback. Stationary windows ping-pong to avoid an
-  // invented last-to-first interpolation; preparation plays once and holds.
+  // Ping-pong avoids inventing a last-to-first trajectory interpolation.
   useEffect(() => {
     const data = dataRef.current;
     const snapshot = data ? getScheduledAllAtomSnapshot(data.system, scrollState.step) : null;
@@ -254,20 +248,10 @@ export function MolstarAllAtomStage({
     const intervalMs = pagePolicy.frameIntervalMs;
     const cycleDurationMs = Math.max(intervalMs, (frameCount - 1) * intervalMs);
     const rebuildCadenceMs = 80; // rebuild Mol* scene every 80ms for smooth interpolation
-    let startTime = performance.now();
     let rafId = 0;
 
     const publishFrame = (fractionalFrame: number, forceRebuild = false) => {
       frameTimeRef.current = fractionalFrame;
-      const pg = getTrajectoryPage(data.trajectory, snapshot.id);
-      const disp = getDisplaySnapshot(snapshot, pg, fractionalFrame);
-      if (displayAtomsRef) {
-        displayAtomsRef.current = {
-          atoms: disp.atoms,
-          elements: disp.elements,
-          charges: disp.charges ?? [],
-        };
-      }
       const now = performance.now();
       if (forceRebuild || now - lastRebuildTimeRef.current >= rebuildCadenceMs) {
         lastRebuildTimeRef.current = now;
@@ -275,49 +259,33 @@ export function MolstarAllAtomStage({
       }
     };
 
-    if (pagePolicy.playbackMode === "hold" || reducedMotion || frameCount < 2) {
-      const stillFrame =
-        pagePolicy.playbackMode === "one-way"
-          ? frameCount - 1
-          : Math.floor((frameCount - 1) * 0.5);
-      publishFrame(stillFrame, true);
+    if (reducedMotion || frameCount < 2) {
+      publishFrame(Math.floor((frameCount - 1) * 0.5), true);
       return;
     }
 
+    const startTime = performance.now();
     const tick = () => {
       const now = performance.now();
       const elapsed = now - startTime;
-      let fractionalFrame = 0;
-      let finished = false;
-
-      if (pagePolicy.playbackMode === "one-way") {
-        const t = Math.min(1, elapsed / cycleDurationMs);
-        fractionalFrame = t * (frameCount - 1);
-        finished = t >= 1;
-      } else {
-        const phaseT = (elapsed % (cycleDurationMs * 2)) / cycleDurationMs;
-        const t = phaseT <= 1 ? phaseT : 2 - phaseT;
-        fractionalFrame = t * (frameCount - 1);
-      }
-
-      publishFrame(fractionalFrame, finished);
-      if (finished) return;
+      const phase = (elapsed % (cycleDurationMs * 2)) / cycleDurationMs;
+      const trajectoryProgress = phase <= 1 ? phase : 2 - phase;
+      publishFrame(trajectoryProgress * (frameCount - 1));
       rafId = requestAnimationFrame(tick);
     };
 
-    startTime = performance.now();
     lastRebuildTimeRef.current = startTime;
-    void rebuildScene(false, 0); // initial build
+    void rebuildScene(false, 0);
     rafId = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(rafId);
-  }, [displayAtomsRef, isReady, rebuildScene, reducedMotion, scrollState.step]);
+  }, [isReady, rebuildScene, reducedMotion, scrollState.step]);
 
   // Emphasis-only: activeTerm/activeReadout changes update alpha/emissive without scene rebuild
   useEffect(() => {
     const plugin = pluginRef.current;
     if (!isReady || !plugin) return;
-    const params = computeLayerEmphasis(scrollState.step, scrollState.stepProgress, activeTerm, activeReadout);
+    const params = computeLayerEmphasis(scrollState.step, scrollState.stepProgress, activeReadout);
     void updateResearchLayerParams(plugin, params);
   }, [activeTerm, activeReadout, isReady, scrollState.step, scrollState.stepProgress]);
 
@@ -331,28 +299,6 @@ export function MolstarAllAtomStage({
     if (!isReady) return;
     applyScheduledCamera(150);
   }, [applyScheduledCamera, effectiveViewRevision, effectiveZoomIndex, isReady]);
-
-  useEffect(() => {
-    const plugin = pluginRef.current;
-    if (!plugin) return;
-    void applySpinSetting(plugin, autoRotateRef.current);
-  }, [autoRotateRef]);
-
-  useEffect(() => {
-    if (!cameraSnapshotRef || !isReady) return;
-    let frame = 0;
-    const sync = () => {
-      const plugin = pluginRef.current;
-      if (plugin?.canvas3d) {
-        cameraSnapshotRef.current = (plugin.canvas3d.camera.getSnapshot() as CameraSnapshotLike | undefined) ?? null;
-      }
-      frame = window.requestAnimationFrame(sync);
-    };
-    frame = window.requestAnimationFrame(sync);
-    return () => {
-      window.cancelAnimationFrame(frame);
-    };
-  }, [cameraSnapshotRef, isReady]);
 
   useEffect(() => {
     if (!actionsRef || cameraState) return;
@@ -375,14 +321,18 @@ export function MolstarAllAtomStage({
   }, [actionsRef, cameraState]);
 
   return (
-    <div className="multiscale-molstar relative h-full w-full overflow-hidden bg-[#050510]" data-testid="multiscale-render-surface">
-      {!isReady && <div className="absolute inset-0 bg-[#050510]" />}
+    <div
+      className="multiscale-molstar relative h-full w-full overflow-hidden"
+      style={{ backgroundColor: canvasColor }}
+      data-testid="multiscale-render-surface"
+    >
+      {!isReady && <div className="absolute inset-0" style={{ backgroundColor: canvasColor }} />}
       <div ref={containerRef} className="h-full w-full" />
       {mountError && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-8 text-center text-sm text-slate-300">
-          <div className="max-w-md rounded-3xl border border-white/10 bg-slate-950/72 px-6 py-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-md">
-            <p className="font-semibold text-white/92">Mol* could not start WebGL.</p>
-            <p className="mt-2 leading-6 text-slate-300/90">{mountError}</p>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-8 text-center text-sm text-muted-foreground">
+          <div className="max-w-md border border-border bg-surface-raised/90 px-6 py-5 backdrop-blur-md">
+            <p className="font-semibold text-foreground">Mol* could not start WebGL.</p>
+            <p className="mt-2 leading-6 text-muted-foreground">{mountError}</p>
           </div>
         </div>
       )}

@@ -9,6 +9,13 @@ const scaleIndex = [
   { slug: "meso", scale: "10⁻⁷ m", ko: "메조", en: "Meso" },
 ];
 
+const levelTextMap: Record<string, string> = {
+  dft: "text-lv-dft",
+  mlff: "text-lv-mlff",
+  allatom: "text-lv-aa",
+  meso: "text-lv-meso",
+};
+
 export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
   return (
     <footer className="border-t border-border-strong pt-[3px]">
@@ -78,7 +85,9 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
                 <Link
                   key={area.slug}
                   href={`/${lang}/multiscale/${area.slug}`}
-                  className={`type-mono-meta whitespace-nowrap py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground ${
+                  className={`type-mono-meta whitespace-nowrap py-2 text-[11px] ${
+                    levelTextMap[area.slug] ?? "text-muted-foreground"
+                  } transition-colors hover:text-foreground ${
                     i % 2 === 1 ? "justify-self-end sm:justify-self-auto" : ""
                   }`}
                 >

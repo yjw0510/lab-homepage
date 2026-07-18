@@ -13,7 +13,7 @@ import { Task } from "molstar/lib/mol-task/index.js";
 import { Mesh } from "molstar/lib/mol-geo/geometry/mesh/mesh.js";
 import { MeshBuilder } from "molstar/lib/mol-geo/geometry/mesh/mesh-builder.js";
 import { addSphere } from "molstar/lib/mol-geo/geometry/mesh/builder/sphere.js";
-import { addCylinder, addFixedCountDashedCylinder } from "molstar/lib/mol-geo/geometry/mesh/builder/cylinder.js";
+import { addCylinder, addSimpleCylinder, addFixedCountDashedCylinder } from "molstar/lib/mol-geo/geometry/mesh/builder/cylinder.js";
 import { Shape } from "molstar/lib/mol-model/shape.js";
 import { Color } from "molstar/lib/mol-util/color/color.js";
 import { Binding } from "molstar/lib/mol-util/binding.js";
@@ -96,7 +96,7 @@ export interface ResearchLayerSpec {
   params?: Partial<Record<string, unknown>>;
 }
 
-export const BACKGROUND = Color.fromHexStyle("#050510");
+export const BACKGROUND = Color.fromHexStyle("#0a0909");
 export const SLATE = Color.fromHexStyle("#9ca3af");
 export const WHITE = Color.fromHexStyle("#f8fafc");
 export const CARBON = Color.fromHexStyle("#3d4552");
@@ -106,7 +106,6 @@ export const HYDROGEN = Color.fromHexStyle("#f3f4f6");
 export const CYAN = Color.fromHexStyle("#06b6d4");
 export const PURPLE = Color.fromHexStyle("#8b5cf6");
 export const RED = Color.fromHexStyle("#fb7185");
-export const TEAL = Color.fromHexStyle("#14b8a6");
 export const GREEN = Color.fromHexStyle("#22c55e");
 export const AMBER = Color.fromHexStyle("#fbbf24");
 export const ORANGE = Color.fromHexStyle("#f97316");
@@ -192,13 +191,27 @@ function createShapeFromLayer(spec: ResearchLayerSpec) {
     }
 
     if (primitive.kind === "cylinder") {
-      addCylinder(builderState, toMolstarVec3(primitive.start), toMolstarVec3(primitive.end), 1, {
+      const cylinderProps = {
         radiusTop: primitive.radiusTop,
         radiusBottom: primitive.radiusBottom,
         radialSegments: primitive.radialSegments ?? 14,
         topCap: primitive.radiusTop > 0,
         bottomCap: primitive.radiusBottom > 0,
-      });
+      };
+      const from = toMolstarVec3(primitive.start);
+      const to = toMolstarVec3(primitive.end);
+      if (primitive.radiusTop === primitive.radiusBottom) {
+        // Uniform cylinder (bond): addCylinder's matchDir keeps adjacent
+        // segments' triangles aligned, and a symmetric radius makes the flip
+        // it introduces harmless.
+        addCylinder(builderState, from, to, 1, cylinderProps);
+      } else {
+        // Tapered cylinder (arrowhead cone): addCylinder flips start↔end for
+        // half of all directions, which reverses the cone into a bowtie head.
+        // addSimpleCylinder pins the orientation so radiusTop is always at
+        // `end` and radiusBottom at `start`.
+        addSimpleCylinder(builderState, from, to, cylinderProps);
+      }
       return;
     }
 
@@ -351,6 +364,20 @@ interface CanvasSettingsProps {
   };
 }
 
+// Cap on how much the drawing buffer oversamples CSS pixels. Mol*'s default
+// `auto` resolution renders mobile canvases at pixelScale/devicePixelRatio,
+// which collapses the backing store to CSS resolution (≈1× on a DPR-3 phone)
+// and upscales it — the source of the blurry molecule renders. We force
+// `native` mode and pick a pixelScale so the backing store is DPR × css,
+// clamped to this multiple so a DPR-3 phone stays at 2× rather than 3×.
+const RESEARCH_MAX_OVERSAMPLE = 2;
+
+function researchPixelScale() {
+  if (typeof window === "undefined") return 1;
+  const dpr = window.devicePixelRatio || 1;
+  return Math.min(dpr, RESEARCH_MAX_OVERSAMPLE) / dpr;
+}
+
 export function createResearchPlugin() {
   return new PluginUIContext({
     ...DefaultPluginUISpec(),
@@ -374,15 +401,21 @@ export function createResearchPlugin() {
       [PluginConfig.Viewport.ShowControls, false],
       [PluginConfig.Viewport.ShowSelectionMode, false],
       [PluginConfig.Viewport.ShowAnimation, false],
+      [PluginConfig.General.ResolutionMode, "native"],
+      [PluginConfig.General.PixelScale, researchPixelScale()],
     ],
   });
 }
 
-export async function applyResearchCanvasSettings(plugin: PluginLike, autoRotate: boolean) {
+export async function applyResearchCanvasSettings(
+  plugin: PluginLike,
+  autoRotate: boolean,
+  backgroundColor = BACKGROUND,
+) {
   await PluginCommands.Canvas3D.SetSettings(plugin, {
     settings: (props) => {
       const canvasProps = props as unknown as CanvasSettingsProps;
-      canvasProps.renderer.backgroundColor = BACKGROUND;
+      canvasProps.renderer.backgroundColor = backgroundColor;
       canvasProps.renderer.pickingAlphaThreshold = 0.05;
       canvasProps.postprocessing ??= {};
       if (canvasProps.postprocessing.occlusion) canvasProps.postprocessing.occlusion.name = "off";
@@ -405,13 +438,11 @@ export async function applyResearchCanvasSettings(plugin: PluginLike, autoRotate
   });
 }
 
-export function applySpinSetting(plugin: PluginLike, enabled: boolean) {
+export function applyResearchCanvasBackground(plugin: PluginLike, backgroundColor: string) {
   return PluginCommands.Canvas3D.SetSettings(plugin, {
     settings: (props) => {
       const canvasProps = props as unknown as CanvasSettingsProps;
-      canvasProps.trackball.animate = enabled
-        ? { name: "spin", params: { speed: 0.06, axis: Vec3.create(0, -1, 0) } }
-        : { name: "off", params: {} };
+      canvasProps.renderer.backgroundColor = Color.fromHexStyle(backgroundColor);
     },
   });
 }
@@ -459,11 +490,13 @@ export function bindResearchCameraActions(
 export async function mountResearchPlugin({
   container,
   autoRotate,
+  backgroundColor,
   actionsRef,
   defaultSnapshotRef,
 }: {
   container: HTMLDivElement;
   autoRotate: boolean;
+  backgroundColor?: string;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   defaultSnapshotRef: MutableRefObject<CameraSnapshotLike | null>;
 }) {
@@ -475,7 +508,11 @@ export async function mountResearchPlugin({
     return { plugin: null, error: "WebGL could not be initialized in this browser session." };
   }
 
-  await applyResearchCanvasSettings(plugin, autoRotate);
+  await applyResearchCanvasSettings(
+    plugin,
+    autoRotate,
+    backgroundColor ? Color.fromHexStyle(backgroundColor) : BACKGROUND,
+  );
   bindResearchCameraActions(plugin, actionsRef, defaultSnapshotRef);
   return { plugin, error: null };
 }

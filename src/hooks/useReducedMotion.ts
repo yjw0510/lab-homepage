@@ -2,6 +2,7 @@
 
 import { useMediaQuery } from "./useMediaQuery";
 
-export function useReducedMotion(): boolean {
-  return useMediaQuery("(prefers-reduced-motion: reduce)");
+export function useReducedMotion(explicit?: boolean): boolean {
+  const systemPreference = useMediaQuery("(prefers-reduced-motion: reduce)");
+  return explicit ?? systemPreference;
 }
