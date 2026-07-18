@@ -195,9 +195,14 @@ async function main() {
   const defaults = checklist.defaults ?? {};
   const baseUrl = process.env.RESEARCH_BASE_URL ?? "http://localhost:3000";
   const levelFilter = process.env.RESEARCH_LEVEL ?? "";
+  const sceneFilter = process.env.RESEARCH_SCENE ?? "";
   const route = checklist.canonicalRoute ?? "/ko/multiscale";
   const canonicalUrl = new URL(route, baseUrl).toString();
-  const scenes = (checklist.scenes ?? []).filter((scene) => !levelFilter || scene.level === levelFilter);
+  const scenes = (checklist.scenes ?? []).filter(
+    (scene) =>
+      (!levelFilter || scene.level === levelFilter) &&
+      (!sceneFilter || scene.sceneId === sceneFilter),
+  );
 
   await Promise.all([
     fs.mkdir(ARTIFACT_DIR, { recursive: true }),
@@ -281,12 +286,8 @@ async function main() {
         const rightRail = page.locator('[data-testid="multiscale-right-rail"]');
         await ensureResearchLocators(page);
 
-        // Stable deterministic captures for layout review.
-        await screenshotLocator(stageShell, stableViewportPath, "disabled");
-        await screenshotLocator(visualPanel, stableVisualPath, "disabled");
-        await screenshotLocator(rightRail, stableRailPath, "disabled");
-
-        // Motion-aware captures for trajectory/animation review.
+        // Capture motion before any animation-disabled screenshot can
+        // fast-forward finite CSS/SVG sequences.
         const motionOffsetsMs = [0, 900, 1800];
         for (const [index, delayMs] of motionOffsetsMs.entries()) {
           if (delayMs > 0) await page.waitForTimeout(delayMs - (motionOffsetsMs[index - 1] ?? 0));
@@ -294,6 +295,11 @@ async function main() {
           await screenshotLocator(visualPanel, pathForFrame, "allow");
           motionFrames.push({ delayMs, path: pathForFrame });
         }
+
+        // Stable deterministic captures for layout review.
+        await screenshotLocator(stageShell, stableViewportPath, "disabled");
+        await screenshotLocator(visualPanel, stableVisualPath, "disabled");
+        await screenshotLocator(rightRail, stableRailPath, "disabled");
       } catch (error) {
         captureError = error instanceof Error ? error.message : String(error);
         await page.screenshot({ path: stableViewportPath });

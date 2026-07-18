@@ -60,7 +60,7 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
                   <Link
                     key={link.href}
                     href={`/${lang}${link.href}`}
-                    className="text-muted-foreground transition-colors hover:text-foreground"
+                    className="inline-flex min-h-6 items-center text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </Link>

@@ -10,6 +10,8 @@
     "lint": "eslint",
     "parse-jcr": "node scripts/parse-jcr.mjs",
     "capture:multiscale-scenes": "node scripts/capture-multiscale-scenes.mjs",
+    "capture:multiscale-eight": "node scripts/capture-multiscale-eight-pages.mjs",
+    "verify:mlff-visuals": "node scripts/verify-mlff-visuals.mjs",
     "validate:multiscale-scenes": "/Users/yjw0510/miniconda3/envs/research-md/bin/python scripts/validate_multiscale_scenes.py",
     "generate:math-svg": "node scripts/generate-math-svg.mjs",
     "test": "vitest",

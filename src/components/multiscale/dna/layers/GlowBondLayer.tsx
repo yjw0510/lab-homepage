@@ -112,11 +112,13 @@ export function GlowBondLayer({
 
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    material.needsUpdate = true;
-  }, [positions, bonds, radius, material]);
+  }, [positions, bonds, radius]);
 
   useFrame((_, delta) => {
-    material.uniforms.uTime.value += delta;
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const shaderMaterial = mesh.material as THREE.ShaderMaterial;
+    shaderMaterial.uniforms.uTime.value += delta;
   });
 
   if (bonds.length === 0) return null;

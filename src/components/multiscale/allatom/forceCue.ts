@@ -363,12 +363,17 @@ export function computeCueAnchorPoint(
       return vec3Scale(vec3Add(atoms[jIdx], atoms[kIdx]), 0.5) as [number, number, number];
     }
     case "UvdW": {
-      const [ai, bi] = FF_VDW_REF[0].indices;
-      return vec3Scale(vec3Add(atoms[ai], atoms[bi]), 0.5) as [number, number, number];
+      // Anchor between the two solute (caffeine) atoms of the pairs, not the
+      // solute-solvent midpoint, so the molecule stays centered while each cue
+      // reaches out to its solvent partner.
+      const a0 = FF_VDW_REF[0].indices[0];
+      const a1 = FF_VDW_REF[1]?.indices[0] ?? a0;
+      return vec3Scale(vec3Add(atoms[a0], atoms[a1]), 0.5) as [number, number, number];
     }
     case "UCoul": {
-      const [ai, bi] = FF_COULOMB_REF[0].indices;
-      return vec3Scale(vec3Add(atoms[ai], atoms[bi]), 0.5) as [number, number, number];
+      const a0 = FF_COULOMB_REF[0].indices[0];
+      const a1 = FF_COULOMB_REF[1]?.indices[0] ?? a0;
+      return vec3Scale(vec3Add(atoms[a0], atoms[a1]), 0.5) as [number, number, number];
     }
     default:
       return null;

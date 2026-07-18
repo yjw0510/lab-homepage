@@ -7,15 +7,14 @@ import { withBasePath } from "@/lib/basePath";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMounted } from "@/hooks/useMounted";
-import { DftScfSlider } from "./DftScfSlider";
-import { RDFBinSlider, type RdfBin } from "./RDFBinSlider";
+import type { RdfBin } from "./RDFBinSlider";
 import { VisualStage, type ResearchCameraActions } from "./VisualStage";
 import { RightRail } from "./RightRail";
-import { MobileBottomSheet, type SheetSnap } from "./MobileBottomSheet";
 import { MobileStatusRow } from "./MobileStatusRow";
 import { MobileViewerToolbar } from "./MobileViewerToolbar";
 import { getScrollState, globalStepFromLevel, LEVELS, type ScrollState } from "./scrollState";
 import { CHOREOGRAPHY } from "./levelData";
+import { MULTISCALE_TYPE } from "./visualRules";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
 
 const TOTAL_RESEARCH_STEPS = LEVELS.reduce((sum, level) => sum + level.steps, 0);
@@ -24,37 +23,29 @@ const STEP_HOLD_PROGRESS = 0.8;
 function getInteractionHint(sceneKey: string | undefined, lang: string) {
   const isKorean = lang === "ko";
   const hints: Record<string, { en: string; ko: string }> = {
-    M1_atoms: {
-      en: "Teaching system: this DNA model is shown at full atomic resolution first. Coarse-grained envelopes arrive in the next step.",
-      ko: "학습용 DNA 계를 먼저 전원자 해상도로 보여 줍니다. 다음 단계에서 조대화된 외피가 나타납니다.",
+    M2_mapping: {
+      en: "Mapping-teaching motif only. The active 8,000-bead melt begins on the next page as a separate system.",
+      ko: "매핑을 설명하는 학습용 구조입니다. 실제 8,000비드 용융계는 다음 장에서 별도 계로 시작합니다.",
     },
-    M5_rdf: {
-      en: "Explore the radius control to inspect the radial distribution at a chosen distance.",
-      ko: "반경 조절기를 움직여 원하는 거리에서의 방사 분포를 살펴보세요.",
+    M6_characterize: {
+      en: "Move the radius control to count a periodic shell. This RDF characterizes the same trajectory; it is not an independent validation target.",
+      ko: "반경 조절기로 주기 경계의 구각을 세어 보세요. 이 RDF는 같은 궤적의 특성값이며 독립 검증 목표가 아닙니다.",
     },
-    A2_forcefield: {
+    A3_forcefield: {
       en: "Select a force-field term in the equation or diagram to isolate its contribution.",
       ko: "식이나 도식의 힘장 항을 선택해 각 항의 기여를 따로 살펴보세요.",
     },
-    A5_readout: {
-      en: "Select a readout to compare one signal across the same trajectory window.",
-      ko: "관측량을 선택해 같은 궤적 구간에서 신호 하나를 비교해 보세요.",
+    A6_observables: {
+      en: "Select a readout to connect one trajectory frame to its measured signal and distribution.",
+      ko: "관측량을 선택해 궤적 프레임과 해당 신호·분포를 연결해 보세요.",
     },
-    D6_density: {
-      en: "Move the SCF control to compare the density residual across iterations.",
-      ko: "SCF 조절기를 움직여 반복에 따른 전자 밀도 잔차를 비교해 보세요.",
+    D4_scf: {
+      en: "Move the SCF control to compare total-density snapshots and the synchronized energy-change trace.",
+      ko: "SCF 조절기로 총 전자 밀도 스냅샷과 동기화된 에너지 변화 곡선을 비교해 보세요.",
     },
-    L4_energies: {
-      en: "Illustrative teaching diagram. Near-diagonal points explain agreement; this is not a reported model benchmark.",
-      ko: "설명용 도식입니다. 대각선에 가까운 점은 일치를 뜻하며, 보고된 모형 벤치마크가 아닙니다.",
-    },
-    L5_forces: {
-      en: "Illustrative teaching diagram. Near-diagonal points explain agreement; this is not a reported model benchmark.",
-      ko: "설명용 도식입니다. 대각선에 가까운 점은 일치를 뜻하며, 보고된 모형 벤치마크가 아닙니다.",
-    },
-    L7_settle: {
-      en: "Illustrative teaching diagram. Near-diagonal points explain agreement; this is not a reported model benchmark.",
-      ko: "설명용 도식입니다. 대각선에 가까운 점은 일치를 뜻하며, 보고된 모형 벤치마크가 아닙니다.",
+    L6_validate: {
+      en: "Diagnostic schematic only. No verified project MLFF prediction set is being reported.",
+      ko: "진단 절차 도식입니다. 검증된 프로젝트 MLFF 예측 결과를 보고하는 장면이 아닙니다.",
     },
   };
   const hint = sceneKey ? hints[sceneKey] : undefined;
@@ -79,33 +70,6 @@ declare global {
       getMetrics: () => Record<string, unknown> | null;
     };
   }
-}
-
-// Reduced-motion fallback — simple vertical layout
-function ReducedMotionLayout({
-  lang,
-}: {
-  lang: string;
-}) {
-  return (
-    <div className="dark min-h-screen bg-[#050510]">
-      <div className="flex min-h-[28dvh] items-center justify-center bg-[#050510]">
-        <div className="px-4 text-center">
-          <h1 className="type-display mb-4 text-4xl text-foreground md:text-6xl">
-            {lang === "ko" ? "다중 스케일 분자 시뮬레이션" : "Multiscale Molecular Simulation"}
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            {lang === "ko" ? "양자 정밀도에서 메조스케일 창발까지" : "From quantum precision to mesoscale emergence"}
-          </p>
-          <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-            {lang === "ko"
-              ? "아래의 방법 목록에서 각 해상도의 설명과 멀티스케일 연결을 차례로 읽어 보세요."
-              : "Use the method index below to read each resolution and its multiscale handoff in sequence."}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function MultiscalePinned({
@@ -142,9 +106,13 @@ export function MultiscalePinned({
   const [allAtomLockedTerm, setAllAtomLockedTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomHoveredReadout, setAllAtomHoveredReadout] = useState<AllAtomReadoutId | null>(null);
   const [allAtomLockedReadout, setAllAtomLockedReadout] = useState<AllAtomReadoutId | null>(null);
+  // Exact O-H distance of the contact drawn on the all-atom observable page,
+  // reported by the scene so the rail value matches the geometry.
+  const [measuredContactDistance, setMeasuredContactDistance] = useState<number | null>(null);
+  const handleMeasuredDistance = useCallback((value: number | null) => {
+    setMeasuredContactDistance(value);
+  }, []);
 
-  // Mobile-only state
-  const [mobileSheetSnap, setMobileSheetSnap] = useState<SheetSnap>("peek");
   const [cameraMenuOpen, setCameraMenuOpen] = useState(false);
 
   // Derive scrollState from currentStep + animatedProgress
@@ -175,6 +143,7 @@ export function MultiscalePinned({
     setAllAtomLockedTerm(null);
     setAllAtomHoveredReadout(null);
     setAllAtomLockedReadout(null);
+    setMeasuredContactDistance(null);
   }, []);
 
   const goNext = useCallback(() => goToStep(currentStep + 1), [currentStep, goToStep]);
@@ -268,23 +237,37 @@ export function MultiscalePinned({
           bins.push({ r: arr[i], g: arr[i + 1] });
         }
         setRdfBins(bins);
+        // Start at the first physically informative coordination peak rather
+        // than the near-zero bin, where the probe shell is visually trivial.
+        const firstPeakIndex = bins.reduce(
+          (best, bin, index) =>
+            bin.r <= 1.2 && bin.g > (bins[best]?.g ?? Number.NEGATIVE_INFINITY)
+              ? index
+              : best,
+          0,
+        );
+        // Use the first-peak shoulder so the static teaching frame contains
+        // an actually counted neighbor in the highlighted shell.
+        setRdfBinIndex(Math.min(firstPeakIndex + 1, bins.length - 1));
       })
       .catch(() => {});
   }, []);
 
   const effectiveScrollState = debugScrollStateOverride ?? scrollState;
   const level = LEVELS[effectiveScrollState.levelIndex];
-  const isAllAtomLevel = effectiveScrollState.level === "allatom";
-  const isAllAtomForceFieldStep = isAllAtomLevel && effectiveScrollState.step === 1;
-  const isAllAtomReadoutStep = isAllAtomLevel && effectiveScrollState.step === 4;
   const choreography = CHOREOGRAPHY[effectiveScrollState.level];
   const stepConfig = choreography.steps[effectiveScrollState.step];
-  const isDftScfStep = effectiveScrollState.level === "dft" && stepConfig?.sceneKey === "D6_density";
+  const isAllAtomLevel = effectiveScrollState.level === "allatom";
+  const isAllAtomForceFieldStep = isAllAtomLevel && stepConfig?.sceneKey === "A3_forcefield";
+  const isAllAtomReadoutStep = isAllAtomLevel && stepConfig?.sceneKey === "A6_observables";
+  const isDftScfStep = effectiveScrollState.level === "dft" && stepConfig?.sceneKey === "D4_scf";
   const defaultScfIndex = useMemo(() => {
     if (!dftSnapshots.length || effectiveScrollState.level !== "dft") return 0;
-    if (effectiveScrollState.step >= 8) return dftSnapshots.length - 1;
+    if (stepConfig?.sceneKey === "D6_outputs" || stepConfig?.sceneKey === "D7_labels") {
+      return dftSnapshots.length - 1;
+    }
     return 0;
-  }, [dftSnapshots, effectiveScrollState.level, effectiveScrollState.step]);
+  }, [dftSnapshots, effectiveScrollState.level, stepConfig?.sceneKey]);
 
   // Keep manual selection active until user navigates away from the SCF step
   const manualScfIndexActive =
@@ -292,7 +275,7 @@ export function MultiscalePinned({
 
   const effectiveScfIndex = manualScfIndexActive ?? defaultScfIndex;
   const showDftScfSlider = isDftScfStep && dftSnapshots.length > 1;
-  const showRdfSlider = effectiveScrollState.level === "meso" && effectiveScrollState.step === 4 && rdfBins.length > 1;
+  const showRdfSlider = stepConfig?.sceneKey === "M6_characterize" && rdfBins.length > 1;
   const activeAllAtomTerm = isAllAtomForceFieldStep ? (allAtomLockedTerm ?? allAtomHoveredTerm) : null;
   const activeAllAtomReadout = isAllAtomReadoutStep ? (allAtomLockedReadout ?? allAtomHoveredReadout) : null;
 
@@ -332,21 +315,8 @@ export function MultiscalePinned({
     gridTemplateColumns: "minmax(0, 1fr) clamp(340px, 32vw, 460px)",
   };
 
-  // Auto-fit viewer when sheet snap changes (viewer resizes → re-frame scene)
-  useEffect(() => {
-    if (!isMobile) return;
-    const timer = setTimeout(() => {
-      cameraActionsRef.current?.fit();
-    }, 380);
-    return () => clearTimeout(timer);
-  }, [mobileSheetSnap, isMobile]);
-
   if (!mounted) {
     return <div className="min-h-screen bg-[#050510]" />;
-  }
-
-  if (reducedMotion) {
-    return <ReducedMotionLayout lang={lang} />;
   }
 
   // ── Shared RightRail props ──
@@ -354,7 +324,7 @@ export function MultiscalePinned({
     scrollState: effectiveScrollState,
     level,
     stepConfig,
-    equationKey: choreography.equationKey,
+    equationKey: stepConfig.equationKey ?? choreography.equationKey,
     paper: currentPaper,
     lang,
     scfActiveIndexOverride: showDftScfSlider ? effectiveScfIndex : undefined,
@@ -380,10 +350,12 @@ export function MultiscalePinned({
     onStepClick: (localStep: number) => {
       goToStep(globalStepFromLevel(effectiveScrollState.levelIndex, localStep));
     },
+    onLevelSwitch: goToLevel,
     stepTitles,
     previousStepTitle: previousStepContext?.title,
     nextStepTitle: nextStepContext?.title,
     interactionHint,
+    measuredContactDistance,
   } as const;
 
   // ── Scene title element (shared) ──
@@ -397,7 +369,11 @@ export function MultiscalePinned({
   const sceneTitle = (
     <div
       className={`multiscale-scene-title pointer-events-none absolute z-10 max-w-[min(28rem,calc(100%-2rem))] ${
-        isMobile ? "left-4 top-4" : "left-6 top-6 sm:left-8 sm:top-8"
+        isMobile
+            ? effectiveScrollState.level === "mlff"
+              ? "left-4 top-4 !max-w-[calc(100%-2rem)]"
+              : "left-4 top-4 !max-w-[calc(100%-5.75rem)]"
+          : "left-6 top-6 sm:left-8 sm:top-8"
       }`}
       data-testid="multiscale-scene-title"
     >
@@ -405,13 +381,12 @@ export function MultiscalePinned({
         key={sceneTitleKey}
         className="multiscale-scene-title-inner border border-border bg-surface-sunken/90 px-3.5 py-2.5"
       >
-        <div className="type-mono-meta mb-1 text-[0.68rem] text-muted-foreground">
-          {level.label[lang as "en" | "ko"] ?? level.label.en}
+        <div className="type-mono-meta mb-1.5 flex items-center justify-between gap-4 text-[0.78125rem] text-muted-foreground">
+          <span>{level.label[lang as "en" | "ko"] ?? level.label.en}</span>
+          <span>{String(activeGlobalStep + 1).padStart(2, "0")} / {TOTAL_RESEARCH_STEPS}</span>
         </div>
         <h3
-          className={`type-heading text-foreground ${
-            isMobile ? "text-lg" : "text-xl sm:text-2xl"
-          }`}
+          className={`type-heading text-foreground ${MULTISCALE_TYPE.sceneTitle}`}
         >
           {stepConfig?.title?.[lang as "en" | "ko"] ?? stepConfig?.title?.en ?? ""}
         </h3>
@@ -428,23 +403,40 @@ export function MultiscalePinned({
       ? `${lang === "ko" ? "반경" : "Radius"} ${rdfBins[rdfBinIndex]?.r.toFixed(2)} nm`
       : null;
 
-    // Viewer bottom matches sheet visible height
-    const viewerBottom =
-      mobileSheetSnap === "peek" ? "120px"
-      : mobileSheetSnap === "half" ? "48%"
-      : "85%";
+    // Flagship + one interactive mechanism scene per scale; heights tuned from
+    // the per-scene capture so the mobile visual panel fits without clipping.
+    const mobileVisualHeight =
+      stepConfig.sceneKey === "D6_outputs"
+        ? "910px"
+        : stepConfig.sceneKey === "D4_scf"
+          ? "900px"
+          : stepConfig.sceneKey === "L1_why"
+            ? "1520px"
+            : stepConfig.sceneKey === "L5_energy_force"
+              ? "1640px"
+            : stepConfig.sceneKey === "A6_observables"
+              ? "1140px"
+              : stepConfig.sceneKey === "A3_forcefield"
+                ? "1140px"
+                : stepConfig.sceneKey === "M5_collective"
+                  ? "1040px"
+                  : stepConfig.sceneKey === "M6_characterize"
+                    ? "1250px"
+                    : "min(80dvh, 900px)";
 
     return (
-      <div className="dark relative bg-[#050510] overflow-hidden pt-16" style={{ height: "100dvh" }}>
+      <div
+        className="dark min-h-[100dvh] overflow-x-hidden bg-[#050510] pt-16"
+        data-testid="multiscale-stage-shell"
+      >
         <h1 className="sr-only">
           {lang === "ko"
             ? "멀티스케일 분자 시뮬레이션 — 양자 정밀도에서 메조스케일 창발까지"
             : "Multiscale molecular simulation, from quantum precision to mesoscale emergence"}
         </h1>
-        {/* Viewer — hero, resizes to stay above sheet */}
         <div
-          className="absolute inset-x-0 top-16 transition-[bottom] duration-300 ease-out"
-          style={{ bottom: viewerBottom }}
+          className="relative w-full"
+          style={{ height: mobileVisualHeight }}
           data-testid="multiscale-visual-panel"
         >
           <VisualStage
@@ -458,48 +450,49 @@ export function MultiscalePinned({
             allAtomActiveTerm={activeAllAtomTerm}
             allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
+            sceneKey={stepConfig.sceneKey}
+            reducedMotion={reducedMotion}
+            onMeasuredDistance={handleMeasuredDistance}
           />
 
           {sceneTitle}
 
-          <MobileViewerToolbar
-            cameraActionsRef={cameraActionsRef}
+          {effectiveScrollState.level !== "mlff" ? (
+            <MobileViewerToolbar
+              cameraActionsRef={cameraActionsRef}
+              lang={lang}
+              isOpen={cameraMenuOpen}
+              onToggle={() => setCameraMenuOpen((v) => !v)}
+            />
+          ) : null}
+        </div>
+
+        <div className="sticky top-16 z-30">
+          <MobileStatusRow
+            scrollState={effectiveScrollState}
+            level={level}
+            canGoNext={canGoNext}
+            canGoPrev={canGoPrev}
+            onNext={goNext}
+            onPrev={goPrev}
+            onStepClick={(localStep) => {
+              goToStep(globalStepFromLevel(effectiveScrollState.levelIndex, localStep));
+            }}
+            onLevelSwitch={goToLevel}
             lang={lang}
-            isOpen={cameraMenuOpen}
-            onToggle={() => setCameraMenuOpen((v) => !v)}
+            stepTitles={stepTitles}
+            previousStepTitle={previousStepContext?.title}
+            nextStepTitle={nextStepContext?.title}
+            scfLabel={scfLabel}
+            rdfLabel={rdfLabel}
           />
         </div>
 
-        {/* Bottom sheet with status row as header */}
-        <MobileBottomSheet
-          snap={mobileSheetSnap}
-          onSnapChange={setMobileSheetSnap}
-          header={
-            <MobileStatusRow
-              scrollState={effectiveScrollState}
-              level={level}
-              canGoNext={canGoNext}
-              canGoPrev={canGoPrev}
-              onNext={goNext}
-              onPrev={goPrev}
-              onStepClick={(localStep) => {
-                goToStep(globalStepFromLevel(effectiveScrollState.levelIndex, localStep));
-              }}
-              onLevelSwitch={goToLevel}
-              lang={lang}
-              stepTitles={stepTitles}
-              previousStepTitle={previousStepContext?.title}
-              nextStepTitle={nextStepContext?.title}
-              scfLabel={scfLabel}
-              rdfLabel={rdfLabel}
-              onChipTap={() => setMobileSheetSnap("half")}
-            />
-          }
-        >
+        <section className="border-t border-border bg-surface-sunken pb-[env(safe-area-inset-bottom)]">
           <RightRail
             {...rightRailProps}
             isMobile
-            variant="sheet"
+            variant="stack"
             showDftScfSlider={showDftScfSlider}
             dftSnapshots={dftSnapshots}
             scfValue={effectiveScfIndex}
@@ -511,7 +504,7 @@ export function MultiscalePinned({
             rdfBinIndex={rdfBinIndex}
             onRdfChange={setRdfBinIndex}
           />
-        </MobileBottomSheet>
+        </section>
       </div>
     );
   }
@@ -542,31 +535,14 @@ export function MultiscalePinned({
             allAtomActiveTerm={activeAllAtomTerm}
             allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
+            sceneKey={stepConfig.sceneKey}
+            reducedMotion={reducedMotion}
+            hideMechanism={effectiveScrollState.level !== "mlff"}
+            onMeasuredDistance={handleMeasuredDistance}
           />
 
-          {showRdfSlider && (
-            <RDFBinSlider
-              bins={rdfBins}
-              value={rdfBinIndex}
-              lang={lang}
-              onChange={setRdfBinIndex}
-            />
-          )}
-
-          {showDftScfSlider && (
-            <DftScfSlider
-              snapshots={dftSnapshots}
-              value={effectiveScfIndex}
-              lang={lang}
-              onChange={(nextIndex) => {
-                setManualScfIndex(nextIndex);
-              }}
-              onPointerStart={() => {}}
-              onPointerEnd={() => {}}
-            />
-          )}
-
           {/* Camera controls */}
+          {effectiveScrollState.level !== "mlff" ? (
           <div
             className="absolute right-4 top-4 z-10 grid grid-cols-2 gap-2 sm:right-6 sm:top-6"
             data-testid="multiscale-camera-controls"
@@ -615,47 +591,9 @@ export function MultiscalePinned({
               );
             })}
           </div>
+          ) : null}
 
           {sceneTitle}
-
-          {/* Named method chain gives the instrument a persistent narrative map. */}
-          <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 border border-border bg-surface-sunken/90 px-2 py-1.5">
-            <p className="type-mono-meta mb-1 px-1 text-[0.62rem] text-muted-foreground">
-              {lang === "ko" ? "연구 흐름" : "RESEARCH CHAIN"}
-            </p>
-            <nav
-              className="flex items-center gap-1"
-              aria-label={lang === "ko" ? "멀티스케일 연구 흐름" : "Multiscale research chain"}
-            >
-              {LEVELS.map((l, i) => {
-                const isActiveLevel = i === effectiveScrollState.levelIndex;
-                const localizedLabel = l.label[lang as "en" | "ko"] ?? l.label.en;
-                return (
-                  <button
-                    key={l.id}
-                    type="button"
-                    className={`flex min-h-9 items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors ${
-                      isActiveLevel
-                        ? "border-border-strong bg-muted text-foreground"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    }`}
-                    aria-label={`${lang === "ko" ? "이동" : "Jump to"} ${localizedLabel}`}
-                    aria-current={isActiveLevel ? "true" : undefined}
-                    title={localizedLabel}
-                    onClick={() => goToLevel(i)}
-                  >
-                    <span
-                      className="h-2 w-2"
-                      style={{ backgroundColor: l.color, opacity: isActiveLevel ? 1 : 0.5 }}
-                    />
-                    <span className={isActiveLevel ? "inline" : "hidden sm:inline"}>
-                      {localizedLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
         </div>
 
         {/* Right Rail */}
@@ -666,6 +604,16 @@ export function MultiscalePinned({
           <RightRail
             {...rightRailProps}
             isMobile={false}
+            showDftScfSlider={showDftScfSlider}
+            dftSnapshots={dftSnapshots}
+            scfValue={effectiveScfIndex}
+            onScfChange={(nextIndex) => setManualScfIndex(nextIndex)}
+            onScfPointerStart={() => {}}
+            onScfPointerEnd={() => {}}
+            showRdfSlider={showRdfSlider}
+            rdfBins={rdfBins}
+            rdfBinIndex={rdfBinIndex}
+            onRdfChange={setRdfBinIndex}
           />
         </div>
       </div>

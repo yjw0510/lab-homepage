@@ -2,6 +2,9 @@
 export {
   type AllAtomCameraState,
   type AllAtomVisualState,
+  type AllAtomSceneKey,
   getScheduledAllAtomSnapshot,
   getAllAtomVisuals,
+  getAllAtomSceneKey,
+  getAllAtomViewStep,
 } from "./allAtomConfig";

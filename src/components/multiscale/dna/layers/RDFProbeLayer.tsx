@@ -31,7 +31,7 @@ export function RDFProbeLayer({
         <meshStandardMaterial
           color="#06b6d4"
           transparent
-          opacity={0.05}
+          opacity={0.08}
           depthWrite={false}
           side={THREE.DoubleSide}
         />
@@ -43,24 +43,38 @@ export function RDFProbeLayer({
         <meshStandardMaterial
           color="#22d3ee"
           transparent
-          opacity={0.14}
+          opacity={0.22}
           depthWrite={false}
           side={THREE.BackSide}
         />
       </mesh>
 
-      {/* Shell annulus — outer surface */}
+      {/* Shell annulus — explicit inner and outer boundaries */}
       {shellOuter > shellInner && (
-        <mesh renderOrder={3}>
-          <sphereGeometry args={[shellOuter, 48, 48]} />
-          <meshStandardMaterial
-            color="#f59e0b"
-            transparent
-            opacity={0.09}
-            depthWrite={false}
-            side={THREE.BackSide}
-          />
-        </mesh>
+        <>
+          {shellInner > 0 && (
+            <mesh renderOrder={3}>
+              <sphereGeometry args={[shellInner, 48, 48]} />
+              <meshStandardMaterial
+                color="#f59e0b"
+                transparent
+                opacity={0.24}
+                depthWrite={false}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          )}
+          <mesh renderOrder={3}>
+            <sphereGeometry args={[shellOuter, 48, 48]} />
+            <meshStandardMaterial
+              color="#f59e0b"
+              transparent
+              opacity={0.2}
+              depthWrite={false}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </>
       )}
     </group>
   );

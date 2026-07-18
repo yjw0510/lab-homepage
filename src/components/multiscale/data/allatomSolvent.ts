@@ -16,6 +16,7 @@ export interface AllAtomRingPlane {
   center: number[];
   normal: number[];
   radius: number;
+  residueId?: number;
 }
 
 export interface AllAtomCuePoint {

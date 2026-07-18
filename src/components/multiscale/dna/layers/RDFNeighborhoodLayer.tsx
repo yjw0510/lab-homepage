@@ -9,6 +9,26 @@ const DUPLEX_COLORS = [
   "#a855f7", "#14b8a6", "#f43f5e", "#eab308",
 ];
 
+const OUTSIDE_POINTS_VERTEX = `
+  uniform float uPointSize;
+
+  void main() {
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    float perspectiveSize = uPointSize * (300.0 / max(1.0, -viewPosition.z));
+    gl_PointSize = clamp(perspectiveSize, 1.6, 6.5);
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`;
+
+const OUTSIDE_POINTS_FRAGMENT = `
+  void main() {
+    float distanceFromCenter = length(gl_PointCoord - vec2(0.5));
+    if (distanceFromCenter > 0.5) discard;
+    float edge = 1.0 - smoothstep(0.34, 0.5, distanceFromCenter);
+    gl_FragColor = vec4(vec3(0.6, 0.66, 0.74), 0.36 * edge);
+  }
+`;
+
 /**
  * RDF-aware neighborhood layer: classifies beads into four visual groups.
  *
@@ -24,6 +44,7 @@ export function RDFNeighborhoodLayer({
   center,
   radius,
   shellWidth,
+  box,
   beadRadius = 0.17,
 }: {
   positions: Float32Array;
@@ -32,6 +53,7 @@ export function RDFNeighborhoodLayer({
   center: [number, number, number];
   radius: number;
   shellWidth: number;
+  box?: [number, number, number];
   beadRadius?: number;
 }) {
   const nBeads = positions.length / 3;
@@ -47,9 +69,14 @@ export function RDFNeighborhoodLayer({
     for (let i = 0; i < nBeads; i++) {
       if (i === referenceIndex) continue;
 
-      const dx = positions[3 * i] - center[0];
-      const dy = positions[3 * i + 1] - center[1];
-      const dz = positions[3 * i + 2] - center[2];
+      let dx = positions[3 * i] - center[0];
+      let dy = positions[3 * i + 1] - center[1];
+      let dz = positions[3 * i + 2] - center[2];
+      if (box) {
+        dx -= box[0] * Math.round(dx / box[0]);
+        dy -= box[1] * Math.round(dy / box[1]);
+        dz -= box[2] * Math.round(dz / box[2]);
+      }
       const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
       if (d < rInner) {
@@ -68,7 +95,7 @@ export function RDFNeighborhoodLayer({
       shellIndices: shell,
       outsideIndices: outside,
     };
-  }, [positions, nBeads, referenceIndex, center, rInner, rOuter, duplexIds]);
+  }, [positions, nBeads, referenceIndex, center, rInner, rOuter, duplexIds, box]);
 
   return (
     <group>
@@ -241,12 +268,11 @@ function OutsidePoints({
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[pointPositions, 3]} />
       </bufferGeometry>
-      <pointsMaterial
-        size={0.08}
-        color="#94a3b8"
+      <shaderMaterial
+        vertexShader={OUTSIDE_POINTS_VERTEX}
+        fragmentShader={OUTSIDE_POINTS_FRAGMENT}
+        uniforms={{ uPointSize: { value: 0.15 } }}
         transparent
-        opacity={0.12}
-        sizeAttenuation
         depthWrite={false}
       />
     </points>

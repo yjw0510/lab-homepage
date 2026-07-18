@@ -21,7 +21,7 @@ const ACTIONS = [
 ] as const;
 
 const BTN =
-  "flex h-11 w-11 items-center justify-center text-foreground transition-colors hover:bg-muted";
+  "flex h-12 w-12 items-center justify-center text-foreground transition-colors hover:bg-muted";
 
 export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }: Props) {
   const reducedMotion = useReducedMotion();
@@ -44,16 +44,32 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
     : { type: "spring" as const, damping: 25, stiffness: 400 };
 
   return (
-    <div ref={panelRef} className="dark absolute right-3 top-3 z-10 flex items-start gap-1.5">
-      {/* Expanding action bar — slides in from the right */}
+    <div
+      ref={panelRef}
+      className="dark absolute right-3 top-3 z-10"
+      data-testid="mobile-viewer-toolbar"
+    >
+      {/* Trigger stays anchored beside the title. */}
+      <button
+        type="button"
+        className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border-strong bg-surface-raised text-foreground transition-colors hover:bg-muted"
+        onClick={onToggle}
+        aria-label={lang === "ko" ? "뷰어 도구" : "Viewer tools"}
+        aria-expanded={isOpen}
+      >
+        <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
+      </button>
+
+      {/* A compact 2×2 tray opens below the title line. */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scaleX: 0, originX: 1 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            exit={{ opacity: 0, scaleX: 0 }}
+            initial={{ opacity: 0, scaleY: 0, originY: 0 }}
+            animate={{ opacity: 1, scaleY: 1 }}
+            exit={{ opacity: 0, scaleY: 0 }}
             transition={transition}
-            className="flex items-center gap-1 border border-border-strong bg-surface-raised p-1"
+            className="absolute right-0 top-[7rem] grid grid-cols-2 gap-1 border border-border-strong bg-surface-raised p-1"
+            data-testid="mobile-viewer-toolbar-tray"
           >
             {ACTIONS.map((action) => {
               const Icon = action.icon;
@@ -76,17 +92,6 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Trigger button */}
-      <button
-        type="button"
-        className="flex h-11 w-11 flex-shrink-0 items-center justify-center border border-border-strong bg-surface-raised text-foreground transition-colors hover:bg-muted"
-        onClick={onToggle}
-        aria-label={lang === "ko" ? "뷰어 도구" : "Viewer tools"}
-        aria-expanded={isOpen}
-      >
-        <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
-      </button>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import type { MutableRefObject, RefObject } from "react";
 import type { ScrollState } from "./scrollState";
 import { ThreeMultiscaleStage } from "./ThreeMultiscaleStage";
 import { AllAtomHybridStage } from "./allatom/AllAtomHybridStage";
+import { MlffSchematicStage } from "./mlff/MlffSchematicStage";
 import { MolstarDftStage } from "./molstar/MolstarDftStage";
 import type { ResearchCameraActions } from "./molstar/shared";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
@@ -21,6 +22,10 @@ export function VisualStage({
   allAtomActiveTerm,
   allAtomActiveReadout,
   lang = "en",
+  sceneKey,
+  reducedMotion = false,
+  hideMechanism = false,
+  onMeasuredDistance,
 }: {
   progressRef: RefObject<number>;
   scrollState: ScrollState;
@@ -32,6 +37,12 @@ export function VisualStage({
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
   allAtomActiveReadout?: AllAtomReadoutId | null;
   lang?: string;
+  sceneKey?: string;
+  reducedMotion?: boolean;
+  // When true, the on-canvas HTML mechanism panel is not rendered; its content
+  // lives in the right rail instead so the 3D stage is never occluded.
+  hideMechanism?: boolean;
+  onMeasuredDistance?: (nm: number | null) => void;
 }) {
   const commonProps = {
     progressRef,
@@ -43,12 +54,50 @@ export function VisualStage({
 
   switch (scrollState.level) {
     case "meso":
+      return (
+        <ThreeMultiscaleStage
+          {...commonProps}
+          rdfBinIndex={rdfBinIndex}
+          sceneKey={sceneKey}
+          reducedMotion={reducedMotion}
+          lang={lang}
+          hideMechanism={hideMechanism}
+        />
+      );
     case "mlff":
-      return <ThreeMultiscaleStage {...commonProps} rdfBinIndex={rdfBinIndex} />;
+      return (
+        <MlffSchematicStage
+          sceneKey={sceneKey}
+          lang={lang}
+          isMobile={isMobile}
+          reducedMotion={reducedMotion}
+          actionsRef={actionsRef}
+        />
+      );
     case "allatom":
-      return <AllAtomHybridStage {...commonProps} activeTerm={allAtomActiveTerm ?? null} activeReadout={allAtomActiveReadout ?? null} />;
+      return (
+        <AllAtomHybridStage
+          {...commonProps}
+          activeTerm={allAtomActiveTerm ?? null}
+          activeReadout={allAtomActiveReadout ?? null}
+          sceneKey={sceneKey}
+          reducedMotion={reducedMotion}
+          lang={lang}
+          hideMechanism={hideMechanism}
+          onMeasuredDistance={onMeasuredDistance}
+        />
+      );
     case "dft":
-      return <MolstarDftStage {...commonProps} manualSnapshotIndex={dftManualSnapshotIndex} lang={lang} />;
+      return (
+        <MolstarDftStage
+          {...commonProps}
+          manualSnapshotIndex={dftManualSnapshotIndex}
+          lang={lang}
+          sceneKey={sceneKey}
+          reducedMotion={reducedMotion}
+          hideMechanism={hideMechanism}
+        />
+      );
     default:
       return <div className="h-full w-full bg-[#050510]" />;
   }

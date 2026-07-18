@@ -11,10 +11,34 @@ export interface LevelConfig {
 }
 
 export const LEVELS: LevelConfig[] = [
-  { id: "dft", label: { en: "Ab-initio", ko: "제일원리" }, color: "#f97316", steps: 9, scale: { en: "0.1-1 nm", ko: "0.1-1 nm" } },
-  { id: "mlff", label: { en: "MLFF", ko: "MLFF" }, color: "#8b5cf6", steps: 7, scale: { en: "1-10 nm (ab initio)", ko: "1-10 nm (제일원리 수준)" } },
-  { id: "allatom", label: { en: "All-Atom", ko: "전원자" }, color: "#06b6d4", steps: 5, scale: { en: "1-10 nm", ko: "1-10 nm" } },
-  { id: "meso", label: { en: "Mesoscale", ko: "메조스케일" }, color: "#f59e0b", steps: 6, scale: { en: "10 nm - 1 μm", ko: "10 nm - 1 μm" } },
+  {
+    id: "dft",
+    label: { en: "Electronic Structure / DFT", ko: "전자구조 / DFT" },
+    color: "#f97316",
+    steps: 2,
+    scale: { en: "density and orbitals resolved · selected configurations", ko: "전자 밀도·오비탈 해상 · 선택된 배치" },
+  },
+  {
+    id: "mlff",
+    label: { en: "MLFF", ko: "MLFF" },
+    color: "#8b5cf6",
+    steps: 2,
+    scale: { en: "atoms explicit · learned PES", ko: "원자 명시 · 학습 PES" },
+  },
+  {
+    id: "allatom",
+    label: { en: "Classical All-Atom", ko: "고전 전원자" },
+    color: "#06b6d4",
+    steps: 2,
+    scale: { en: "atoms explicit · analytic FF", ko: "원자 명시 · 해석적 역장" },
+  },
+  {
+    id: "meso",
+    label: { en: "Mesoscale", ko: "메조스케일" },
+    color: "#f59e0b",
+    steps: 2,
+    scale: { en: "collective variables · effective model", ko: "집단 변수 · 유효 모형" },
+  },
 ];
 
 const TOTAL_STEPS = LEVELS.reduce((sum, l) => sum + l.steps, 0);

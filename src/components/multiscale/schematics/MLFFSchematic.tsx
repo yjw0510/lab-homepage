@@ -354,7 +354,7 @@ export function MLFFSchematic({ active }: { active: boolean }) {
         style={{ animationDelay: "0.78s" }}
       >
         <tspan fontSize="15" fontWeight="bold" fontStyle="italic">E</tspan>
-        <tspan fontSize="10" fontStyle="normal" dy="3">global</tspan>
+        <tspan fontSize="12" fontStyle="normal" dy="3">global</tspan>
       </text>
 
       {/* Stage 3: Force arrows first (below atoms) */}
@@ -397,15 +397,15 @@ export function MLFFSchematic({ active }: { active: boolean }) {
         className={`fill-muted-foreground ${active ? "animate-fade-in" : "opacity-0"}`}
         style={{ animationDelay: "0.15s" }}>Atoms</text>
 
-      <text x="232" y="126" textAnchor="middle" fontSize="10"
+      <text x="232" y="126" textAnchor="middle" fontSize="12"
         className={`fill-muted-foreground ${active ? "animate-fade-in" : "opacity-0"}`}
         style={{ animationDelay: "0.55s" }}>Descriptor</text>
 
-      <text x="340" y="126" textAnchor="middle" fontSize="10"
+      <text x="340" y="126" textAnchor="middle" fontSize="12"
         className={`fill-muted-foreground ${active ? "animate-fade-in" : "opacity-0"}`}
         style={{ animationDelay: "0.55s" }}>Graph</text>
 
-      <text x="286" y="143" textAnchor="middle" fontSize="11.5" fontWeight="600"
+      <text x="286" y="143" textAnchor="middle" fontSize="12" fontWeight="600"
         className={`fill-muted-foreground ${active ? "animate-fade-in" : "opacity-0"}`}
         style={{ animationDelay: "0.58s" }}>Local representation</text>
 
@@ -413,9 +413,9 @@ export function MLFFSchematic({ active }: { active: boolean }) {
         className={`fill-muted-foreground ${active ? "animate-fade-in" : "opacity-0"}`}
         style={{ animationDelay: "0.85s" }}>
         E
-        <tspan fontSize="9" dy="2">i</tspan>
+        <tspan fontSize="12" dy="2">i</tspan>
         <tspan dy="-2">, F</tspan>
-        <tspan fontSize="9" dy="2">i</tspan>
+        <tspan fontSize="12" dy="2">i</tspan>
       </text>
     </svg>
   );

@@ -1,0 +1,111 @@
+{
+  "generatedAt": "2026-07-17T08:46:56.587Z",
+  "baseUrl": "http://localhost:3000",
+  "route": "/ko/multiscale",
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "scenes": [
+    {
+      "sceneId": "08-mlff-overview",
+      "level": "mlff",
+      "stepIndex": 0,
+      "stepProgress": 0.52,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/still/08-mlff-overview.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/still/08-mlff-overview.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/still/08-mlff-overview.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/motion/08-mlff-overview.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/motion/08-mlff-overview.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/motion/08-mlff-overview.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/traces/08-mlff-overview.zip",
+      "debugState": {
+        "level": "mlff",
+        "levelIndex": 1,
+        "step": 0,
+        "stepCount": 2,
+        "levelProgress": 0.26,
+        "stepProgress": 0.52,
+        "masterProgress": 0.315
+      },
+      "metrics": null,
+      "captureError": null,
+      "imageCheckResults": [
+        {
+          "type": "occupancy",
+          "pass": true,
+          "actual": "0.6510",
+          "min": 0.015,
+          "max": 0.92
+        },
+        {
+          "type": "centroid",
+          "pass": true,
+          "actualX": "0.459",
+          "actualY": "0.529"
+        }
+      ]
+    },
+    {
+      "sceneId": "09-mlff-inside",
+      "level": "mlff",
+      "stepIndex": 1,
+      "stepProgress": 0.52,
+      "stableViewportPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/still/09-mlff-inside.viewport.png",
+      "stableVisualPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/still/09-mlff-inside.visual.png",
+      "stableRailPath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/still/09-mlff-inside.rail.png",
+      "motionFrames": [
+        {
+          "delayMs": 0,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/motion/09-mlff-inside.f1.png"
+        },
+        {
+          "delayMs": 900,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/motion/09-mlff-inside.f2.png"
+        },
+        {
+          "delayMs": 1800,
+          "path": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/motion/09-mlff-inside.f3.png"
+        }
+      ],
+      "tracePath": "/Users/yjw0510/Desktop/projects/lab_homepage/artifacts/multiscale-scenes/traces/09-mlff-inside.zip",
+      "debugState": {
+        "level": "mlff",
+        "levelIndex": 1,
+        "step": 1,
+        "stepCount": 2,
+        "levelProgress": 0.76,
+        "stepProgress": 0.52,
+        "masterProgress": 0.44
+      },
+      "metrics": null,
+      "captureError": null,
+      "imageCheckResults": [
+        {
+          "type": "occupancy",
+          "pass": true,
+          "actual": "0.6589",
+          "min": 0.015,
+          "max": 0.92
+        },
+        {
+          "type": "centroid",
+          "pass": true,
+          "actualX": "0.400",
+          "actualY": "0.524"
+        }
+      ]
+    }
+  ]
+}

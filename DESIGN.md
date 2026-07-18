@@ -97,6 +97,11 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
   dates, years, DOIs, volume/page, scale ticks (`10⁻¹⁰ m`), counts, index
   numerals. `font-feature-settings: "tnum"`. Sizes 11–13px, `tracking 0.01em`.
   Mono appears only in this role; never as body prose.
+- **Mathematical notation**: KaTeX's LaTeX/Computer-Modern-derived family is
+  the sole mathematical register. Block equations render at 21px in display
+  style; inline equations stay at 1em–1.05em on the prose baseline. Never type
+  equations with Pretendard, Geist Mono, Unicode lookalikes, or ad-hoc SVG
+  text. This is a domain-specific exception to the two-family text system.
 - Scale (≈1.33 ratio): 12.5 / 14 / 16 (base) / 18 / 21 / 28 / 37 / 49 / 65px;
   display clamp ceiling 5.5rem. Body measure ≤ 34rem ko / 65ch en.
 - Hero headline ≤ 2 lines; subtext ≤ 20 words / ≤ 2 lines Korean.

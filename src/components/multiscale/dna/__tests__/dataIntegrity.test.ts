@@ -59,7 +59,8 @@ describe("manifest.json", () => {
 describe("binary file sizes match manifest", () => {
   const manifest = readJson("manifest.json");
 
-  for (const [name, asset] of Object.entries(manifest.assets) as [string, any][]) {
+  const assets = Object.values(manifest.assets) as Array<{ path: string; byteLength: number }>;
+  for (const asset of assets) {
     it(`${asset.path} matches declared byte length`, () => {
       expect(fileSize(asset.path)).toBe(asset.byteLength);
     });

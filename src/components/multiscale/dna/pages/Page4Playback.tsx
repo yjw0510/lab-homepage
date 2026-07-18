@@ -20,7 +20,7 @@ function hashParam(i: number, d: number, seed: number): number {
  * Each bead has a different displacement amplitude (multi-harmonic).
  * Progress scales overall amplitude (turning up the thermostat).
  */
-export function Page4Playback({ assets: _a, progress }: { assets: DNAAssets; progress: number }) {
+export function Page4Playback({ progress }: { assets: DNAAssets; progress: number }) {
   const [bpBeads, setBpBeads] = useState<Float32Array | null>(null);
 
   useEffect(() => {
@@ -63,17 +63,21 @@ export function Page4Playback({ assets: _a, progress }: { assets: DNAAssets; pro
 
   const beadRef = useRef<BeadLayerHandle>(null);
   const bondRef = useRef<BondLayerHandle>(null);
-  const displaced = useRef<Float32Array | null>(null);
   const progressRef = useRef(progress);
-  progressRef.current = progress;
+  const displacedRef = useRef<Float32Array | null>(null);
 
-  if (!displaced.current || displaced.current.length !== nBeads * 3) {
-    displaced.current = nBeads > 0 ? new Float32Array(nBeads * 3) : null;
-  }
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+
+  useEffect(() => {
+    displacedRef.current = nBeads > 0 ? new Float32Array(nBeads * 3) : null;
+  }, [nBeads]);
 
   const timeRef = useRef(0);
   useFrame((_, delta) => {
-    if (!bpBeads || !shakeParams || !displaced.current) return;
+    const displaced = displacedRef.current;
+    if (!bpBeads || !shakeParams || !displaced) return;
     timeRef.current += delta;
     const t = timeRef.current;
     const scale = Math.min(1, progressRef.current * 3);
@@ -83,12 +87,12 @@ export function Page4Playback({ assets: _a, progress }: { assets: DNAAssets; pro
         const b0 = (i * 18) + (d * 6);
         const v0 = shakeParams[b0] * Math.sin(t * shakeParams[b0 + 1] + shakeParams[b0 + 2]);
         const v1 = shakeParams[b0 + 3] * Math.sin(t * shakeParams[b0 + 4] + shakeParams[b0 + 5]);
-        displaced.current[3 * i + d] = bpBeads[3 * i + d] + (v0 + v1) * scale;
+        displaced[3 * i + d] = bpBeads[3 * i + d] + (v0 + v1) * scale;
       }
     }
 
-    beadRef.current?.update(displaced.current);
-    bondRef.current?.update(displaced.current);
+    beadRef.current?.update(displaced);
+    bondRef.current?.update(displaced);
   });
 
   if (!bpBeads) return null;

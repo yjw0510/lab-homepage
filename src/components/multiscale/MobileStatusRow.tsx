@@ -59,7 +59,7 @@ export function MobileStatusRow({
             <button
               key={l.id}
               type="button"
-              className={`type-mono-meta flex-shrink-0 border-b-2 px-3 py-2 text-[11px] transition-colors ${
+              className={`type-mono-meta flex min-h-11 flex-shrink-0 items-center border-b-2 px-3 py-2 text-xs transition-colors ${
                 isActive
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground"
@@ -75,14 +75,14 @@ export function MobileStatusRow({
       </div>
 
       {/* Step navigation */}
-      <div className="flex items-center gap-1.5 px-3 pb-1.5 pt-0.5">
+      <div className="flex items-center gap-1 px-3 pb-2 pt-0.5">
         {/* Step segments */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {Array.from({ length: scrollState.stepCount }, (_, i) => (
             <button
               key={i}
               type="button"
-              className="flex h-7 w-2 flex-shrink-0 items-center"
+              className="flex h-12 w-6 flex-shrink-0 items-center"
               onClick={() => onStepClick(i)}
               aria-label={`${stepTitles[i] ?? `${lang === "ko" ? "단계" : "Step"} ${i + 1}`}, ${i + 1} / ${scrollState.stepCount}`}
               aria-current={i === scrollState.step ? "step" : undefined}
@@ -104,7 +104,7 @@ export function MobileStatusRow({
         </div>
 
         {/* Step counter */}
-        <span className="type-mono-meta text-[11px] text-muted-foreground">
+        <span className="type-mono-meta text-xs text-muted-foreground">
           {scrollState.step + 1}/{scrollState.stepCount}
         </span>
 
@@ -112,7 +112,7 @@ export function MobileStatusRow({
         {chipLabel && (
           <button
             type="button"
-            className="type-mono-meta flex-shrink-0 border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted"
+            className="type-mono-meta min-h-12 flex-shrink-0 border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted"
             onClick={onChipTap}
             aria-label={lang === "ko" ? `${chipLabel} 조절기 열기` : `Open ${chipLabel} control`}
           >
@@ -128,7 +128,7 @@ export function MobileStatusRow({
           type="button"
           disabled={!canGoPrev}
           onClick={onPrev}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-border-strong text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-25"
+          className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border-strong text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-25"
           aria-label={previousLabel}
           title={previousLabel}
         >
@@ -138,7 +138,7 @@ export function MobileStatusRow({
           type="button"
           disabled={!canGoNext}
           onClick={onNext}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-border-strong text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-25"
+          className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border-strong text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-25"
           aria-label={nextLabel}
           title={nextLabel}
         >

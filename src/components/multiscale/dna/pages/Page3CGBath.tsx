@@ -30,12 +30,16 @@ export function Page3CGBath({ assets: _a, progress: _p }: { assets: DNAAssets; p
     for (let k = 0; k < n - 1; k++) bonds.push([k, k + 1]);
     return bonds;
   }, [bpBeads]);
+  const singleChainIds = useMemo(
+    () => (bpBeads ? Array.from({ length: bpBeads.length / 3 }, () => 0) : []),
+    [bpBeads],
+  );
 
   if (!bpBeads) return null;
 
   return (
     <group>
-      <BeadLayer positions={bpBeads} radius={0.12} opacity={0.95} />
+      <BeadLayer positions={bpBeads} duplexIds={singleChainIds} radius={0.12} opacity={0.95} />
       <GlowBondLayer positions={bpBeads} bonds={cgBonds} />
     </group>
   );

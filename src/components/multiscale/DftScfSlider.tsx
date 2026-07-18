@@ -8,10 +8,6 @@ interface ScfSnapshotMeta {
   label: string;
 }
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
 const THUMB = 28;
 const THUMB_R = THUMB / 2;
 
@@ -69,7 +65,7 @@ export function DftScfSlider({
       ? "dark"
       : "dark absolute bottom-24 left-1/2 z-10 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 border border-border-strong bg-surface-raised px-4 py-3"
     }>
-      <div className="type-mono-meta mb-3 flex items-center justify-between text-[11px] text-muted-foreground">
+      <div className="type-mono-meta mb-3 flex items-center justify-between text-xs text-muted-foreground">
         <span>{lang === "ko" ? "SCF 진행" : "SCF Progress"}</span>
         <span className="text-foreground">
           {snapshots[value]?.label ?? snapshots[value]?.iteration ?? value}
@@ -113,7 +109,7 @@ export function DftScfSlider({
         </div>
 
         {/* Ticks + labels from the same coordinate model */}
-        <div className="type-mono-meta relative mt-3 h-10 text-[11px]">
+        <div className="type-mono-meta relative mt-3 h-10 text-xs">
           {ticks.map(({ snapshot, index, x }) => {
             const active = index === value;
             return (
@@ -123,7 +119,7 @@ export function DftScfSlider({
                 onMouseDown={onPointerStart}
                 onMouseUp={onPointerEnd}
                 onClick={() => onChange(index)}
-                className="absolute top-0 -translate-x-1/2"
+                className="absolute top-0 flex min-h-9 min-w-6 -translate-x-1/2 items-start justify-center"
                 style={{ left: `${x}px` }}
               >
                 <div className="flex flex-col items-center gap-1">

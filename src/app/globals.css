@@ -144,11 +144,16 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   font-weight: 430;
+  font-size: 1rem;
+  line-height: 1.7;
+  font-kerning: normal;
+  font-optical-sizing: auto;
   transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
 }
 
 .dark body {
   font-weight: 400;
+  line-height: 1.75;
 }
 
 /* Theme-change transitions, scoped to surfaces (never `*`) */
@@ -175,6 +180,26 @@ body {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-feature-settings: "tnum";
   letter-spacing: 0.01em;
+}
+
+@utility type-math {
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.scientific-equation .katex {
+  font-size: 1.3125rem;
+  line-height: 1.3;
+}
+
+.scientific-equation-sub .katex {
+  font-size: 1.0625rem;
+  line-height: 1.35;
+}
+
+.scientific-inline-math .katex {
+  font-size: 1.03em;
 }
 
 /* Focus: instant vermilion ring on every interactive element */
@@ -326,7 +351,7 @@ body {
 .term-ruby rt {
   display: inline;
   vertical-align: super;
-  font-size: 0.62em;
+  font-size: 0.75rem;
   line-height: 0;
   margin-left: 1px;
   letter-spacing: 0.01em;
@@ -378,6 +403,167 @@ body {
 
 .multiscale-molstar .msp-no-webgl a {
   color: var(--accent-ink);
+}
+
+.mlff-schematic-stage .multiscale-molstar .msp-viewport,
+.mlff-schematic-stage .multiscale-molstar canvas {
+  background: #070914;
+}
+
+.mlff-schematic-stage .mlff-katex .katex {
+  font-size: 1em;
+  line-height: 1.2;
+}
+
+.mlff-schematic-stage .mlff-katex-display .katex-display {
+  margin: 0;
+}
+
+/* Projected from the same 3D coordinates as the rendered atoms. */
+.mlff-exact-cutoff-shell {
+  fill: rgb(34 211 238 / 0.018);
+  stroke: rgb(103 232 249 / 0.5);
+  stroke-width: 1.4;
+  stroke-dasharray: 8 7;
+  vector-effect: non-scaling-stroke;
+}
+
+.mlff-exact-cutoff-radius {
+  stroke: rgb(165 243 252 / 0.58);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.mlff-exact-message-edge {
+  stroke: rgb(103 232 249 / 0.34);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.mlff-exact-neighbor-anchor {
+  fill: rgb(34 211 238 / 0.18);
+  stroke: rgb(207 250 254 / 0.82);
+  stroke-width: 1.15;
+  vector-effect: non-scaling-stroke;
+}
+
+.mlff-exact-message-source {
+  fill: none;
+  stroke: rgb(103 232 249 / 0.84);
+  stroke-width: 1.35;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mlff-exact-source-emit 3.2s ease-out infinite;
+  animation-delay: var(--message-delay);
+  vector-effect: non-scaling-stroke;
+  will-change: transform, opacity;
+}
+
+.mlff-exact-message-pulse {
+  fill: #67e8f9;
+  stroke: rgb(207 250 254 / 0.92);
+  stroke-width: 1.1;
+  filter: drop-shadow(0 0 0.3rem rgb(103 232 249 / 0.95));
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mlff-exact-message-arrive 3.2s cubic-bezier(0.42, 0, 0.32, 1) infinite;
+  animation-delay: var(--message-delay);
+  vector-effect: non-scaling-stroke;
+  will-change: transform, opacity;
+}
+
+.mlff-exact-center-flash {
+  fill: rgb(139 92 246 / 0.14);
+  stroke: rgb(196 181 253 / 0.92);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 0 0.65rem rgb(167 139 250 / 0.82));
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mlff-exact-center-receive 3.2s ease-out infinite;
+  animation-delay: var(--message-delay);
+  vector-effect: non-scaling-stroke;
+  will-change: transform, opacity;
+}
+
+.mlff-exact-center-halo {
+  fill: rgb(139 92 246 / 0.1);
+  stroke: rgb(167 139 250 / 0.58);
+  stroke-width: 1.35;
+  filter: drop-shadow(0 0 0.6rem rgb(139 92 246 / 0.54));
+  vector-effect: non-scaling-stroke;
+}
+
+.mlff-exact-center-anchor {
+  fill: rgb(196 181 253 / 0.74);
+  stroke: rgb(237 233 254 / 0.94);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+@keyframes mlff-exact-source-emit {
+  0%, 10% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  18% {
+    opacity: 0.86;
+  }
+  32%, 100% {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
+@keyframes mlff-exact-message-arrive {
+  0%, 18% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  20%, 26% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  64% {
+    opacity: 1;
+    transform: translate(var(--message-dx), var(--message-dy));
+  }
+  72%, 100% {
+    opacity: 0;
+    transform: translate(var(--message-dx), var(--message-dy));
+  }
+}
+
+@keyframes mlff-exact-center-receive {
+  0%, 58% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  64% {
+    opacity: 0.94;
+    transform: scale(1);
+  }
+  78%, 100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mlff-exact-message-source,
+  .mlff-exact-message-pulse,
+  .mlff-exact-center-flash {
+    animation: none;
+  }
+
+  .mlff-exact-message-pulse {
+    opacity: 0.68;
+    transform: translate(var(--message-mid-x), var(--message-mid-y));
+  }
 }
 
 /* Ruby annotations never break across lines (orphan superscript fix) */

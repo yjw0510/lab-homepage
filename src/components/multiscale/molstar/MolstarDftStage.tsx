@@ -3,15 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject, RefObject } from "react";
 import { withBasePath } from "@/lib/basePath";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { ScrollState } from "../scrollState";
 import { CHOREOGRAPHY } from "../levelData";
 import { applyMolstarPlacement, computeScheduledPlacement } from "../multiscaleViewRuntime";
-import { buildScfAnchors, mapScfProgress, selectScfSnapshotIndex } from "../scenes/dft/scfController";
+import { MULTISCALE_MOTION } from "../visualRules";
 import {
-  AMBER,
+  DftMechanism,
+  DftMechanismDataProvider,
+  type DftMechanismData,
+  type DftOutputMode,
+} from "../overlays/DftMechanism";
+import {
   BLUE,
   CameraSnapshotLike,
-  CYAN,
   ELEMENT_COLORS,
   ELEMENT_RADII,
   ORANGE,
@@ -20,7 +25,6 @@ import {
   ResearchCameraActions,
   ResearchLayerSpec,
   SLATE,
-  WHITE,
   applySpinSetting,
   centerPoints,
   commitResearchLayers,
@@ -73,20 +77,66 @@ interface DensityEvolutionData {
   snapshots: DensitySnapshot[];
 }
 
+interface GeometryOptimizationFrame {
+  iteration: number;
+  energyHa: number;
+  energyEv: number;
+  relativeEnergyKcalMol: number;
+  energyDropKcalMol: number;
+  maxForceEvA: number;
+  rmsForceEvA: number;
+  atoms: number[][];
+  forcesEvA: number[][];
+}
+
+interface GeometryOptimizationData {
+  system: string;
+  formula: string;
+  method: string;
+  basis: string;
+  engine: string;
+  optimizer: string;
+  targetMaxForceEvA: number;
+  initialDistortion: {
+    description: string;
+    maximumDisplacementAngstrom: number;
+  };
+  converged: boolean;
+  elements: string[];
+  bonds: number[][];
+  bondOrders: number[];
+  frames: GeometryOptimizationFrame[];
+}
+
 interface DftStageData {
   molecule: DftScaffoldData;
   densityEvolution: DensityEvolutionData;
+  geometryOptimization: GeometryOptimizationData | null;
   frontier: FrontierOrbitalData | null;
   center: [number, number, number];
 }
 
+function sampleGeometryOptimization(
+  data: GeometryOptimizationData | null,
+  maximumFrames = 18,
+): GeometryOptimizationData | null {
+  if (!data || data.frames.length <= maximumFrames) return data;
+  const lastIndex = data.frames.length - 1;
+  const indices = Array.from({ length: maximumFrames }, (_, index) =>
+    Math.round(
+      Math.pow(index / Math.max(1, maximumFrames - 1), 1.6) * lastIndex,
+    ),
+  );
+  const uniqueIndices = Array.from(new Set([0, ...indices, lastIndex])).sort(
+    (a, b) => a - b,
+  );
+  return {
+    ...data,
+    frames: uniqueIndices.map((index) => data.frames[index]),
+  };
+}
+
 interface DftVisualState {
-  showKineticGlow: boolean;
-  kineticOpacity: number;
-  showHartreeExpand: boolean;
-  hartreeOpacity: number;
-  showVxcShell: boolean;
-  vxcOpacity: number;
   showFinalDensity: boolean;
   finalDensityOpacity: number;
   showDensityEvolution: boolean;
@@ -97,6 +147,57 @@ interface DftVisualState {
   lumoOpacity: number;
   atomOpacity: number;
   bondOpacity: number;
+}
+
+type DftSceneKey =
+  | "D1_select"
+  | "D2_pes"
+  | "D3_ks"
+  | "D4_scf"
+  | "D5_recipe"
+  | "D6_outputs"
+  | "D7_labels";
+
+const DFT_SCENE_KEYS = new Set<DftSceneKey>([
+  "D1_select",
+  "D2_pes",
+  "D3_ks",
+  "D4_scf",
+  "D5_recipe",
+  "D6_outputs",
+  "D7_labels",
+]);
+
+const LEGACY_DFT_SCENE_MAP: Record<string, DftSceneKey> = {
+  D1_transition: "D1_select",
+  D2_kinetic: "D2_pes",
+  D3_Vext: "D3_ks",
+  D4_Hartree: "D4_scf",
+  D5_Vxc: "D5_recipe",
+  D6_density: "D6_outputs",
+  D7_bands: "D7_labels",
+  D8_dos: "D6_outputs",
+  D9_settle: "D7_labels",
+};
+
+function resolveDftSceneKey(sceneKey: string | undefined, step: number): DftSceneKey {
+  if (sceneKey && DFT_SCENE_KEYS.has(sceneKey as DftSceneKey)) {
+    return sceneKey as DftSceneKey;
+  }
+  if (sceneKey && LEGACY_DFT_SCENE_MAP[sceneKey]) {
+    return LEGACY_DFT_SCENE_MAP[sceneKey];
+  }
+  return (
+    [
+      "D1_select",
+      "D2_pes",
+      "D3_ks",
+      "D4_scf",
+      "D5_recipe",
+      "D6_outputs",
+      "D7_labels",
+    ] as DftSceneKey[]
+  )[Math.max(0, Math.min(step, 6))];
 }
 
 function shortenBond(
@@ -123,28 +224,40 @@ function shortenBond(
   };
 }
 
-function getDftVisuals(step: number, stepProgress: number): DftVisualState {
-  const showFrontierOrbitals = step === 6 || step === 7;
-  const showEnvelope = step === 5 || step >= 8 || showFrontierOrbitals;
+function getDftVisuals(sceneKey: DftSceneKey, outputMode: DftOutputMode): DftVisualState {
+  const showDensityEvolution = sceneKey === "D4_scf";
+  const showHOMO = sceneKey === "D6_outputs" && outputMode === "homo";
+  const showLUMO = sceneKey === "D6_outputs" && outputMode === "lumo";
+  const showFrontierOrbital = showHOMO || showLUMO;
+  const showFinalDensity =
+    sceneKey === "D1_select" ||
+    sceneKey === "D3_ks" ||
+    sceneKey === "D5_recipe" ||
+    sceneKey === "D7_labels" ||
+    (sceneKey === "D6_outputs" && outputMode === "density");
 
   return {
-    showKineticGlow: step === 1 || (step === 2 && stepProgress < 0.5),
-    kineticOpacity:
-      step === 1 ? 0.08 + stepProgress * 0.08 : step === 2 ? Math.max(0, 0.16 * (1 - stepProgress * 2)) : 0,
-    showHartreeExpand: step === 3,
-    hartreeOpacity: step === 3 ? 0.24 : 0,
-    showVxcShell: step === 4 || (step === 5 && stepProgress < 0.5),
-    vxcOpacity: step === 4 ? 0.12 + stepProgress * 0.08 : step === 5 ? 0.1 * Math.max(0, 1 - stepProgress * 2) : 0,
-    showFinalDensity: step >= 8,
-    finalDensityOpacity: step >= 8 ? 0.42 : 0,
-    showDensityEvolution: step === 5,
-    densityEvolutionOpacity: step === 5 ? 0.52 : 0,
-    showHOMO: step === 6,
-    homoOpacity: step === 6 ? 0.96 : 0,
-    showLUMO: step === 7,
-    lumoOpacity: step === 7 ? 0.92 : 0,
-    atomOpacity: showFrontierOrbitals ? 0.65 : showEnvelope ? 0.9 : 1,
-    bondOpacity: showFrontierOrbitals ? 0.55 : showEnvelope ? 0.72 : 0.88,
+    showFinalDensity,
+    finalDensityOpacity:
+      sceneKey === "D1_select"
+        ? 0.34
+        : sceneKey === "D3_ks"
+          ? 0.22
+          : sceneKey === "D5_recipe"
+            ? 0.27
+            : sceneKey === "D7_labels"
+              ? 0.24
+              : showFinalDensity
+                ? 0.46
+                : 0,
+    showDensityEvolution,
+    densityEvolutionOpacity: showDensityEvolution ? 0.54 : 0,
+    showHOMO,
+    homoOpacity: showHOMO ? 0.96 : 0,
+    showLUMO,
+    lumoOpacity: showLUMO ? 0.94 : 0,
+    atomOpacity: showFrontierOrbital ? 0.62 : showDensityEvolution || showFinalDensity ? 0.88 : 1,
+    bondOpacity: showFrontierOrbital ? 0.52 : showDensityEvolution || showFinalDensity ? 0.7 : 0.9,
   };
 }
 
@@ -172,7 +285,7 @@ function migrateDensityEvolution(raw: any): DensityEvolutionData {
     return {
       iteration: s.iteration ?? i,
       label: s.label ?? `Iter ${i}`,
-      isovalue: s.residualLevel ?? 0,
+      isovalue: s.isovalue ?? 0,
       colorT: arr.length > 1 ? i / (arr.length - 1) : 1,
       mesh,
     };
@@ -181,8 +294,11 @@ function migrateDensityEvolution(raw: any): DensityEvolutionData {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function centerDftData(molecule: DftScaffoldData, densityEvolution: any): DftStageData {
+function centerDftData(
+  molecule: DftScaffoldData,
+  densityEvolution: DensityEvolutionData,
+  geometryOptimization: GeometryOptimizationData | null,
+): DftStageData {
   const migrated = migrateDensityEvolution(densityEvolution);
   const centered = centerPoints(molecule.atoms);
 
@@ -202,6 +318,7 @@ function centerDftData(molecule: DftScaffoldData, densityEvolution: any): DftSta
         mesh: offsetMesh(snapshot.mesh, centered.center),
       })),
     },
+    geometryOptimization: sampleGeometryOptimization(geometryOptimization),
     frontier: null,
     center: centered.center as [number, number, number],
   };
@@ -209,20 +326,33 @@ function centerDftData(molecule: DftScaffoldData, densityEvolution: any): DftSta
 
 function buildDftLayers(
   data: DftStageData,
-  scrollState: ScrollState,
-  phase: number,
+  sceneKey: DftSceneKey,
   activeSnapshotIndex: number,
+  activeOptimizationIndex: number,
+  outputMode: DftOutputMode,
 ): ResearchLayerSpec[] {
-  const step = scrollState.step;
-  const visuals = getDftVisuals(step, scrollState.stepProgress);
+  const visuals = getDftVisuals(sceneKey, outputMode);
+  const optimizationFrame =
+    sceneKey === "D2_pes"
+      ? data.geometryOptimization?.frames[activeOptimizationIndex] ??
+        data.geometryOptimization?.frames[0]
+      : null;
+  const activeMolecule = optimizationFrame && data.geometryOptimization
+    ? {
+        atoms: optimizationFrame.atoms,
+        elements: data.geometryOptimization.elements,
+        bonds: data.geometryOptimization.bonds,
+        bondOrders: data.geometryOptimization.bondOrders,
+      }
+    : data.molecule;
   const layers: ResearchLayerSpec[] = [
     {
       label: "DFT Atoms",
-      primitives: data.molecule.atoms.map((atom, index) => ({
+      primitives: activeMolecule.atoms.map((atom, index) => ({
         kind: "sphere" as const,
         center: atom as [number, number, number],
-        radius: ELEMENT_RADII[data.molecule.elements[index]] ?? 0.2,
-        color: ELEMENT_COLORS[data.molecule.elements[index]] ?? SLATE,
+        radius: ELEMENT_RADII[activeMolecule.elements[index]] ?? 0.2,
+        color: ELEMENT_COLORS[activeMolecule.elements[index]] ?? SLATE,
       })),
       params: {
         alpha: visuals.atomOpacity,
@@ -233,16 +363,16 @@ function buildDftLayers(
     },
     {
       label: "DFT Bonds",
-      primitives: data.molecule.bonds.map(([i, j], index) => {
-        const ri = ELEMENT_RADII[data.molecule.elements[i]] ?? 0.2;
-        const rj = ELEMENT_RADII[data.molecule.elements[j]] ?? 0.2;
-        const shortened = shortenBond(data.molecule.atoms[i], data.molecule.atoms[j], ri, rj);
+      primitives: activeMolecule.bonds.map(([i, j], index) => {
+        const ri = ELEMENT_RADII[activeMolecule.elements[i]] ?? 0.2;
+        const rj = ELEMENT_RADII[activeMolecule.elements[j]] ?? 0.2;
+        const shortened = shortenBond(activeMolecule.atoms[i], activeMolecule.atoms[j], ri, rj);
         return {
           kind: "cylinder" as const,
           start: shortened.start,
           end: shortened.end,
-          radiusTop: (data.molecule.bondOrders[index] ?? 1) >= 2 ? 0.07 : 0.05,
-          radiusBottom: (data.molecule.bondOrders[index] ?? 1) >= 2 ? 0.07 : 0.05,
+          radiusTop: (activeMolecule.bondOrders[index] ?? 1) >= 2 ? 0.07 : 0.05,
+          radiusBottom: (activeMolecule.bondOrders[index] ?? 1) >= 2 ? 0.07 : 0.05,
           radialSegments: 12,
           color: SLATE,
         };
@@ -256,68 +386,12 @@ function buildDftLayers(
     },
   ];
 
-  if (visuals.showKineticGlow) {
-    layers.push({
-      label: "Kinetic Glow",
-      primitives: data.molecule.atoms.map((atom, index) => ({
-        kind: "sphere" as const,
-        center: atom as [number, number, number],
-        radius: (ELEMENT_RADII[data.molecule.elements[index]] ?? 0.2) + 0.12 + phase * 0.16,
-        color: WHITE,
-      })),
-      params: {
-        alpha: visuals.kineticOpacity,
-        quality: "high",
-        material: { metalness: 0, roughness: 0.86, bumpiness: 0 },
-        doubleSided: true,
-      },
-    });
-  }
-
-      if (visuals.showHartreeExpand) {
-    layers.push({
-      label: "Hartree Shells",
-      primitives: data.molecule.atoms.map((atom, index) => ({
-        kind: "sphere" as const,
-        center: atom as [number, number, number],
-        radius: (ELEMENT_RADII[data.molecule.elements[index]] ?? 0.2) + 0.32 + phase * 0.25,
-        color: CYAN,
-      })),
-      params: {
-        alpha: visuals.hartreeOpacity,
-        quality: "high",
-        material: { metalness: 0.02, roughness: 0.76, bumpiness: 0 },
-        emissive: 0.1,
-        doubleSided: true,
-      },
-    });
-  }
-
-  if (visuals.showVxcShell) {
-    layers.push({
-      label: "Exchange-Correlation Shells",
-      primitives: data.molecule.atoms.map((atom, index) => ({
-        kind: "sphere" as const,
-        center: atom as [number, number, number],
-        radius: (ELEMENT_RADII[data.molecule.elements[index]] ?? 0.2) + 0.22,
-        color: AMBER,
-      })),
-      params: {
-        alpha: visuals.vxcOpacity,
-        quality: "high",
-        material: { metalness: 0.02, roughness: 0.74, bumpiness: 0 },
-        emissive: 0.14,
-        doubleSided: true,
-      },
-    });
-  }
-
   if (visuals.showDensityEvolution) {
     const snapshot = data.densityEvolution.snapshots[activeSnapshotIndex] ?? data.densityEvolution.snapshots[0];
     if (snapshot?.mesh.vertices.length) {
       const color = mixColor(ORANGE, BLUE, snapshot.colorT);
       layers.push({
-        label: "SCF Density Evolution",
+        label: "SCF Total Density",
         primitives: [{ kind: "mesh" as const, vertices: snapshot.mesh.vertices, faces: snapshot.mesh.faces, color }],
         params: {
           alpha: visuals.densityEvolutionOpacity,
@@ -388,7 +462,7 @@ function buildDftLayers(
 
   if (visuals.showFinalDensity && data.densityEvolution.finalDensity.mesh.vertices.length) {
     layers.push({
-      label: "Final Density",
+      label: "Converged Electron Density",
       primitives: [
         {
           kind: "mesh" as const,
@@ -419,10 +493,21 @@ function sampleMeshVertices(mesh: IsosurfaceMesh, stride = 96) {
   return sampled;
 }
 
-function buildDftCameraMeta(data: DftStageData, activeSnapshotIndex: number) {
-  const points = [...data.molecule.atoms];
+function buildDftCameraMeta(
+  data: DftStageData,
+  sceneKey: DftSceneKey,
+  activeSnapshotIndex: number,
+  activeOptimizationIndex: number,
+) {
+  const optimizationAtoms =
+    sceneKey === "D2_pes"
+      ? data.geometryOptimization?.frames[activeOptimizationIndex]?.atoms ??
+        data.geometryOptimization?.frames[0]?.atoms
+      : null;
+  const moleculeAtoms = optimizationAtoms ?? data.molecule.atoms;
+  const points = [...moleculeAtoms];
   const subsets: Record<string, { indices: number[] }> = {
-    molecule: { indices: Array.from({ length: data.molecule.atoms.length }, (_, index) => index) },
+    molecule: { indices: Array.from({ length: moleculeAtoms.length }, (_, index) => index) },
   };
   const anchors: Record<string, [number, number, number]> = {
     molecule_center: [0, 0, 0],
@@ -457,7 +542,7 @@ function buildDftCameraMeta(data: DftStageData, activeSnapshotIndex: number) {
   };
 
   const snapshot = data.densityEvolution.snapshots[activeSnapshotIndex] ?? data.densityEvolution.snapshots[0];
-  addSubset("residual_density", snapshot ? [snapshot.mesh] : []);
+  addSubset("scf_total_density", snapshot ? [snapshot.mesh] : []);
   if (data.frontier) {
     addSubset("homo", [data.frontier.homoIsosurface.positive, data.frontier.homoIsosurface.negative]);
     addSubset("lumo", [data.frontier.lumoIsosurface.positive, data.frontier.lumoIsosurface.negative]);
@@ -478,7 +563,10 @@ export function MolstarDftStage({
   autoRotateRef,
   actionsRef,
   manualSnapshotIndex,
+  sceneKey,
+  reducedMotion: reducedMotionProp,
   lang = "en",
+  hideMechanism = false,
 }: {
   progressRef: RefObject<number>;
   scrollState: ScrollState;
@@ -486,11 +574,17 @@ export function MolstarDftStage({
   autoRotateRef: MutableRefObject<boolean>;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   manualSnapshotIndex?: number | null;
+  sceneKey?: string;
+  reducedMotion?: boolean;
   lang?: string;
+  hideMechanism?: boolean;
 }) {
   void progressRef;
-  void isMobile;
   const isKorean = lang === "ko";
+  const prefersReducedMotion = useReducedMotion();
+  const reducedMotion = reducedMotionProp ?? prefersReducedMotion;
+  const configuredSceneKey = sceneKey ?? CHOREOGRAPHY.dft.steps[scrollState.step]?.sceneKey;
+  const resolvedSceneKey = resolveDftSceneKey(configuredSceneKey, scrollState.step);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pluginRef = useRef<PluginLike | null>(null);
@@ -500,19 +594,39 @@ export function MolstarDftStage({
   const [isReady, setIsReady] = useState(false);
   const [mountError, setMountError] = useState<string | null>(null);
   const [activeSnapshotIndex, setActiveSnapshotIndex] = useState(0);
+  const [activeOptimizationIndex, setActiveOptimizationIndex] = useState(0);
+  const [outputMode, setOutputMode] = useState<DftOutputMode>("density");
+  const [assetMeta, setAssetMeta] = useState<Pick<
+    DftMechanismData,
+    "totalEnergyHa" | "finalDensityIsovalue" | "homoEV" | "lumoEV" | "homoLabel" | "lumoLabel"
+  >>({});
   const [zoomIndex, setZoomIndex] = useState(2);
   const [viewRevision, setViewRevision] = useState(0);
   const frontierRequestedRef = useRef(false);
   const rebuildSceneRef = useRef<(() => Promise<void>) | null>(null);
 
-  const phase = useMemo(() => Math.round(scrollState.stepProgress * 6) / 6, [scrollState.stepProgress]);
-  const sceneKey = `${scrollState.step}-${Math.round(phase * 6)}-${scrollState.step === 5 ? activeSnapshotIndex : "static"}`;
+  const renderKey = `${resolvedSceneKey}-${
+    resolvedSceneKey === "D4_scf"
+      ? activeSnapshotIndex
+      : resolvedSceneKey === "D2_pes"
+        ? activeOptimizationIndex
+        : resolvedSceneKey === "D6_outputs"
+          ? outputMode
+          : "static"
+  }`;
   const [initialBuild] = useState<{
-    scrollState: ScrollState;
-    phase: number;
-    sceneKey: string;
+    resolvedSceneKey: DftSceneKey;
+    renderKey: string;
     activeSnapshotIndex: number;
-  }>(() => ({ scrollState, phase, sceneKey, activeSnapshotIndex }));
+    activeOptimizationIndex: number;
+    outputMode: DftOutputMode;
+  }>(() => ({
+    resolvedSceneKey,
+    renderKey,
+    activeSnapshotIndex,
+    activeOptimizationIndex,
+    outputMode,
+  }));
 
   const applyScheduledCamera = useCallback(
     (durationMs = 160, zoomLevel = zoomIndex) => {
@@ -521,7 +635,12 @@ export function MolstarDftStage({
       if (!plugin || !data) return;
       const container = containerRef.current;
       const aspect = (container?.clientWidth ?? 1) / Math.max(1, container?.clientHeight ?? 1);
-      const meta = buildDftCameraMeta(data, activeSnapshotIndex);
+      const meta = buildDftCameraMeta(
+        data,
+        resolvedSceneKey,
+        activeSnapshotIndex,
+        activeOptimizationIndex,
+      );
       const placement = computeScheduledPlacement({
         level: "dft",
         step: scrollState.step,
@@ -531,34 +650,62 @@ export function MolstarDftStage({
         points: meta.points,
         aspect,
         isMobile,
-        zoomIndex: zoomLevel,
+        zoomIndex:
+          resolvedSceneKey === "D2_pes"
+            ? Math.min(4, zoomLevel + 1)
+            : zoomLevel,
       });
       defaultSnapshotRef.current = applyMolstarPlacement(plugin, placement, durationMs);
     },
-    [activeSnapshotIndex, isMobile, scrollState.step, scrollState.stepProgress, zoomIndex],
+    [
+      activeOptimizationIndex,
+      activeSnapshotIndex,
+      isMobile,
+      resolvedSceneKey,
+      scrollState.step,
+      scrollState.stepProgress,
+      zoomIndex,
+    ],
   );
 
   const rebuildingRef = useRef(false);
+  const pendingRebuildRef = useRef(false);
 
   const rebuildScene = useCallback(async () => {
     const plugin = pluginRef.current;
     const data = dataRef.current;
     if (!plugin || !data) return;
-    if (rebuildingRef.current) return;
+    if (rebuildingRef.current) {
+      pendingRebuildRef.current = true;
+      return;
+    }
     rebuildingRef.current = true;
     try {
-      // Save camera before rebuild — plugin.clear() + commit() triggers Molstar auto-fit
+      // Save camera before rebuild. plugin.clear() + commit() triggers Molstar auto-fit
       // which shifts the view when density mesh geometry changes between iterations.
       const snapshot = plugin.canvas3d?.camera.getSnapshot();
 
-      await commitResearchLayers(plugin, buildDftLayers(data, scrollState, phase, activeSnapshotIndex));
+      await commitResearchLayers(
+        plugin,
+        buildDftLayers(
+          data,
+          resolvedSceneKey,
+          activeSnapshotIndex,
+          activeOptimizationIndex,
+          outputMode,
+        ),
+      );
 
       // Restore camera so iteration changes don't shift the view.
       if (snapshot) plugin.managers.camera.setSnapshot(snapshot, 0);
     } finally {
       rebuildingRef.current = false;
+      if (pendingRebuildRef.current) {
+        pendingRebuildRef.current = false;
+        void rebuildSceneRef.current?.();
+      }
     }
-  }, [activeSnapshotIndex, phase, scrollState]);
+  }, [activeOptimizationIndex, activeSnapshotIndex, outputMode, resolvedSceneKey]);
 
   useEffect(() => {
     rebuildSceneRef.current = rebuildScene;
@@ -590,9 +737,16 @@ export function MolstarDftStage({
           return;
         }
         mountedPlugin = plugin;
-        const [molecule, densityEvolution] = await Promise.all([
+        const [molecule, densityEvolution, geometryOptimization] = await Promise.all([
           fetchJsonOrThrow<DftScaffoldData>("/data/multiscale/dft/molecule.json", "DFT molecule.json"),
           fetchJsonOrThrow<DensityEvolutionData>("/data/multiscale/dft/density-evolution.json", "DFT density-evolution.json"),
+          fetchJsonOrThrow<GeometryOptimizationData>(
+            "/data/multiscale/dft/geometry-optimization.json",
+            "DFT geometry-optimization.json",
+          ).catch((error) => {
+            console.error(error);
+            return null;
+          }),
         ]);
         if (cancelled) {
           plugin.dispose();
@@ -600,16 +754,25 @@ export function MolstarDftStage({
         }
 
         pluginRef.current = plugin;
-        dataRef.current = centerDftData(molecule, densityEvolution);
+        dataRef.current = centerDftData(
+          molecule,
+          densityEvolution,
+          geometryOptimization,
+        );
+        setAssetMeta({
+          totalEnergyHa: molecule.scf.totalEnergy,
+          finalDensityIsovalue: densityEvolution.finalDensity.isovalue,
+        });
 
-        sceneKeyRef.current = initialBuild.sceneKey;
+        sceneKeyRef.current = initialBuild.renderKey;
         await commitResearchLayers(
           plugin,
           buildDftLayers(
             dataRef.current,
-            initialBuild.scrollState,
-            initialBuild.phase,
+            initialBuild.resolvedSceneKey,
             initialBuild.activeSnapshotIndex,
+            initialBuild.activeOptimizationIndex,
+            initialBuild.outputMode,
           ),
         );
         if (!cancelled) setIsReady(true);
@@ -634,55 +797,127 @@ export function MolstarDftStage({
     const data = dataRef.current;
     if (!data) return;
 
-    if (manualSnapshotIndex !== null && manualSnapshotIndex !== undefined && scrollState.step === 5) {
-      setActiveSnapshotIndex(Math.max(0, Math.min(manualSnapshotIndex, data.densityEvolution.snapshots.length - 1)));
-      return;
-    }
-
-    if (scrollState.step >= 8) {
-      setActiveSnapshotIndex(data.densityEvolution.snapshots.length - 1);
-      return;
-    }
-
-    if (scrollState.step !== 5) {
+    if (resolvedSceneKey !== "D4_scf") {
       setActiveSnapshotIndex(0);
       return;
     }
 
-    const anchors = buildScfAnchors(data.densityEvolution.snapshots);
-    const mappedProgress = mapScfProgress(scrollState.stepProgress);
-    setActiveSnapshotIndex((currentIndex) =>
-      selectScfSnapshotIndex({
-        currentIndex,
-        mappedProgress,
-        anchors,
-        hysteresis: 0.052,
-      }),
+    if (manualSnapshotIndex !== null && manualSnapshotIndex !== undefined) {
+      setActiveSnapshotIndex(
+        Math.max(0, Math.min(manualSnapshotIndex, data.densityEvolution.snapshots.length - 1)),
+      );
+      return;
+    }
+
+    setActiveSnapshotIndex(
+      reducedMotion ? Math.max(0, data.densityEvolution.snapshots.length - 1) : 0,
     );
-  }, [manualSnapshotIndex, scrollState.step, scrollState.stepProgress]);
+  }, [isReady, manualSnapshotIndex, reducedMotion, resolvedSceneKey]);
+
+  useEffect(() => {
+    const snapshots = dataRef.current?.densityEvolution.snapshots ?? [];
+    if (
+      resolvedSceneKey !== "D4_scf" ||
+      manualSnapshotIndex !== null &&
+        manualSnapshotIndex !== undefined ||
+      reducedMotion ||
+      !isReady ||
+      snapshots.length === 0
+    ) {
+      return;
+    }
+
+    const isFinalSnapshot = activeSnapshotIndex >= snapshots.length - 1;
+    const timeout = window.setTimeout(
+      () => {
+        setActiveSnapshotIndex((current) =>
+          current >= snapshots.length - 1 ? 0 : current + 1,
+        );
+      },
+      isFinalSnapshot
+        ? MULTISCALE_MOTION.finalStateHoldMs
+        : MULTISCALE_MOTION.scfFrameMs,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [
+    activeSnapshotIndex,
+    isReady,
+    manualSnapshotIndex,
+    reducedMotion,
+    resolvedSceneKey,
+  ]);
+
+  useEffect(() => {
+    const frames = dataRef.current?.geometryOptimization?.frames ?? [];
+    if (resolvedSceneKey !== "D2_pes" || frames.length === 0) {
+      setActiveOptimizationIndex(0);
+      return;
+    }
+    if (reducedMotion) {
+      setActiveOptimizationIndex(frames.length - 1);
+      return;
+    }
+
+    const isFinalFrame = activeOptimizationIndex >= frames.length - 1;
+    const timeout = window.setTimeout(
+      () => {
+        setActiveOptimizationIndex((current) =>
+          current >= frames.length - 1 ? 0 : current + 1,
+        );
+      },
+      isFinalFrame ? 1800 : 560,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [activeOptimizationIndex, isReady, reducedMotion, resolvedSceneKey]);
+
+  useEffect(() => {
+    setOutputMode("density");
+  }, [resolvedSceneKey]);
+
+  // With the on-canvas readout panel removed (clean stage), the density / HOMO
+  // / LUMO surface auto-cycles so the "cycles through" reading still holds. The
+  // mobile split keeps its own toggle, so only drive this when the panel is
+  // hidden and motion is allowed.
+  useEffect(() => {
+    if (!hideMechanism || reducedMotion) return;
+    if (resolvedSceneKey !== "D6_outputs" || !isReady) return;
+    const modes: DftOutputMode[] = ["density", "homo", "lumo"];
+    let index = 0;
+    const id = window.setInterval(() => {
+      index = (index + 1) % modes.length;
+      setOutputMode(modes[index]);
+    }, MULTISCALE_MOTION.outputCycleMs);
+    return () => window.clearInterval(id);
+  }, [hideMechanism, reducedMotion, resolvedSceneKey, isReady]);
 
   useEffect(() => {
     const plugin = pluginRef.current;
     if (!plugin || !isReady) return;
-    if (sceneKeyRef.current === sceneKey) return;
-    sceneKeyRef.current = sceneKey;
+    if (sceneKeyRef.current === renderKey) return;
+    sceneKeyRef.current = renderKey;
     void rebuildScene();
-  }, [isReady, rebuildScene, sceneKey]);
+  }, [isReady, rebuildScene, renderKey]);
 
   useEffect(() => {
     const data = dataRef.current;
-    const needsFrontierOrbitals = scrollState.step === 6 || scrollState.step === 7;
+    const needsFrontierOrbitals = resolvedSceneKey === "D6_outputs";
     if (!isReady || !needsFrontierOrbitals || !data || data.frontier || frontierRequestedRef.current) return;
 
     frontierRequestedRef.current = true;
-    let cancelled = false;
     void fetchJsonOrThrow<FrontierOrbitalData>("/data/multiscale/dft/frontier-orbitals.json", "DFT frontier-orbitals.json")
       .then((frontier) => {
-        if (cancelled || !dataRef.current) return;
+        if (!dataRef.current) return;
         dataRef.current = {
           ...dataRef.current,
           frontier: centerFrontierData(frontier, dataRef.current.center),
         };
+        setAssetMeta((current) => ({
+          ...current,
+          homoEV: frontier.orbitalEnergies.homoEV,
+          lumoEV: frontier.orbitalEnergies.lumoEV,
+          homoLabel: frontier.orbitalLabels.homo,
+          lumoLabel: frontier.orbitalLabels.lumo,
+        }));
         sceneKeyRef.current = "";
         void rebuildSceneRef.current?.();
       })
@@ -690,14 +925,10 @@ export function MolstarDftStage({
         console.error(error);
         frontierRequestedRef.current = false;
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isReady, scrollState.step]);
+  }, [isReady, resolvedSceneKey]);
 
   // Store latest camera function in a ref so the effect below doesn't re-fire
-  // on every step/snapshot change — only on level entry, zoom, or manual reset.
+  // on every step/snapshot change, only on level entry, zoom, or manual reset.
   const applyScheduledCameraRef = useRef(applyScheduledCamera);
   applyScheduledCameraRef.current = applyScheduledCamera;
 
@@ -732,10 +963,137 @@ export function MolstarDftStage({
     };
   }, [actionsRef]);
 
+  const activeScfSnapshot =
+    dataRef.current?.densityEvolution.snapshots[activeSnapshotIndex] ??
+    dataRef.current?.densityEvolution.snapshots[0];
+  const optimizationData = dataRef.current?.geometryOptimization;
+  const activeOptimizationFrame =
+    optimizationData?.frames[activeOptimizationIndex] ??
+    optimizationData?.frames[0];
+  const mechanismData = useMemo<DftMechanismData>(
+    () => ({
+      ...assetMeta,
+      outputMode,
+      onOutputModeChange: setOutputMode,
+      scfSnapshot: activeScfSnapshot
+        ? {
+            index: activeSnapshotIndex,
+            count: dataRef.current?.densityEvolution.snapshots.length ?? 0,
+            iteration: activeScfSnapshot.iteration,
+            label: activeScfSnapshot.label,
+            isovalue: activeScfSnapshot.isovalue,
+          }
+        : undefined,
+      geometryOptimization:
+        optimizationData && activeOptimizationFrame
+          ? {
+              index: activeOptimizationIndex,
+              count: optimizationData.frames.length,
+              iteration: activeOptimizationFrame.iteration,
+              energyHa: activeOptimizationFrame.energyHa,
+              energyDropKcalMol: activeOptimizationFrame.energyDropKcalMol,
+              relativeEnergyKcalMol:
+                activeOptimizationFrame.relativeEnergyKcalMol,
+              maxForceEvA: activeOptimizationFrame.maxForceEvA,
+              rmsForceEvA: activeOptimizationFrame.rmsForceEvA,
+              targetMaxForceEvA: optimizationData.targetMaxForceEvA,
+              maximumDisplacementAngstrom:
+                optimizationData.initialDistortion.maximumDisplacementAngstrom,
+              system: optimizationData.system,
+              formula: optimizationData.formula,
+              method: optimizationData.method,
+              basis: optimizationData.basis,
+              engine: optimizationData.engine,
+              optimizer: optimizationData.optimizer,
+              converged: optimizationData.converged,
+              series: optimizationData.frames.map((frame) => ({
+                iteration: frame.iteration,
+                energyHa: frame.energyHa,
+                energyDropKcalMol: frame.energyDropKcalMol,
+                relativeEnergyKcalMol: frame.relativeEnergyKcalMol,
+                maxForceEvA: frame.maxForceEvA,
+              })),
+            }
+          : undefined,
+    }),
+    [
+      activeOptimizationFrame,
+      activeOptimizationIndex,
+      activeScfSnapshot,
+      activeSnapshotIndex,
+      assetMeta,
+      optimizationData,
+      outputMode,
+    ],
+  );
+  const separateMobileMechanism =
+    isMobile &&
+    (resolvedSceneKey === "D1_select" ||
+      resolvedSceneKey === "D2_pes" ||
+      resolvedSceneKey === "D3_ks" ||
+      resolvedSceneKey === "D4_scf" ||
+      resolvedSceneKey === "D5_recipe" ||
+      resolvedSceneKey === "D6_outputs" ||
+      resolvedSceneKey === "D7_labels");
+  const mobileMechanismHeight =
+    resolvedSceneKey === "D3_ks"
+      ? "500px"
+      : resolvedSceneKey === "D4_scf"
+        ? "440px"
+        : resolvedSceneKey === "D5_recipe"
+          ? "550px"
+          : resolvedSceneKey === "D6_outputs"
+            ? "450px"
+            : resolvedSceneKey === "D7_labels"
+              ? "620px"
+            : resolvedSceneKey === "D1_select"
+              ? "350px"
+              : "260px";
+
   return (
-    <div className="multiscale-molstar relative h-full w-full overflow-hidden bg-[#050510]" data-testid="multiscale-render-surface">
+    <div
+      className={`multiscale-molstar relative h-full w-full overflow-hidden bg-[#050510] ${
+        separateMobileMechanism ? "flex flex-col" : ""
+      }`}
+      data-testid="multiscale-render-surface"
+    >
       {!isReady && <div className="absolute inset-0 bg-[#050510]" />}
-      <div ref={containerRef} className="h-full w-full" />
+      <div
+        ref={containerRef}
+        className={
+          separateMobileMechanism
+            ? "relative min-h-0 w-full flex-1"
+            : resolvedSceneKey === "D2_pes"
+              ? "relative h-full w-[60%] overflow-hidden border-r border-white/10"
+              : "relative h-full w-full"
+        }
+      />
+      {isReady && !mountError ? (
+        separateMobileMechanism ? (
+          <div
+            className="relative w-full flex-shrink-0 border-t border-white/12 bg-[#050510]"
+            style={{ height: mobileMechanismHeight }}
+          >
+            <DftMechanismDataProvider value={mechanismData}>
+              <DftMechanism
+                sceneKey={resolvedSceneKey}
+                lang={lang}
+                reducedMotion={reducedMotion}
+                isMobile
+              />
+            </DftMechanismDataProvider>
+          </div>
+        ) : hideMechanism ? null : (
+          <DftMechanismDataProvider value={mechanismData}>
+            <DftMechanism
+              sceneKey={resolvedSceneKey}
+              lang={lang}
+              reducedMotion={reducedMotion}
+              isMobile={false}
+            />
+          </DftMechanismDataProvider>
+        )
+      ) : null}
       {!isReady && !mountError && (
         <div
           className="pointer-events-none absolute inset-0 flex items-center justify-center p-8 text-center"

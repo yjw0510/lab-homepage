@@ -77,7 +77,6 @@ export function useDNAAssets(step: number): DNAAssets {
   useEffect(() => {
     if (!manifest || step > 1) return;
     if (aaPositions) return; // already loaded
-    setLoading(true);
     Promise.all([
       cachedBinary(`${BASE}/aa/positions.bin`).then((buf) => decodeFloat32(buf)),
       cachedJson<AATopology>(`${BASE}/aa/topology.json`),
@@ -94,7 +93,6 @@ export function useDNAAssets(step: number): DNAAssets {
   useEffect(() => {
     if (!manifest || step < 1) return;
     if (cgPositions && cgTopology) return;
-    setLoading(true);
     Promise.all([
       cachedBinary(`${BASE}/cg/positions.bin`).then((buf) => decodeFloat32(buf)),
       cachedJson<CGTopology>(`${BASE}/cg/topology.json`),
@@ -105,11 +103,10 @@ export function useDNAAssets(step: number): DNAAssets {
     }).catch(() => setLoading(false));
   }, [manifest, step, cgPositions, cgTopology]);
 
-  // Load trajectory for steps 3, 5
+  // Load the full 8,000-bead trajectory for M5 (step 4).
   useEffect(() => {
-    if (!manifest || (step !== 3 && step !== 5)) return;
+    if (!manifest || step !== 4) return;
     if (cgTrajectory) return;
-    setLoading(true);
     cachedBinary(`${BASE}/cg/trajectory.bin`)
       .then((buf) => {
         setCgTrajectory(decodeFloat32(buf));
@@ -118,11 +115,10 @@ export function useDNAAssets(step: number): DNAAssets {
       .catch(() => setLoading(false));
   }, [manifest, step, cgTrajectory]);
 
-  // Load RDF for step 4
+  // Load the PBC RDF for M6 (step 5).
   useEffect(() => {
-    if (!manifest || step !== 4) return;
+    if (!manifest || step !== 5) return;
     if (rdfData) return;
-    setLoading(true);
     Promise.all([
       cachedBinary(`${BASE}/rdf/rdf.bin`).then((buf) => decodeFloat32(buf)),
       cachedJson<RDFMeta>(`${BASE}/rdf/meta.json`),

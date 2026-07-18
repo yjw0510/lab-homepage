@@ -1,0 +1,1457 @@
+{
+  "generatedAt": "2026-07-17T09:21:02.182Z",
+  "baseUrl": "http://localhost:3000",
+  "runId": "20260717-schematic-revision",
+  "passId": "09-final",
+  "note": "two-language-mobile-height-and-wrap-fix",
+  "deepChecks": false,
+  "cases": [
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "390",
+        "width": 390,
+        "height": 844
+      },
+      "scene": "overview",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "visualClientWidth": 390,
+        "visualScrollWidth": 390,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 300.046875,
+          "bottom": 158.25,
+          "width": 284.046875,
+          "height": 77.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 378,
+          "bottom": 552.59375,
+          "width": 366,
+          "height": 350
+        },
+        "panelRects": [
+          {
+            "name": "dataset",
+            "left": 12,
+            "top": 202.59375,
+            "right": 378,
+            "bottom": 552.59375,
+            "width": 366,
+            "height": 350
+          },
+          {
+            "name": "model",
+            "left": 12,
+            "top": 604.59375,
+            "right": 378,
+            "bottom": 1054.59375,
+            "width": 366,
+            "height": 450
+          },
+          {
+            "name": "pes",
+            "left": 12,
+            "top": 1106.59375,
+            "right": 378,
+            "bottom": 1536.59375,
+            "width": 366,
+            "height": 430
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "dataset",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 275.59375,
+              "right": 377,
+              "bottom": 551.59375,
+              "width": 364,
+              "height": 276
+            }
+          },
+          {
+            "variant": "pes",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1177.984375,
+              "right": 377,
+              "bottom": 1417.203125,
+              "width": 364,
+              "height": 239.21875
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/ko-390x844-overview.png"
+      ]
+    },
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "390",
+        "width": 390,
+        "height": 844
+      },
+      "scene": "inside",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "visualClientWidth": 390,
+        "visualScrollWidth": 390,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 284.359375,
+          "bottom": 158.25,
+          "width": 268.359375,
+          "height": 77.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 378,
+          "bottom": 592.59375,
+          "width": 366,
+          "height": 390
+        },
+        "panelRects": [
+          {
+            "name": "local-graph",
+            "left": 12,
+            "top": 202.59375,
+            "right": 378,
+            "bottom": 592.59375,
+            "width": 366,
+            "height": 390
+          },
+          {
+            "name": "interaction",
+            "left": 12,
+            "top": 644.59375,
+            "right": 378,
+            "bottom": 1139.59375,
+            "width": 366,
+            "height": 495
+          },
+          {
+            "name": "energy-force",
+            "left": 12,
+            "top": 1191.59375,
+            "right": 378,
+            "bottom": 1611.59375,
+            "width": 366,
+            "height": 420
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "인코딩",
+            "size": 12
+          },
+          {
+            "text": "중심 원자와 이웃의 상대 기하",
+            "size": 12
+          },
+          {
+            "text": "×L\\times L×L",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​ 스칼라",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​ 벡터",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "원자별 에너지",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "local",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 280.390625,
+              "right": 377,
+              "bottom": 508.40625,
+              "width": 364,
+              "height": 228.015625
+            }
+          },
+          {
+            "variant": "forces",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1269.390625,
+              "right": 377,
+              "bottom": 1482.59375,
+              "width": 364,
+              "height": 213.203125
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/ko-390x844-inside.png"
+      ]
+    },
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "430",
+        "width": 430,
+        "height": 932
+      },
+      "scene": "overview",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "documentWidth": 430,
+        "visualClientWidth": 430,
+        "visualScrollWidth": 430,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 300.046875,
+          "bottom": 158.25,
+          "width": 284.046875,
+          "height": 77.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 418,
+          "bottom": 552.59375,
+          "width": 406,
+          "height": 350
+        },
+        "panelRects": [
+          {
+            "name": "dataset",
+            "left": 12,
+            "top": 202.59375,
+            "right": 418,
+            "bottom": 552.59375,
+            "width": 406,
+            "height": 350
+          },
+          {
+            "name": "model",
+            "left": 12,
+            "top": 604.59375,
+            "right": 418,
+            "bottom": 1054.59375,
+            "width": 406,
+            "height": 450
+          },
+          {
+            "name": "pes",
+            "left": 12,
+            "top": 1106.59375,
+            "right": 418,
+            "bottom": 1536.59375,
+            "width": 406,
+            "height": 430
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "dataset",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 275.59375,
+              "right": 417,
+              "bottom": 551.59375,
+              "width": 404,
+              "height": 276
+            }
+          },
+          {
+            "variant": "pes",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1177.984375,
+              "right": 417,
+              "bottom": 1417.203125,
+              "width": 404,
+              "height": 239.21875
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/ko-430x932-overview.png"
+      ]
+    },
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "430",
+        "width": 430,
+        "height": 932
+      },
+      "scene": "inside",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "documentWidth": 430,
+        "visualClientWidth": 430,
+        "visualScrollWidth": 430,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 284.359375,
+          "bottom": 158.25,
+          "width": 268.359375,
+          "height": 77.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 418,
+          "bottom": 592.59375,
+          "width": 406,
+          "height": 390
+        },
+        "panelRects": [
+          {
+            "name": "local-graph",
+            "left": 12,
+            "top": 202.59375,
+            "right": 418,
+            "bottom": 592.59375,
+            "width": 406,
+            "height": 390
+          },
+          {
+            "name": "interaction",
+            "left": 12,
+            "top": 644.59375,
+            "right": 418,
+            "bottom": 1139.59375,
+            "width": 406,
+            "height": 495
+          },
+          {
+            "name": "energy-force",
+            "left": 12,
+            "top": 1191.59375,
+            "right": 418,
+            "bottom": 1611.59375,
+            "width": 406,
+            "height": 420
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "인코딩",
+            "size": 12
+          },
+          {
+            "text": "중심 원자와 이웃의 상대 기하",
+            "size": 12
+          },
+          {
+            "text": "×L\\times L×L",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​ 스칼라",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​ 벡터",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "원자별 에너지",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "local",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 280.390625,
+              "right": 417,
+              "bottom": 508.40625,
+              "width": 404,
+              "height": 228.015625
+            }
+          },
+          {
+            "variant": "forces",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1269.390625,
+              "right": 417,
+              "bottom": 1482.59375,
+              "width": 404,
+              "height": 213.203125
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/ko-430x932-inside.png"
+      ]
+    },
+    {
+      "language": "en",
+      "viewport": {
+        "id": "390",
+        "width": 390,
+        "height": 844
+      },
+      "scene": "overview",
+      "pass": false,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": false,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "visualClientWidth": 390,
+        "visualScrollWidth": 390,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 374,
+          "bottom": 186.25,
+          "width": 358,
+          "height": 105.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 378,
+          "bottom": 552.59375,
+          "width": 366,
+          "height": 350
+        },
+        "panelRects": [
+          {
+            "name": "dataset",
+            "left": 12,
+            "top": 202.59375,
+            "right": 378,
+            "bottom": 552.59375,
+            "width": 366,
+            "height": 350
+          },
+          {
+            "name": "model",
+            "left": 12,
+            "top": 604.59375,
+            "right": 378,
+            "bottom": 1054.59375,
+            "width": 366,
+            "height": 450
+          },
+          {
+            "name": "pes",
+            "left": 12,
+            "top": 1106.59375,
+            "right": 378,
+            "bottom": 1536.59375,
+            "width": 366,
+            "height": 430
+          }
+        ],
+        "clippedText": [
+          {
+            "panel": "model",
+            "text": "differentiable learned potential",
+            "box": {
+              "left": 120,
+              "top": 1020.578125,
+              "right": 270,
+              "bottom": 1060.578125,
+              "width": 150,
+              "height": 40
+            },
+            "panelRect": {
+              "left": 12,
+              "top": 604.59375,
+              "right": 378,
+              "bottom": 1054.59375,
+              "width": 366,
+              "height": 450
+            }
+          }
+        ],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "dataset",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 275.59375,
+              "right": 377,
+              "bottom": 551.59375,
+              "width": 364,
+              "height": 276
+            }
+          },
+          {
+            "variant": "pes",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1177.984375,
+              "right": 377,
+              "bottom": 1417.203125,
+              "width": 364,
+              "height": 239.21875
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/en-390x844-overview.png"
+      ]
+    },
+    {
+      "language": "en",
+      "viewport": {
+        "id": "390",
+        "width": 390,
+        "height": 844
+      },
+      "scene": "inside",
+      "pass": false,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": false,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "visualClientWidth": 390,
+        "visualScrollWidth": 390,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 374,
+          "bottom": 186.25,
+          "width": 358,
+          "height": 105.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 378,
+          "bottom": 592.59375,
+          "width": 366,
+          "height": 390
+        },
+        "panelRects": [
+          {
+            "name": "local-graph",
+            "left": 12,
+            "top": 202.59375,
+            "right": 378,
+            "bottom": 592.59375,
+            "width": 366,
+            "height": 390
+          },
+          {
+            "name": "interaction",
+            "left": 12,
+            "top": 644.59375,
+            "right": 378,
+            "bottom": 1139.59375,
+            "width": 366,
+            "height": 495
+          },
+          {
+            "name": "energy-force",
+            "left": 12,
+            "top": 1191.59375,
+            "right": 378,
+            "bottom": 1611.59375,
+            "width": 366,
+            "height": 420
+          }
+        ],
+        "clippedText": [
+          {
+            "panel": "interaction",
+            "text": "atomic energies",
+            "box": {
+              "left": 88,
+              "top": 1131.28125,
+              "right": 302,
+              "bottom": 1147.28125,
+              "width": 214,
+              "height": 16
+            },
+            "panelRect": {
+              "left": 12,
+              "top": 644.59375,
+              "right": 378,
+              "bottom": 1139.59375,
+              "width": 366,
+              "height": 495
+            }
+          }
+        ],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "encode",
+            "size": 12
+          },
+          {
+            "text": "center atom and relative neighbor geometry",
+            "size": 12
+          },
+          {
+            "text": "×L\\times L×L",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​ scalar",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​ vector",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "atomic energies",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "local",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 280.390625,
+              "right": 377,
+              "bottom": 508.40625,
+              "width": 364,
+              "height": 228.015625
+            }
+          },
+          {
+            "variant": "forces",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1269.390625,
+              "right": 377,
+              "bottom": 1482.59375,
+              "width": 364,
+              "height": 213.203125
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/en-390x844-inside.png"
+      ]
+    },
+    {
+      "language": "en",
+      "viewport": {
+        "id": "430",
+        "width": 430,
+        "height": 932
+      },
+      "scene": "overview",
+      "pass": false,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": false,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "documentWidth": 430,
+        "visualClientWidth": 430,
+        "visualScrollWidth": 430,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 381.484375,
+          "bottom": 158.25,
+          "width": 365.484375,
+          "height": 77.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 418,
+          "bottom": 552.59375,
+          "width": 406,
+          "height": 350
+        },
+        "panelRects": [
+          {
+            "name": "dataset",
+            "left": 12,
+            "top": 202.59375,
+            "right": 418,
+            "bottom": 552.59375,
+            "width": 406,
+            "height": 350
+          },
+          {
+            "name": "model",
+            "left": 12,
+            "top": 604.59375,
+            "right": 418,
+            "bottom": 1054.59375,
+            "width": 406,
+            "height": 450
+          },
+          {
+            "name": "pes",
+            "left": 12,
+            "top": 1106.59375,
+            "right": 418,
+            "bottom": 1536.59375,
+            "width": 406,
+            "height": 430
+          }
+        ],
+        "clippedText": [
+          {
+            "panel": "model",
+            "text": "differentiable learned potential",
+            "box": {
+              "left": 140,
+              "top": 1020.578125,
+              "right": 290,
+              "bottom": 1060.578125,
+              "width": 150,
+              "height": 40
+            },
+            "panelRect": {
+              "left": 12,
+              "top": 604.59375,
+              "right": 418,
+              "bottom": 1054.59375,
+              "width": 406,
+              "height": 450
+            }
+          }
+        ],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "dataset",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 275.59375,
+              "right": 417,
+              "bottom": 551.59375,
+              "width": 404,
+              "height": 276
+            }
+          },
+          {
+            "variant": "pes",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1177.984375,
+              "right": 417,
+              "bottom": 1417.203125,
+              "width": 404,
+              "height": 239.21875
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/en-430x932-overview.png"
+      ]
+    },
+    {
+      "language": "en",
+      "viewport": {
+        "id": "430",
+        "width": 430,
+        "height": 932
+      },
+      "scene": "inside",
+      "pass": false,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": false,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "documentWidth": 430,
+        "visualClientWidth": 430,
+        "visualScrollWidth": 430,
+        "titleRect": {
+          "left": 16,
+          "top": 81,
+          "right": 403.421875,
+          "bottom": 158.25,
+          "width": 387.421875,
+          "height": 77.25
+        },
+        "firstPanelRect": {
+          "left": 12,
+          "top": 202.59375,
+          "right": 418,
+          "bottom": 592.59375,
+          "width": 406,
+          "height": 390
+        },
+        "panelRects": [
+          {
+            "name": "local-graph",
+            "left": 12,
+            "top": 202.59375,
+            "right": 418,
+            "bottom": 592.59375,
+            "width": 406,
+            "height": 390
+          },
+          {
+            "name": "interaction",
+            "left": 12,
+            "top": 644.59375,
+            "right": 418,
+            "bottom": 1139.59375,
+            "width": 406,
+            "height": 495
+          },
+          {
+            "name": "energy-force",
+            "left": 12,
+            "top": 1191.59375,
+            "right": 418,
+            "bottom": 1611.59375,
+            "width": 406,
+            "height": 420
+          }
+        ],
+        "clippedText": [
+          {
+            "panel": "interaction",
+            "text": "atomic energies",
+            "box": {
+              "left": 108,
+              "top": 1131.28125,
+              "right": 322,
+              "bottom": 1147.28125,
+              "width": 214,
+              "height": 16
+            },
+            "panelRect": {
+              "left": 12,
+              "top": 644.59375,
+              "right": 418,
+              "bottom": 1139.59375,
+              "width": 406,
+              "height": 495
+            }
+          }
+        ],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "encode",
+            "size": 12
+          },
+          {
+            "text": "center atom and relative neighbor geometry",
+            "size": 12
+          },
+          {
+            "text": "×L\\times L×L",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​ scalar",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​ vector",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "atomic energies",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "local",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 280.390625,
+              "right": 417,
+              "bottom": 508.40625,
+              "width": 404,
+              "height": 228.015625
+            }
+          },
+          {
+            "variant": "forces",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 13,
+              "top": 1269.390625,
+              "right": 417,
+              "bottom": 1482.59375,
+              "width": 404,
+              "height": 213.203125
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-09-final/en-430x932-inside.png"
+      ]
+    }
+  ],
+  "summary": {
+    "cases": 8,
+    "passed": 4,
+    "failed": 4,
+    "distinctMlffViewportVariants": [
+      "dataset",
+      "forces",
+      "local",
+      "pes"
+    ]
+  }
+}

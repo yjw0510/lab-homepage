@@ -24,9 +24,9 @@ const u = (n: number) => +(n * SCALE).toFixed(1);
 /* font tokens — sized for actual render scale (viewBox 910 at ~528px = 0.58×) */
 const FS_MATH = +(22 * SCALE).toFixed(1);     // 28.6 → ~16.6px rendered
 const FS_CAPTION = +(18 * SCALE).toFixed(1);  // 23.4 → ~13.6px rendered
-const FS_SUB = +(15 * SCALE).toFixed(1);      // 19.5 → ~11.3px rendered
+const FS_SUB = +(16.5 * SCALE).toFixed(1);    // 21.5 → ~12.4px rendered
 const FS_FRONTIER = +(20 * SCALE).toFixed(1); // 26.0 → ~15.1px rendered
-const FS_ATOM = +(13 * SCALE).toFixed(1);     // 16.9 → ~9.8px rendered
+const FS_ATOM = +(16 * SCALE).toFixed(1);     // 20.8 → ~12.1px rendered
 
 const MATH_FILL = "var(--sch-ink)";
 const MATH_OPACITY = 0.85;
@@ -278,11 +278,11 @@ export function DFTSchematic({ active }: { active: boolean }) {
               <circle cx={NCX - OD} cy={MY} r={OR} fill="#ef4444" fillOpacity="0.7" />
               <circle cx={NCX} cy={MY} r={CR} fill="var(--sch-carbon)" fillOpacity="0.7" />
               <circle cx={NCX + OD} cy={MY} r={OR} fill="#ef4444" fillOpacity="0.7" />
-              <text x={NCX - OD} y={MY + u(3)} textAnchor="middle" fontSize={u(8)}
+              <text x={NCX - OD} y={MY + u(3)} textAnchor="middle" fontSize={u(16)}
                 fontWeight="700" fill="white" fillOpacity="0.8">O</text>
-              <text x={NCX} y={MY + u(3)} textAnchor="middle" fontSize={u(8)}
+              <text x={NCX} y={MY + u(3)} textAnchor="middle" fontSize={u(16)}
                 fontWeight="700" fill="white" fillOpacity="0.8">C</text>
-              <text x={NCX + OD} y={MY + u(3)} textAnchor="middle" fontSize={u(8)}
+              <text x={NCX + OD} y={MY + u(3)} textAnchor="middle" fontSize={u(16)}
                 fontWeight="700" fill="white" fillOpacity="0.8">O</text>
             </>;
           })()}

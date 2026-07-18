@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject, RefObject } from "react";
 import * as THREE from "three";
 import { Canvas, useThree } from "@react-three/fiber";
@@ -14,6 +14,8 @@ import { computeMesoPairCorrelation, type MesoFramesData } from "./data/mesoPair
 import type { ScrollState } from "./scrollState";
 import type { ResearchCameraActions } from "./molstar/shared";
 import { CHOREOGRAPHY } from "./levelData";
+import { MesoMechanism } from "./overlays/MesoMechanism";
+import { MlffMechanism } from "./overlays/MlffMechanism";
 import {
   applyThreePlacement,
   computeScheduledPlacement,
@@ -29,6 +31,7 @@ interface MesoScheduleSource {
   beadPositions: number[][];
   anchors?: Record<string, number[]>;
   subsets?: Record<string, { indices: number[] }>;
+  boxDimensions?: [number, number, number];
 }
 
 interface MlffScheduleSource {
@@ -77,6 +80,24 @@ function centerMesoScheduleData(source: MesoScheduleSource, frames?: MesoFramesD
       )
     : undefined;
   const points = source.beadPositions.map(shiftPoint);
+  const subsets = { ...source.subsets };
+  const pairReference = anchors?.pair_reference_center;
+  if (pairReference && !subsets.pair_correlation_neighborhood) {
+    const box = source.boxDimensions;
+    const indices = points.reduce<number[]>((acc, point, index) => {
+      let dx = point[0] - pairReference[0];
+      let dy = point[1] - pairReference[1];
+      let dz = point[2] - pairReference[2];
+      if (box) {
+        dx -= box[0] * Math.round(dx / box[0]);
+        dy -= box[1] * Math.round(dy / box[1]);
+        dz -= box[2] * Math.round(dz / box[2]);
+      }
+      if (Math.hypot(dx, dy, dz) <= 2.5) acc.push(index);
+      return acc;
+    }, []);
+    subsets.pair_correlation_neighborhood = { indices };
+  }
   if (frames?.subsets?.pair_correlation_neighborhood?.indices?.length) {
     const pairCorrelation = computeMesoPairCorrelation(frames);
     frames.subsets.pair_correlation_neighborhood.indices.forEach((globalIndex, localIndex) => {
@@ -89,7 +110,7 @@ function centerMesoScheduleData(source: MesoScheduleSource, frames?: MesoFramesD
   }
   return {
     points,
-    subsets: source.subsets,
+    subsets,
     anchors,
   };
 }
@@ -122,12 +143,19 @@ function ThreeStageCamera({
     let cancelled = false;
     if (scrollState.level === "meso") {
       // Load camera data from DNA manifest (Phase 1 pipeline output)
-      cachedJsonFetch<{ camera: MesoScheduleSource }>("/data/dna/manifest.json")
+      cachedJsonFetch<{
+        camera: MesoScheduleSource;
+        system?: { box_dimensions?: [number, number, number] };
+      }>("/data/dna/manifest.json")
         .then((manifest) => {
           if (cancelled) return;
           // Don't pass AA atoms for centering — use CG bead positions as the reference frame.
           // The AA atoms are in a separate coordinate system (1bna.pdb crystal coords).
-          const cameraData = { ...manifest.camera, atoms: [] };
+          const cameraData = {
+            ...manifest.camera,
+            atoms: [],
+            boxDimensions: manifest.system?.box_dimensions,
+          };
           setScheduleData(centerMesoScheduleData(cameraData, null));
         })
         .catch(() => {
@@ -150,11 +178,6 @@ function ThreeStageCamera({
     return () => {
       cancelled = true;
     };
-  }, [scrollState.level]);
-
-  useEffect(() => {
-    setZoomIndex(BASE_ZOOM_INDEX);
-    setViewRevision((value) => value + 1);
   }, [scrollState.level]);
 
   const stepCount = CHOREOGRAPHY[scrollState.level].steps.length;
@@ -233,6 +256,10 @@ export function ThreeMultiscaleStage({
   autoRotateRef,
   actionsRef,
   rdfBinIndex,
+  sceneKey,
+  reducedMotion = false,
+  lang = "en",
+  hideMechanism = false,
 }: {
   progressRef: RefObject<number>;
   scrollState: ScrollState;
@@ -240,6 +267,10 @@ export function ThreeMultiscaleStage({
   autoRotateRef: MutableRefObject<boolean>;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   rdfBinIndex?: number;
+  sceneKey?: string;
+  reducedMotion?: boolean;
+  lang?: string;
+  hideMechanism?: boolean;
 }) {
   const commonProps = {
     progressRef,
@@ -250,45 +281,121 @@ export function ThreeMultiscaleStage({
     autoRotateRef,
     rdfBinIndex,
   };
+  const separateMobileMechanism =
+    isMobile &&
+    Boolean(sceneKey) &&
+    (scrollState.level === "mlff" || scrollState.level === "meso");
+  const mobileMechanismHeight =
+    scrollState.level === "meso"
+      ? sceneKey === "M1_select"
+        ? "1020px"
+        : sceneKey === "M2_mapping"
+          ? "760px"
+          : sceneKey === "M3_interactions"
+            ? "640px"
+            : sceneKey === "M4_langevin"
+              ? "820px"
+              : sceneKey === "M5_collective"
+                ? "660px"
+                : "830px"
+      : sceneKey === "L1_why"
+      ? "950px"
+      : sceneKey === "L2_dataset"
+        ? "700px"
+        : sceneKey === "L3_locality"
+          ? "730px"
+          : sceneKey === "L4_symmetry"
+            ? "760px"
+            : sceneKey === "L5_energy_force"
+              ? "1220px"
+      : sceneKey === "L6_validate"
+        ? "710px"
+        : sceneKey === "L7_active"
+          ? "620px"
+          : "600px";
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#050510]" data-testid="multiscale-render-surface">
-      <Canvas camera={{ fov: 50, position: [2.2, 1.2, 12] }} dpr={[1, 2]} shadows={{ type: THREE.PCFShadowMap }}>
-        <color attach="background" args={["#050510"]} />
-        <ambientLight intensity={0.6} color="#e2e8f0" />
-        <hemisphereLight args={["#dbeafe", "#09090f", 0.55]} />
-        <directionalLight
-          position={[6, 8, 5]}
-          intensity={1.2}
-          color="#ffffff"
-          castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-          shadow-camera-near={0.1}
-          shadow-camera-far={500}
-          shadow-camera-left={-150}
-          shadow-camera-right={150}
-          shadow-camera-top={150}
-          shadow-camera-bottom={-150}
-          shadow-bias={-0.001}
-        />
-        <directionalLight position={[-4, 3, 6]} intensity={0.35} color="#93c5fd" />
-        <directionalLight position={[2, -3, 4]} intensity={0.12} color="#fca5a5" />
-        <EffectComposer>
-          <N8AO
-            aoRadius={4.0}
-            intensity={3.5}
-            distanceFalloff={0.6}
-            color="#000010"
+    <div
+      className={`relative h-full w-full overflow-hidden bg-[#050510] ${
+        separateMobileMechanism ? "flex flex-col" : ""
+      }`}
+      data-testid="multiscale-render-surface"
+    >
+      <div className={`relative min-h-0 w-full ${separateMobileMechanism ? "flex-1" : "h-full"}`}>
+        <Canvas camera={{ fov: 50, position: [2.2, 1.2, 12] }} dpr={[1, 2]} shadows={{ type: THREE.PCFShadowMap }}>
+          <color attach="background" args={["#050510"]} />
+          <ambientLight intensity={0.6} color="#e2e8f0" />
+          <hemisphereLight args={["#dbeafe", "#09090f", 0.55]} />
+          <directionalLight
+            position={[6, 8, 5]}
+            intensity={1.2}
+            color="#ffffff"
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-near={0.1}
+            shadow-camera-far={500}
+            shadow-camera-left={-150}
+            shadow-camera-right={150}
+            shadow-camera-top={150}
+            shadow-camera-bottom={-150}
+            shadow-bias={-0.001}
           />
-        </EffectComposer>
-        <ThreeStageCamera
-          scrollState={scrollState}
-          isMobile={isMobile}
-          actionsRef={actionsRef}
-        />
-        {scrollState.level === "meso" ? <DNAPageRouter {...commonProps} /> : <MLFFScene {...commonProps} />}
-      </Canvas>
+          <directionalLight position={[-4, 3, 6]} intensity={0.35} color="#93c5fd" />
+          <directionalLight position={[2, -3, 4]} intensity={0.12} color="#fca5a5" />
+          <EffectComposer>
+            <N8AO
+              aoRadius={4.0}
+              intensity={3.5}
+              distanceFalloff={0.6}
+              color="#000010"
+            />
+          </EffectComposer>
+          <ThreeStageCamera
+            key={scrollState.level}
+            scrollState={scrollState}
+            isMobile={isMobile}
+            actionsRef={actionsRef}
+          />
+          {scrollState.level === "meso" ? (
+            <DNAPageRouter {...commonProps} reducedMotion={reducedMotion} />
+          ) : (
+            <MLFFScene {...commonProps} sceneKey={sceneKey} reducedMotion={reducedMotion} />
+          )}
+        </Canvas>
+        {!separateMobileMechanism && !hideMechanism && scrollState.level === "mlff" && sceneKey && (
+          <MlffMechanism
+            sceneKey={sceneKey}
+            lang={lang}
+            reducedMotion={reducedMotion}
+          />
+        )}
+        {!separateMobileMechanism && !hideMechanism && scrollState.level === "meso" && sceneKey && (
+          <MesoMechanism sceneKey={sceneKey} lang={lang} reducedMotion={reducedMotion} />
+        )}
+      </div>
+      {separateMobileMechanism && sceneKey ? (
+        <div
+          className="relative w-full flex-shrink-0 border-t border-white/12 bg-[#050510]"
+          style={{ height: mobileMechanismHeight }}
+        >
+          {scrollState.level === "mlff" ? (
+            <MlffMechanism
+              sceneKey={sceneKey}
+              lang={lang}
+              reducedMotion={reducedMotion}
+              isMobile
+            />
+          ) : (
+            <MesoMechanism
+              sceneKey={sceneKey}
+              lang={lang}
+              reducedMotion={reducedMotion}
+              isMobile
+            />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

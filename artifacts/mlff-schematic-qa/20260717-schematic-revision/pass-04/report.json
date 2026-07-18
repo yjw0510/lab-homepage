@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-07-17T09:02:27.904Z",
+  "baseUrl": "http://localhost:3000",
+  "runId": "20260717-schematic-revision",
+  "passId": "04",
+  "note": "pes-force-trajectory-math-flow",
+  "deepChecks": false,
+  "cases": [
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1024
+      },
+      "scene": "overview",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 1024
+        },
+        "documentWidth": 1440,
+        "visualClientWidth": 980,
+        "visualScrollWidth": 980,
+        "titleRect": {
+          "left": 32,
+          "top": 97,
+          "right": 417.65625,
+          "bottom": 179.84375,
+          "width": 385.65625,
+          "height": 82.84375
+        },
+        "firstPanelRect": {
+          "left": 20,
+          "top": 217,
+          "right": 313.296875,
+          "bottom": 1005,
+          "width": 293.296875,
+          "height": 788
+        },
+        "panelRects": [
+          {
+            "name": "dataset",
+            "left": 20,
+            "top": 217,
+            "right": 313.296875,
+            "bottom": 1005,
+            "width": 293.296875,
+            "height": 788
+          },
+          {
+            "name": "model",
+            "left": 361.296875,
+            "top": 217,
+            "right": 558.828125,
+            "bottom": 1005,
+            "width": 197.53125,
+            "height": 788
+          },
+          {
+            "name": "pes",
+            "left": 606.828125,
+            "top": 217,
+            "right": 959.984375,
+            "bottom": 1005,
+            "width": 353.15625,
+            "height": 788
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "k=1k=1k=1",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(1),EDFT(1),Fi,DFT(1))(\\mathbf R^{(1)},E_{\\mathrm{DFT}}^{(1)},\\mathbf F_{i,\\mathrm{DFT}}^{(1)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "k=2k=2k=2",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(2),EDFT(2),Fi,DFT(2))(\\mathbf R^{(2)},E_{\\mathrm{DFT}}^{(2)},\\mathbf F_{i,\\mathrm{DFT}}^{(2)})(R(",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "k=3k=3k=3",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          },
+          {
+            "text": "(R(3),EDFT(3),Fi,DFT(3))(\\mathbf R^{(3)},E_{\\mathrm{DFT}}^{(3)},\\mathbf F_{i,\\mathrm{DFT}}^{(3)})(R(",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "dataset",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 21,
+              "top": 290,
+              "right": 312.296875,
+              "bottom": 1004,
+              "width": 291.296875,
+              "height": 714
+            }
+          },
+          {
+            "variant": "pes",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 607.828125,
+              "top": 288.390625,
+              "right": 958.984375,
+              "bottom": 885.609375,
+              "width": 351.15625,
+              "height": 597.21875
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-04/ko-1440x1024-overview.png"
+      ]
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "passed": 1,
+    "failed": 0,
+    "distinctMlffViewportVariants": [
+      "dataset",
+      "pes"
+    ]
+  }
+}

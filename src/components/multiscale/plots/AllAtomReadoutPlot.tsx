@@ -161,6 +161,14 @@ export function AllAtomReadoutPlot({
                     aria-label={`${lang === "ko" ? "관측량 선택" : "Select readout"}: ${track.label}`}
                     aria-pressed={isSelected}
                   >
+                    <rect
+                      x={0}
+                      y={rowY - 16}
+                      width={innerWidth}
+                      height={32}
+                      fill="transparent"
+                      pointerEvents="all"
+                    />
                     {/* Active track background band */}
                     {isActive && (
                       <rect x={0} y={rowY - 14} width={innerWidth} height={28} rx={0} fill={track.color} opacity={0.06} />

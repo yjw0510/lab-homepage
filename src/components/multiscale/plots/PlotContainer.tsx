@@ -83,9 +83,9 @@ export function PlotContainer({
 
   const height = clampNumber(Math.round(width * aspectRatio), minHeight, maxHeight);
   const font = {
-    axisLabel: clampNumber(Math.round(width * 0.04), 13, 15),
-    tick: clampNumber(Math.round(width * 0.037), 12, 14),
-    annotation: clampNumber(Math.round(width * 0.034), 11, 13),
+    axisLabel: clampNumber(Math.round(width * 0.042), 14, 16),
+    tick: clampNumber(Math.round(width * 0.038), 12.5, 14),
+    annotation: clampNumber(Math.round(width * 0.037), 12.5, 14),
   } as const;
   const margin = {
     top: clampNumber(Math.round(height * 0.085), 18, 24),
@@ -162,6 +162,6 @@ export const PLOT_COLORS = {
   text: "var(--plot-text)",
 } as const;
 
-export const FONT = { axisLabel: 14, tick: 13, annotation: 12 } as const;
+export const FONT = { axisLabel: 15, tick: 13, annotation: 13 } as const;
 
 export const MARGIN = { top: 20, right: 24, bottom: 48, left: 56 } as const;

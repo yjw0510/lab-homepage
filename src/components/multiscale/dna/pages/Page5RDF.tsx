@@ -30,6 +30,7 @@ export function Page5RDF({
   rdfBinIndex?: number;
 }) {
   const { cgPositions, cgTopology, rdfData, rdfMeta } = assets;
+  const box = assets.manifest?.system?.box_dimensions;
 
   const bins = useMemo(() => parseRdfBins(rdfData), [rdfData]);
   const clampedIndex = Math.max(0, Math.min(rdfBinIndex, bins.length - 1));
@@ -61,6 +62,7 @@ export function Page5RDF({
         center={refCenter}
         radius={bin.r}
         shellWidth={dr}
+        box={box}
       />
       <RDFProbeLayer
         center={refCenter}

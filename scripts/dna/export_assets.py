@@ -1,4 +1,4 @@
-"""Export all DNA pipeline data as binary assets + JSON manifest.
+"""Export the multiscale teaching assets as binary data + JSON manifest.
 
 Binary format: raw little-endian Float32, no headers.
 Shape information is in the manifest. This enables zero-copy
@@ -26,8 +26,10 @@ def export_all(
     aa_data: dict[str, Any],
     cg_melt: dict[str, Any],
     cg_trajectory: np.ndarray,
-    rdf_data: dict[str, Any],
+    rdf_data: dict[str, Any] | None,
     out_dir: Path,
+    *,
+    trajectory_metadata: dict[str, Any] | None = None,
 ) -> dict:
     """Export all assets and return the manifest dict."""
     aa_dir = out_dir / "aa"
@@ -40,6 +42,19 @@ def export_all(
     n_atoms = len(aa_data["positions"])
     n_beads = len(cg_melt["positions"])
     n_frames = cg_trajectory.shape[0]
+    trajectory_metadata = trajectory_metadata or {}
+
+    # run_pipeline.py exports the coordinate/topology assets first, then runs
+    # compute_rdf_pbc.py against the written trajectory. An empty RDF asset
+    # keeps the public file contract stable during that intermediate step.
+    if rdf_data is None:
+        rdf_data = {
+            "bin_centers": np.empty(0, dtype=np.float32),
+            "g_r": np.empty(0, dtype=np.float32),
+            "shell_radii": [],
+            "max_radius": 0.0,
+            "reference_index": cg_melt["reference_index"],
+        }
     n_bins = len(rdf_data["bin_centers"])
 
     assets: dict[str, dict] = {}
@@ -51,7 +66,7 @@ def export_all(
         "dtype": "float32",
         "shape": [n_atoms, 3],
         "byteLength": aa_pos_bytes,
-        "unit": "angstrom",
+        "unit": "nm",
     }
 
     aa_topology = {
@@ -71,7 +86,7 @@ def export_all(
         "dtype": "float32",
         "shape": [n_beads, 3],
         "byteLength": cg_pos_bytes,
-        "unit": "angstrom",
+        "unit": "nm",
     }
 
     cg_traj_bytes = write_float32_bin(cg_trajectory, cg_dir / "trajectory.bin")
@@ -80,12 +95,16 @@ def export_all(
         "dtype": "float32",
         "shape": [n_frames, n_beads, 3],
         "byteLength": cg_traj_bytes,
-        "unit": "angstrom",
+        "unit": "nm",
     }
 
     cg_topology = {
         "nBeads": n_beads,
         "beadBonds": cg_melt["bead_bonds"],
+        "chainIds": cg_melt["duplex_ids"],
+        "chainCount": cg_melt["duplex_count"],
+        "beadsPerChain": cg_melt["bp_per_duplex"],
+        # Compatibility aliases retained for the existing public asset loader.
         "strandIds": cg_melt["strand_ids"],
         "duplexIds": cg_melt["duplex_ids"],
         "basePairIds": cg_melt["base_pair_ids"],
@@ -114,6 +133,14 @@ def export_all(
         "shape": [n_bins, 2],
         "byteLength": rdf_bytes,
         "layout": "interleaved_r_g",
+        "columns": [
+            {"name": "r", "unit": "nm"},
+            {"name": "g_r", "unit": "dimensionless"},
+        ],
+        "provenance": {
+            "script": "scripts/dna/compute_rdf_pbc.py",
+            "periodic_boundary_conditions": True,
+        },
     }
 
     rdf_meta = {
@@ -121,6 +148,8 @@ def export_all(
         "nBins": n_bins,
         "maxRadius": rdf_data["max_radius"],
         "referenceIndex": rdf_data["reference_index"],
+        "periodicBoundaryConditions": True,
+        "script": "scripts/dna/compute_rdf_pbc.py",
     }
     (rdf_dir / "meta.json").write_text(json.dumps(rdf_meta))
 
@@ -141,11 +170,37 @@ def export_all(
         "generated": datetime.now(timezone.utc).isoformat(),
         "pipeline": "scripts/dna/run_pipeline.py",
         "system": {
-            "name": "dna_duplex_melt",
-            "duplex_count": cg_melt["duplex_count"],
-            "bp_per_duplex": cg_melt["bp_per_duplex"],
-            "aa_source": "1bna.pdb (Dickerson dodecamer)",
+            "name": "generic_linear_polymer_melt",
+            "chain_count": cg_melt["duplex_count"],
+            "beads_per_chain": cg_melt["bp_per_duplex"],
+            "model": "generic_bead_spring_polymer",
+            "model_details": (
+                "harmonic bonds and angles + repulsive Gaussian nonbonded "
+                "potential + per-particle Langevin dynamics"
+            ),
+            "nominal_duration_ns": trajectory_metadata.get("nominal_duration_ns"),
+            "aa_source": (
+                "MDNA-built 36-bp teaching chain used only for the mapping motif"
+            ),
             "box_dimensions": cg_melt.get("box_dimensions"),
+        },
+        "trajectory": {
+            "frame_count": n_frames,
+            "nominal_duration_ns": trajectory_metadata.get("nominal_duration_ns"),
+            "saved_interval_ps": trajectory_metadata.get("saved_interval_ps"),
+            "integrator": trajectory_metadata.get(
+                "integrator", "LangevinMiddleIntegrator"
+            ),
+            "periodic_boundary_conditions": True,
+        },
+        "analysis": {
+            "rdf": {
+                "script": "scripts/dna/compute_rdf_pbc.py",
+                "method": "scipy.spatial.cKDTree.count_neighbors",
+                "periodic_boundary_conditions": True,
+                "uses_full_trajectory": True,
+                "box_source": "system.box_dimensions",
+            },
         },
         "assets": assets,
         "topology": {

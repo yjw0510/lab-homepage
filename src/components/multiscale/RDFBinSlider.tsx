@@ -53,7 +53,7 @@ export function RDFBinSlider({
       : "dark absolute bottom-24 left-1/2 z-10 w-[min(480px,calc(100%-3rem))] -translate-x-1/2 border border-border-strong bg-surface-raised px-4 py-3"
     }>
       {/* Header + readout */}
-      <div className="type-mono-meta mb-3 flex items-center justify-between text-[11px] text-muted-foreground">
+      <div className="type-mono-meta mb-3 flex items-center justify-between text-xs text-muted-foreground">
         <span>{lang === "ko" ? "RDF 반경" : "RDF Radius"}</span>
         {bin && (
           <span className="flex gap-3 text-foreground">
@@ -61,7 +61,7 @@ export function RDFBinSlider({
               <span className="text-muted-foreground">r</span> = {bin.r.toFixed(2)} nm
             </span>
             <span>
-              <span className="text-muted-foreground">g(r)</span> = {bin.g.toFixed(2)}
+              <span className="type-math italic text-muted-foreground">g(r)</span> = {bin.g.toFixed(2)}
             </span>
           </span>
         )}

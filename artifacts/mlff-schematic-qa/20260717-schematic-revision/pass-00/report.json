@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-07-17T08:58:22.958Z",
+  "baseUrl": "http://localhost:3000",
+  "runId": "20260717-schematic-revision",
+  "passId": "00",
+  "note": "baseline-verifier-audit",
+  "deepChecks": false,
+  "cases": [
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1024
+      },
+      "scene": "overview",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 1024
+        },
+        "documentWidth": 1440,
+        "visualClientWidth": 980,
+        "visualScrollWidth": 980,
+        "titleRect": {
+          "left": 32,
+          "top": 97,
+          "right": 417.65625,
+          "bottom": 179.84375,
+          "width": 385.65625,
+          "height": 82.84375
+        },
+        "firstPanelRect": {
+          "left": 20,
+          "top": 217,
+          "right": 291.046875,
+          "bottom": 1005,
+          "width": 271.046875,
+          "height": 788
+        },
+        "panelRects": [
+          {
+            "name": "dataset",
+            "left": 20,
+            "top": 217,
+            "right": 291.046875,
+            "bottom": 1005,
+            "width": 271.046875,
+            "height": 788
+          },
+          {
+            "name": "model",
+            "left": 345.4375,
+            "top": 217,
+            "right": 550.21875,
+            "bottom": 1005,
+            "width": 204.78125,
+            "height": 788
+          },
+          {
+            "name": "pes",
+            "left": 604.609375,
+            "top": 217,
+            "right": 960,
+            "bottom": 1005,
+            "width": 355.390625,
+            "height": 788
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "01",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "02",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "03",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "04",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          },
+          {
+            "text": "(R(k),EDFT,FDFT)(\\mathbf R^{(k)}, E_{\\mathrm{DFT}}, \\mathbf F_{\\mathrm{DFT}})(R(k),EDFT​,FDFT​)",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "dataset",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 21,
+              "top": 290,
+              "right": 290.046875,
+              "bottom": 1004,
+              "width": 269.046875,
+              "height": 714
+            }
+          },
+          {
+            "variant": "pes",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 605.609375,
+              "top": 288.390625,
+              "right": 959,
+              "bottom": 917.609375,
+              "width": 353.390625,
+              "height": 629.21875
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-00/ko-1440x1024-overview.png"
+      ]
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "passed": 1,
+    "failed": 0,
+    "distinctMlffViewportVariants": [
+      "dataset",
+      "pes"
+    ]
+  }
+}

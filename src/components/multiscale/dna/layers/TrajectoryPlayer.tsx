@@ -61,18 +61,18 @@ export function useTrajectorySampler(
   bonds: [number, number][] | undefined,
   box: [number, number, number] | undefined,
   halfPeriod = 15,
+  mode: "pingpong" | "hold" = "pingpong",
+  paused = false,
 ) {
   const clockRef = useRef(0);
-  const positionsRef = useRef<Float32Array | null>(null);
-  const interpBuf = useRef<Float32Array | null>(null);
-
-  // Lazily allocate output buffers
-  if (positionsRef.current === null || positionsRef.current.length !== nBeads * 3) {
-    positionsRef.current = nBeads > 0 ? new Float32Array(nBeads * 3) : null;
-  }
-  if (interpBuf.current === null || interpBuf.current.length !== nBeads * 3) {
-    interpBuf.current = nBeads > 0 ? new Float32Array(nBeads * 3) : null;
-  }
+  const positions = useMemo(
+    () => (nBeads > 0 ? new Float32Array(nBeads * 3) : null),
+    [nBeads],
+  );
+  const interpBuffer = useMemo(
+    () => (nBeads > 0 ? new Float32Array(nBeads * 3) : null),
+    [nBeads],
+  );
 
   // Pre-unwrap the entire trajectory (runs once when trajectory loads)
   const unwrapped = useMemo(() => {
@@ -85,29 +85,35 @@ export function useTrajectorySampler(
   }, [trajectory, nBeads, nFrames, bonds, box]);
 
   const sampleCurrentFrame = useCallback(() => {
-    if (!unwrapped || !positionsRef.current || !interpBuf.current || nBeads === 0 || nFrames === 0) {
+    if (!unwrapped || !positions || !interpBuffer || nBeads === 0 || nFrames === 0) {
       return null;
     }
-    const phase = (clockRef.current % (halfPeriod * 2)) / halfPeriod;
-    const t = phase <= 1 ? phase : 2 - phase;
+    const phase = clockRef.current / halfPeriod;
+    const t = mode === "hold"
+      ? Math.min(0.999, phase)
+      : (() => {
+          const folded = phase % 2;
+          return folded <= 1 ? folded : 2 - folded;
+        })();
 
     sampleFrameInto(
       unwrapped,
       nBeads,
       nFrames,
       Math.max(0, Math.min(0.999, t)),
-      interpBuf.current,
+      interpBuffer,
     );
 
     // Recenter so the cluster stays at origin
-    recenterInto(interpBuf.current, positionsRef.current, nBeads);
+    recenterInto(interpBuffer, positions, nBeads);
 
-    return positionsRef.current;
-  }, [unwrapped, nBeads, nFrames, halfPeriod]);
+    return positions;
+  }, [unwrapped, positions, interpBuffer, nBeads, nFrames, halfPeriod, mode]);
 
   useFrame((_, delta) => {
+    if (paused) return;
     clockRef.current += delta;
   });
 
-  return { positionsRef, sampleCurrentFrame, clockRef };
+  return { sampleCurrentFrame, clockRef };
 }

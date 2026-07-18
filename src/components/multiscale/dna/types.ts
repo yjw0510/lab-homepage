@@ -7,6 +7,10 @@ export interface DNAManifest {
     name: string;
     duplex_count: number;
     bp_per_duplex: number;
+    chain_count?: number;
+    beads_per_chain?: number;
+    model?: string;
+    nominal_duration_ns?: number;
     aa_source: string;
     box_dimensions?: [number, number, number];
   };

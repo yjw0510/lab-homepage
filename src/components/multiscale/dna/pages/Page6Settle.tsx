@@ -8,7 +8,14 @@ import { useTrajectorySampler } from "../layers/TrajectoryPlayer";
 import type { DNAAssets } from "../useDNAAssets";
 
 /** Page 6: Full CG trajectory settle — all terms active. */
-export function Page6Settle({ assets }: { assets: DNAAssets; progress: number }) {
+export function Page6Settle({
+  assets,
+  reducedMotion = false,
+}: {
+  assets: DNAAssets;
+  progress: number;
+  reducedMotion?: boolean;
+}) {
   const { cgTrajectory, cgPositions, cgTopology, manifest } = assets;
   const nBeads = cgTopology?.nBeads ?? 0;
   const nFrames = manifest?.assets?.cg_trajectory?.shape?.[0] ?? 0;
@@ -20,7 +27,7 @@ export function Page6Settle({ assets }: { assets: DNAAssets; progress: number })
   const bondRef = useRef<BondLayerHandle>(null);
 
   const { sampleCurrentFrame } = useTrajectorySampler(
-    cgTrajectory, nBeads, nFrames, bonds, box, 15,
+    cgTrajectory, nBeads, nFrames, bonds, box, 15, "pingpong", reducedMotion,
   );
 
   useFrame(() => {

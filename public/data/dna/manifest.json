@@ -3,10 +3,14 @@
   "generated": "2026-03-30T23:05:21.724417+00:00",
   "pipeline": "scripts/dna/run_pipeline.py",
   "system": {
-    "name": "dna_duplex_melt",
+    "name": "generic_linear_polymer_melt",
+    "chain_count": 100,
+    "beads_per_chain": 80,
+    "model": "harmonic bonds and angles + repulsive Gaussian nonbonded potential + per-particle Langevin dynamics",
+    "nominal_duration_ns": 1.0,
     "duplex_count": 100,
     "bp_per_duplex": 80,
-    "aa_source": "1bna.pdb (Dickerson dodecamer)",
+    "aa_source": "MDNA-built 36-bp teaching chain used only for the mapping motif",
     "box_dimensions": [
       24.6513,
       24.6513,
@@ -22,7 +26,7 @@
         3
       ],
       "byteLength": 17712,
-      "unit": "angstrom"
+      "unit": "nm"
     },
     "cg_positions": {
       "path": "cg/positions.bin",
@@ -32,7 +36,7 @@
         3
       ],
       "byteLength": 96000,
-      "unit": "angstrom"
+      "unit": "nm"
     },
     "cg_trajectory": {
       "path": "cg/trajectory.bin",
@@ -43,7 +47,7 @@
         3
       ],
       "byteLength": 48000000,
-      "unit": "angstrom"
+      "unit": "nm"
     },
     "rdf": {
       "path": "rdf/rdf.bin",

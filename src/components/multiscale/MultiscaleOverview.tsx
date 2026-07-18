@@ -1,12 +1,11 @@
 import Link from "next/link";
 import type { MultiscaleArea } from "@/types/multiscale";
 
-/* Mirrors the footer colophon ruler: DFT → MLFF → all-atom → meso. */
+/* Method-aware ruler: MLFF and classical all-atom share atomistic resolution. */
 const rulerMarks = [
-  { slug: "dft", scale: "10⁻¹⁰ m", ko: "제일원리", en: "DFT" },
-  { slug: "mlff", scale: "10⁻⁹ m", ko: "MLFF", en: "MLFF" },
-  { slug: "allatom", scale: "10⁻⁸ m", ko: "전원자", en: "All-atom" },
-  { slug: "meso", scale: "10⁻⁷ m", ko: "메조", en: "Meso" },
+  { slug: "dft", scale: "Å–nm", ko: "전자 명시 · DFT", en: "electrons explicit · DFT" },
+  { slug: "atomistic", scale: "nm", ko: "원자 해상도 분기 · MLFF / 고전 역장", en: "atomistic fork · MLFF / classical FF" },
+  { slug: "meso", scale: "10 nm–μm", ko: "집단 변수 · 메조", en: "collective variables · meso" },
 ];
 
 export function MultiscaleOverview({
@@ -36,12 +35,12 @@ export function MultiscaleOverview({
         {/* Scale ruler — signature system (DESIGN.md §7c) */}
         <div className="mt-12">
           <div className="scale-ruler" aria-hidden="true" />
-          <div className="mt-2 grid grid-cols-2 gap-y-1 sm:flex sm:justify-between sm:gap-x-6">
+          <div className="mt-2 grid grid-cols-1 gap-y-1 sm:grid-cols-3 sm:gap-x-6">
             {rulerMarks.map((mark, i) => (
               <span
                 key={mark.slug}
-                className={`type-mono-meta whitespace-nowrap text-[11px] text-muted-foreground ${
-                  i % 2 === 1 ? "justify-self-end sm:justify-self-auto" : ""
+                className={`type-mono-meta whitespace-nowrap text-xs text-muted-foreground ${
+                  i === 1 ? "sm:justify-self-center" : i === 2 ? "sm:justify-self-end" : ""
                 }`}
               >
                 {mark.scale} {lang === "ko" ? mark.ko : mark.en}

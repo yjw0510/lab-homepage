@@ -107,6 +107,7 @@ export const CYAN = Color.fromHexStyle("#06b6d4");
 export const PURPLE = Color.fromHexStyle("#8b5cf6");
 export const RED = Color.fromHexStyle("#fb7185");
 export const TEAL = Color.fromHexStyle("#14b8a6");
+export const GREEN = Color.fromHexStyle("#22c55e");
 export const AMBER = Color.fromHexStyle("#fbbf24");
 export const ORANGE = Color.fromHexStyle("#f97316");
 export const BLUE = Color.fromHexStyle("#2f74ff");

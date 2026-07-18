@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-07-17T09:06:50.271Z",
+  "baseUrl": "http://localhost:3000",
+  "runId": "20260717-schematic-revision",
+  "passId": "06",
+  "note": "equivariant-message-passing-operator-and-feature-cues",
+  "deepChecks": false,
+  "cases": [
+    {
+      "language": "ko",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1024
+      },
+      "scene": "inside",
+      "pass": true,
+      "checks": {
+        "noHorizontalOverflow": true,
+        "noClippedPanelText": true,
+        "titleDoesNotCollideWithFirstPanel": true,
+        "visibleTextAtLeast12px": true,
+        "noLegacyMlffOverlay": true,
+        "noActiveCameraControls": true,
+        "exactlyTwoStaticMolstarRegions": true,
+        "expectedMolstarRegionsMounted": true
+      },
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 1024
+        },
+        "documentWidth": 1440,
+        "visualClientWidth": 980,
+        "visualScrollWidth": 980,
+        "titleRect": {
+          "left": 32,
+          "top": 97,
+          "right": 395.703125,
+          "bottom": 179.84375,
+          "width": 363.703125,
+          "height": 82.84375
+        },
+        "firstPanelRect": {
+          "left": 20,
+          "top": 217,
+          "right": 274.9375,
+          "bottom": 1005,
+          "width": 254.9375,
+          "height": 788
+        },
+        "panelRects": [
+          {
+            "name": "local-graph",
+            "left": 20,
+            "top": 217,
+            "right": 274.9375,
+            "bottom": 1005,
+            "width": 254.9375,
+            "height": 788
+          },
+          {
+            "name": "interaction",
+            "left": 329.328125,
+            "top": 217,
+            "right": 608.171875,
+            "bottom": 1005,
+            "width": 278.84375,
+            "height": 788
+          },
+          {
+            "name": "energy-force",
+            "left": 662.5625,
+            "top": 217,
+            "right": 959.984375,
+            "bottom": 1005,
+            "width": 297.421875,
+            "height": 788
+          }
+        ],
+        "clippedText": [],
+        "minimumVisibleFont": 12,
+        "smallestText": [
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "iii",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "rcutr_{\\mathrm{cut}}rcut​",
+            "size": 12
+          },
+          {
+            "text": "인코딩",
+            "size": 12
+          },
+          {
+            "text": "중심 원자와 이웃의 상대 기하",
+            "size": 12
+          },
+          {
+            "text": "×L\\times L×L",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​ 스칼라",
+            "size": 12
+          },
+          {
+            "text": "si(ℓ)s_i^{(\\ell)}si(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​ 벡터",
+            "size": 12
+          },
+          {
+            "text": "vi(ℓ)\\mathbf v_i^{(\\ell)}vi(ℓ)​",
+            "size": 12
+          },
+          {
+            "text": "원자별 에너지",
+            "size": 12
+          }
+        ],
+        "visibleLegacy": [],
+        "visibleCameraControlCount": 0,
+        "regionDetails": [
+          {
+            "variant": "local",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 21,
+              "top": 294.796875,
+              "right": 273.9375,
+              "bottom": 920.8125,
+              "width": 252.9375,
+              "height": 626.015625
+            }
+          },
+          {
+            "variant": "forces",
+            "ready": "true",
+            "error": "false",
+            "autoRotate": "false",
+            "interactive": "false",
+            "pointerEvents": "none",
+            "rect": {
+              "left": 663.5625,
+              "top": 294.796875,
+              "right": 958.984375,
+              "bottom": 856.8125,
+              "width": 295.421875,
+              "height": 562.015625
+            }
+          }
+        ],
+        "expectedVariantsPresent": true,
+        "strayCanvasCount": 0
+      },
+      "motionComparison": null,
+      "dragComparison": null,
+      "artifacts": [
+        "artifacts/mlff-schematic-qa/20260717-schematic-revision/pass-06/ko-1440x1024-inside.png"
+      ]
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "passed": 1,
+    "failed": 0,
+    "distinctMlffViewportVariants": [
+      "forces",
+      "local"
+    ]
+  }
+}

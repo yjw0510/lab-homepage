@@ -2,7 +2,6 @@
 
 import "katex/dist/katex.min.css";
 import katex from "katex";
-import { wrapKoreanTerms } from "@/lib/terminology";
 
 /**
  * Renders text with inline KaTeX math delimited by $...$
@@ -21,8 +20,7 @@ export function ConceptText({
   // Split on $...$ keeping the delimiters as capture groups
   const parts = text.split(/(\$[^$]+\$)/g);
 
-  const usedTerms = lang === "ko" ? new Set<string>() : undefined;
-  const keyCounter = { value: 0 };
+  void lang;
 
   return (
     <p className={className}>
@@ -36,13 +34,10 @@ export function ConceptText({
           return (
             <span
               key={i}
-              className="inline-block align-middle"
+              className="scientific-inline-math"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           );
-        }
-        if (usedTerms) {
-          return <span key={i}>{wrapKoreanTerms(part, i, keyCounter, usedTerms)}</span>;
         }
         return <span key={i}>{part}</span>;
       })}

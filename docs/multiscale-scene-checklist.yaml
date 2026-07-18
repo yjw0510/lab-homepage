@@ -1,0 +1,89 @@
+viewport:
+  width: 1440
+  height: 1024
+
+canonicalRoute: /ko/multiscale
+
+defaults:
+  stepProgress: 0.52
+  preResetWaitMs: 260
+  postResetWaitMs: 700
+  imageChecks:
+    - type: occupancy
+      minFraction: 0.015
+      maxFraction: 0.92
+    - type: centroid
+      xRange: [0.05, 0.95]
+      yRange: [0.05, 0.95]
+
+scenes:
+  - sceneId: 01-dft-select
+    level: dft
+    stepIndex: 0
+  - sceneId: 02-dft-pes
+    level: dft
+    stepIndex: 1
+  - sceneId: 03-dft-kohn-sham
+    level: dft
+    stepIndex: 2
+  - sceneId: 04-dft-scf
+    level: dft
+    stepIndex: 3
+  - sceneId: 05-dft-recipe
+    level: dft
+    stepIndex: 4
+  - sceneId: 06-dft-outputs
+    level: dft
+    stepIndex: 5
+    postResetWaitMs: 1800
+  - sceneId: 07-dft-labels
+    level: dft
+    stepIndex: 6
+
+  - sceneId: 08-mlff-overview
+    level: mlff
+    stepIndex: 0
+  - sceneId: 09-mlff-inside
+    level: mlff
+    stepIndex: 1
+
+  - sceneId: 15-allatom-branch
+    level: allatom
+    stepIndex: 0
+  - sceneId: 16-allatom-pbc
+    level: allatom
+    stepIndex: 1
+  - sceneId: 17-allatom-force-field
+    level: allatom
+    stepIndex: 2
+  - sceneId: 18-allatom-integrator
+    level: allatom
+    stepIndex: 3
+  - sceneId: 19-allatom-ensemble
+    level: allatom
+    stepIndex: 4
+  - sceneId: 20-allatom-observables
+    level: allatom
+    stepIndex: 5
+  - sceneId: 21-allatom-mapping
+    level: allatom
+    stepIndex: 6
+
+  - sceneId: 22-meso-select
+    level: meso
+    stepIndex: 0
+  - sceneId: 23-meso-mapping
+    level: meso
+    stepIndex: 1
+  - sceneId: 24-meso-interactions
+    level: meso
+    stepIndex: 2
+  - sceneId: 25-meso-langevin
+    level: meso
+    stepIndex: 3
+  - sceneId: 26-meso-collective
+    level: meso
+    stepIndex: 4
+  - sceneId: 27-meso-characterize
+    level: meso
+    stepIndex: 5

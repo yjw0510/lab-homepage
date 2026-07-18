@@ -1,6 +1,4 @@
-// Structured equation definitions for all 4 levels.
-// Each equation is an array of segments. Segments with a `termId` can be
-// targeted by GSAP for highlight animations.
+// Equation definitions synchronized with the 27-page narrative.
 
 export interface EquationSegment {
   latex: string;
@@ -12,9 +10,7 @@ export interface EquationConfig {
   ariaLabel: string;
 }
 
-// Sub-equations that appear when specific terms are active
 export interface SubEquation {
-  /** Show this sub-equation when this term is active */
   termId: string;
   segments: EquationSegment[];
   ariaLabel: string;
@@ -26,163 +22,322 @@ export interface EquationSet {
 }
 
 export const EQUATIONS: Record<string, EquationSet> = {
-  // ─── MESOSCALE: General coarse-grained force decomposition ───
-  cg: {
+  bornOppenheimer: {
     main: {
       segments: [
-        { latex: "\\mathbf{F}_i = \\sum_{j \\neq i}" },
-        { latex: "\\mathbf{F}_{ij}^{\\mathrm{nb}}", termId: "Fnb" },
-        { latex: "+ \\sum_{\\mathrm{bonds}}" },
-        { latex: "\\mathbf{F}_{ij}^{\\mathrm{bond}}", termId: "Fbond" },
-        { latex: "+" },
-        { latex: "\\mathbf{F}_i^{\\mathrm{thermo}}", termId: "Fthermo" },
+        { latex: "\\mathbf R^{(0)}\\rightarrow\\mathbf R^{(1)}\\rightarrow\\cdots\\rightarrow\\mathbf R^\\ast" },
+        { latex: ",\\qquad" },
+        { latex: "E_0\\!\\left(\\mathbf R^{(0)}\\right)>E_0\\!\\left(\\mathbf R^{(1)}\\right)>\\cdots>E_0\\!\\left(\\mathbf R^\\ast\\right)", termId: "E0" },
       ],
-      ariaLabel:
-        "Total force on a CG bead equals non-bonded, bonded, and thermostat contributions.",
+      ariaLabel: "Successive geometry updates and the corresponding decrease in DFT energy.",
     },
-    subs: [
-      {
-        termId: "Fnb",
-        segments: [
-          { latex: "\\mathbf{F}^{\\mathrm{nb}}_{ij}", termId: "Fnb" },
-          { latex: "= a_{ij} \\, w(r_{ij}) \\, \\hat{\\mathbf{r}}_{ij}" },
-        ],
-        ariaLabel: "Non-bonded force: soft repulsion with strength a-ij and weight function w.",
-      },
-      {
-        termId: "Fbond",
-        segments: [
-          { latex: "V_{\\mathrm{FENE}}(r)", termId: "Fbond" },
-          { latex: "= -\\tfrac{1}{2} k b^2 \\ln\\!\\bigl(1 - \\tfrac{r^2}{b^2}\\bigr)" },
-        ],
-        ariaLabel: "FENE bond potential: nonlinear spring with maximum extension b.",
-      },
-      {
-        termId: "Fthermo",
-        segments: [
-          { latex: "\\sigma^2 = 2\\gamma\\, k_B T", termId: "Fthermo" },
-        ],
-        ariaLabel: "Fluctuation-dissipation relation: noise amplitude squared equals two gamma times thermal energy.",
-      },
-    ],
+    subs: [],
   },
 
-  // ─── ALL-ATOM: Classical force field ───
-  classical: {
-    main: {
-      segments: [
-        { latex: "U =" },
-        { latex: "U_{\\mathrm{bond}}", termId: "Ubond" },
-        { latex: "+" },
-        { latex: "U_{\\mathrm{angle}}", termId: "Uangle" },
-        { latex: "+" },
-        { latex: "U_{\\mathrm{dih}}", termId: "Udihedral" },
-        { latex: "+" },
-        { latex: "U_{\\mathrm{vdW}}", termId: "UvdW" },
-        { latex: "+" },
-        { latex: "U_{\\mathrm{Coul}}", termId: "UCoul" },
-      ],
-      ariaLabel:
-        "Total potential energy equals the sum of bond, angle, dihedral, van der Waals, and Coulombic terms.",
-    },
-    subs: [
-      {
-        termId: "Ubond",
-        segments: [
-          { latex: "U_{\\mathrm{bond}}", termId: "Ubond" },
-          { latex: "= \\sum \\frac{1}{2} k_b (r - r_0)^2" },
-        ],
-        ariaLabel: "Bond potential: harmonic spring with equilibrium distance r0.",
-      },
-      {
-        termId: "Uangle",
-        segments: [
-          { latex: "U_{\\mathrm{angle}}", termId: "Uangle" },
-          { latex: "= \\sum \\frac{1}{2} k_\\theta (\\theta - \\theta_0)^2" },
-        ],
-        ariaLabel: "Angle potential: harmonic in the bending angle theta.",
-      },
-      {
-        termId: "Udihedral",
-        segments: [
-          { latex: "U_{\\mathrm{dih}}", termId: "Udihedral" },
-          { latex: "= \\sum k_\\phi [1 + \\cos(n\\phi - \\phi_s)]" },
-        ],
-        ariaLabel: "Dihedral potential: cosine function of the torsion angle.",
-      },
-      {
-        termId: "UvdW",
-        segments: [
-          { latex: "U_{\\mathrm{vdW}}", termId: "UvdW" },
-          { latex: "= \\sum_{i<j} 4\\epsilon \\bigl[(\\tfrac{\\sigma}{r})^{12} - (\\tfrac{\\sigma}{r})^{6}\\bigr]" },
-        ],
-        ariaLabel: "Lennard-Jones 12-6 potential for van der Waals interactions.",
-      },
-      {
-        termId: "UCoul",
-        segments: [
-          { latex: "U_{\\mathrm{Coul}}", termId: "UCoul" },
-          { latex: "= \\sum_{i<j} \\tfrac{q_i q_j}{4\\pi\\varepsilon_0 r_{ij}}" },
-        ],
-        ariaLabel: "Coulomb potential for electrostatic interactions.",
-      },
-    ],
-  },
-
-  // ─── MLFF: Per-atom energy decomposition ───
-  mlff: {
-    main: {
-      segments: [
-        { latex: "E(\\mathbf{R})", termId: "ER" },
-        { latex: "= \\sum_{i=1}^{N}" },
-        { latex: "E_i", termId: "Ei" },
-        { latex: "(", },
-        { latex: "\\mathcal{N}_i", termId: "Ni" },
-        { latex: ")" },
-      ],
-      ariaLabel:
-        "Total energy is the sum of per-atom energies, each depending on the local chemical neighborhood.",
-    },
-    subs: [
-      {
-        termId: "Fi",
-        segments: [
-          { latex: "\\mathbf{F}_i", termId: "Fi" },
-          { latex: "= -\\frac{\\partial E}{\\partial \\mathbf{R}_i}" },
-        ],
-        ariaLabel: "Force on atom i is the negative gradient of total energy with respect to position.",
-      },
-    ],
-  },
-
-  // ─── DFT: Kohn-Sham equation ───
   ks: {
     main: {
       segments: [
         { latex: "\\bigl[" },
-        { latex: "-\\tfrac{1}{2}\\nabla^2", termId: "kinetic" },
+        { latex: "-\\tfrac12\\nabla^2", termId: "kinetic" },
         { latex: "+" },
-        { latex: "V_{\\mathrm{ext}}", termId: "Vext" },
+        { latex: "V_{\\rm ext}", termId: "Vext" },
         { latex: "+" },
-        { latex: "V_{\\mathrm{H}}", termId: "Hartree" },
+        { latex: "V_{\\rm H}[\\rho]", termId: "Hartree" },
         { latex: "+" },
-        { latex: "V_{\\mathrm{xc}}", termId: "Vxc" },
-        { latex: "\\bigr]" },
-        { latex: "\\phi_i", termId: "phi" },
-        { latex: "= \\epsilon_i \\, \\phi_i" },
+        { latex: "V_{\\rm xc}[\\rho]", termId: "Vxc" },
+        { latex: "\\bigr]\\phi_i=\\epsilon_i\\phi_i" },
       ],
-      ariaLabel:
-        "Kohn-Sham equation: kinetic plus external plus Hartree plus exchange-correlation potential acting on orbital phi-i equals eigenvalue times phi-i.",
+      ariaLabel: "Kohn-Sham Hamiltonian with one kinetic operator and external, Hartree, and exchange-correlation potentials.",
+    },
+    subs: [],
+  },
+
+  scf: {
+    main: {
+      segments: [
+        { latex: "\\rho^{(n)}", termId: "rhoIn" },
+        { latex: "\\rightarrow" },
+        { latex: "\\hat H_{\\rm KS}[\\rho^{(n)}]", termId: "veff" },
+        { latex: "\\rightarrow" },
+        { latex: "\\{\\phi_i^{(n)}\\}", termId: "orbitals" },
+        { latex: "\\rightarrow" },
+        { latex: "\\rho_{\\rm out}^{(n)}", termId: "rhoOut" },
+      ],
+      ariaLabel: "Self-consistent field cycle from input density through the Kohn-Sham solve to output density.",
     },
     subs: [
       {
-        termId: "rho",
+        termId: "rhoOut",
         segments: [
-          { latex: "\\rho(\\mathbf{r})", termId: "rho" },
-          { latex: "= \\sum_i f_i \\, |\\phi_i(\\mathbf{r})|^2" },
+          { latex: "\\rho^{(n+1)}=\\mathcal M\\!\\left(\\rho^{(n)},\\rho_{\\rm out}^{(n)}\\right)" },
         ],
-        ariaLabel: "Electron density is the sum of occupation numbers times orbital densities.",
+        ariaLabel: "A generic SCF update operator combines density history and the current output density.",
       },
     ],
+  },
+
+  dftRecipe: {
+    main: {
+      segments: [
+        {
+          latex:
+            "\\begin{aligned}\\mathcal M_{\\rm DFT}&=\\{E_{\\rm xc},\\mathcal B,q,2S+1\\}\\\\&=\\{\\mathrm{B3LYP},6\\text{-}31\\mathrm G^*,0,1\\}\\end{aligned}",
+        },
+      ],
+      ariaLabel: "The selected DFT model contains the exchange-correlation approximation, basis set, charge, and spin multiplicity.",
+    },
+    subs: [],
+  },
+
+  frontier: {
+    main: {
+      segments: [
+        {
+          latex:
+            "\\begin{aligned}\\rho(\\mathbf r)&=\\sum_i f_i|\\phi_i(\\mathbf r)|^2\\\\\\Delta_{\\rm KS}&=\\varepsilon_{\\rm LUMO}-\\varepsilon_{\\rm HOMO}\\end{aligned}",
+          termId: "rho",
+        },
+      ],
+      ariaLabel: "Electron density from occupied Kohn-Sham orbitals and the method-dependent frontier orbital energy difference.",
+    },
+    subs: [],
+  },
+
+  referenceRecord: {
+    main: {
+      segments: [
+        { latex: "\\{Z,\\mathbf R\\}", termId: "recordInput" },
+        { latex: "\\xrightarrow{\\text{reference protocol}}" },
+        { latex: "\\{E,\\mathbf F,(\\boldsymbol\\sigma),\\text{metadata}\\}", termId: "recordOutput" },
+      ],
+      ariaLabel: "Atomic species and coordinates are labeled by a reference protocol with energy, forces, optional stress, and metadata.",
+    },
+    subs: [],
+  },
+
+  mlff: {
+    main: {
+      segments: [
+        { latex: "E_\\theta(\\mathbf R)", termId: "ER" },
+        { latex: "=\\sum_i" },
+        { latex: "\\varepsilon_i", termId: "Ei" },
+        { latex: "(\\mathcal N_i)" },
+      ],
+      ariaLabel: "A representative local ML potential sums latent atomic energy contributions.",
+    },
+    subs: [],
+  },
+
+  locality: {
+    main: {
+      segments: [
+        { latex: "\\mathcal N_i(r_c)", termId: "neighborhood" },
+        { latex: "=\\{j:\\lVert\\mathbf r_{ij}^{\\rm MIC}\\rVert<r_c\\}" },
+      ],
+      ariaLabel: "The local neighborhood contains periodic minimum-image neighbors inside cutoff radius rc.",
+    },
+    subs: [],
+  },
+
+  symmetry: {
+    main: {
+      segments: [
+        { latex: "E(Q\\mathbf R+\\mathbf t)" , termId: "invariant" },
+        { latex: "=E(\\mathbf R),\\qquad" },
+        { latex: "\\mathbf F(Q\\mathbf R+\\mathbf t)", termId: "equivariant" },
+        { latex: "=Q\\mathbf F(\\mathbf R)" },
+      ],
+      ariaLabel: "Energy is invariant to rigid transformations while force vectors transform equivariantly.",
+    },
+    subs: [],
+  },
+
+  mlffTraining: {
+    main: {
+      segments: [
+        { latex: "E_\\theta(\\mathbf R)", termId: "ER" },
+        { latex: "=\\sum_i" },
+        { latex: "\\varepsilon_i", termId: "Ei" },
+        { latex: ",\\qquad" },
+        { latex: "\\mathbf F_i^\\theta", termId: "Fi" },
+        { latex: "=-\\nabla_iE_\\theta" },
+      ],
+      ariaLabel: "Latent atomic contributions sum to total energy and conservative forces are its coordinate gradient.",
+    },
+    subs: [
+      {
+        termId: "loss",
+        segments: [
+          { latex: "\\mathcal L=w_E\\lVert\\Delta E\\rVert^2+w_F\\sum_i\\lVert\\Delta\\mathbf F_i\\rVert^2+w_\\sigma\\lVert\\Delta\\boldsymbol\\sigma\\rVert^2" },
+        ],
+        ariaLabel: "Weighted training loss over energy, forces, and optional stress.",
+      },
+    ],
+  },
+
+  activeLearning: {
+    main: {
+      segments: [
+        { latex: "\\text{rollout}", termId: "rollout" },
+        { latex: "\\rightarrow" },
+        { latex: "u(\\mathbf R)>u_*", termId: "uncertainty" },
+        { latex: "\\rightarrow" },
+        { latex: "\\text{reference query}\\rightarrow\\text{retrain}", termId: "query" },
+      ],
+      ariaLabel: "Active learning loop from molecular dynamics rollout through an uncertainty trigger to a new reference query and retraining.",
+    },
+    subs: [],
+  },
+
+  classical: {
+    main: {
+      segments: [
+        { latex: "U=" },
+        { latex: "U_{\\rm bond}", termId: "Ubond" },
+        { latex: "+" },
+        { latex: "U_{\\rm angle}", termId: "Uangle" },
+        { latex: "+" },
+        { latex: "U_{\\rm dih}", termId: "Udihedral" },
+        { latex: "+" },
+        { latex: "U_{\\rm vdW}", termId: "UvdW" },
+        { latex: "+" },
+        { latex: "U_{\\rm elec}", termId: "UCoul" },
+      ],
+      ariaLabel: "Classical molecular potential decomposed into bonded, angular, torsional, van der Waals, and electrostatic terms.",
+    },
+    subs: [
+      {
+        termId: "Ubond",
+        segments: [{ latex: "U_{\\rm bond}=\\sum \\tfrac12k_b(r-r_0)^2" }],
+        ariaLabel: "Harmonic bond stretching potential.",
+      },
+      {
+        termId: "Uangle",
+        segments: [{ latex: "U_{\\rm angle}=\\sum \\tfrac12k_\\theta(\\theta-\\theta_0)^2" }],
+        ariaLabel: "Harmonic angle bending potential.",
+      },
+      {
+        termId: "Udihedral",
+        segments: [{ latex: "U_{\\rm dih}=\\sum k_\\phi[1+\\cos(n\\phi-\\phi_s)]" }],
+        ariaLabel: "Periodic torsional potential.",
+      },
+      {
+        termId: "UvdW",
+        segments: [{ latex: "U_{\\rm vdW}=\\sum_{i<j}4\\epsilon[(\\sigma/r)^{12}-(\\sigma/r)^6]" }],
+        ariaLabel: "Lennard-Jones repulsion and attraction.",
+      },
+      {
+        termId: "UCoul",
+        segments: [{ latex: "U_{\\rm pair}=\\sum_{i<j}q_iq_j/(4\\pi\\varepsilon_0r_{ij})" }],
+        ariaLabel: "Pair Coulomb kernel used as an explanatory term; periodic simulation uses PME.",
+      },
+    ],
+  },
+
+  pbc: {
+    main: {
+      segments: [
+        { latex: "\\mathbf r_i\\mapsto\\mathbf r_i\\bmod\\mathbf L", termId: "pbc" },
+        { latex: ",\\qquad\\mathbf r_{ij}^{\\rm MIC}=\\mathbf r_{ij}-\\mathbf L\\,\\mathrm{nint}(\\mathbf r_{ij}/\\mathbf L)" },
+      ],
+      ariaLabel: "Periodic coordinate wrapping and the minimum-image displacement.",
+    },
+    subs: [],
+  },
+
+  newton: {
+    main: {
+      segments: [
+        { latex: "m_i\\ddot{\\mathbf r}_i", termId: "newton" },
+        { latex: "=-\\nabla_iU" },
+        { latex: ",\\qquad" },
+        { latex: "(\\mathbf r,\\mathbf v)_n\\xrightarrow{\\Delta t}(\\mathbf r,\\mathbf v)_{n+1}", termId: "integrator" },
+      ],
+      ariaLabel: "Newtonian acceleration from the potential gradient followed by a finite timestep update.",
+    },
+    subs: [
+      {
+        termId: "thermostat",
+        segments: [{ latex: "\\text{constraints + Langevin thermostat are applied within the splitting scheme}" }],
+        ariaLabel: "Constraints and a Langevin thermostat participate in the actual finite-step update.",
+      },
+    ],
+  },
+
+  ensemble: {
+    main: {
+      segments: [
+        { latex: "\\text{minimize}", termId: "minimize" },
+        { latex: "\\rightarrow" },
+        { latex: "NPT", termId: "npt" },
+        { latex: "\\rightarrow" },
+        { latex: "NVT\\;\\text{production}", termId: "production" },
+      ],
+      ariaLabel: "Preparation sequence from minimization through NPT equilibration to NVT production sampling.",
+    },
+    subs: [],
+  },
+
+  observable: {
+    main: {
+      segments: [
+        { latex: "A_t=A(\\mathbf R_t)", termId: "observable" },
+        { latex: ",\\qquad" },
+        { latex: "\\langle A\\rangle_T=\\tfrac1T\\int_0^T A_t\\,dt", termId: "average" },
+      ],
+      ariaLabel: "An observable evaluated on each trajectory frame and averaged over a sampling window.",
+    },
+    subs: [],
+  },
+
+  mapping: {
+    main: {
+      segments: [
+        { latex: "\\mathbf r_I=M_I(\\mathbf R)", termId: "mapping" },
+        { latex: ",\\qquad" },
+        { latex: "\\mathcal T=\\{p(r),\\langle\\mathbf F\\rangle,F(\\xi),O_{\\rm exp},\\text{state point}\\}", termId: "targets" },
+      ],
+      ariaLabel: "An atomistic-to-coarse mapping and the set of structural, force, free-energy, experimental, and state-point targets.",
+    },
+    subs: [],
+  },
+
+  cgModel: {
+    main: {
+      segments: [
+        { latex: "U_{\\rm CG}=" },
+        { latex: "\\sum_b\\tfrac12k_b(r_b-r_{0,b})^2", termId: "Ubond" },
+        { latex: "+" },
+        { latex: "\\sum_a\\tfrac12k_a(\\theta-\\theta_0)^2", termId: "Uangle" },
+        { latex: "+" },
+        { latex: "\\sum_{\\substack{i<j\\\\r_{ij}<r_c}}^{\\prime}A\\exp[-r_{ij}^2/(2\\sigma^2)]", termId: "Ugauss" },
+      ],
+      ariaLabel: "The active coarse-grained teaching model uses per-bond reference lengths, harmonic angles, and a finite-cutoff Gaussian sum over eligible nonbonded pairs.",
+    },
+    subs: [],
+  },
+
+  langevin: {
+    main: {
+      segments: [
+        { latex: "m_i\\dot{\\mathbf v}_i=" },
+        { latex: "-\\nabla_iU_{\\rm CG}", termId: "conservative" },
+        { latex: "-\\gamma m_i\\mathbf v_i", termId: "dissipative" },
+        { latex: "+\\sqrt{2\\gamma m_i k_BT}\\,\\boldsymbol\\eta_i(t)", termId: "random" },
+      ],
+      ariaLabel: "Per-particle Langevin equation with conservative, frictional, and random forces.",
+    },
+    subs: [],
+  },
+
+  rdf: {
+    main: {
+      segments: [
+        { latex: "g(r)", termId: "rdf" },
+        { latex: "=\\frac{1}{4\\pi r^2\\rho N}\\left\\langle\\sum_{i\\ne j}\\delta(r-r_{ij}^{\\rm MIC})\\right\\rangle" },
+      ],
+      ariaLabel: "Periodic radial distribution function normalized by the uniform shell population.",
+    },
+    subs: [],
   },
 };

@@ -1,6 +1,7 @@
 {
   "focusIndex": 0,
   "cutoff": 3.6,
+  "lengthUnit": "angstrom",
   "sourceAtomCount": 6503,
   "atoms": [
     [
@@ -3637,7 +3638,6 @@
         4,
         6,
         9,
-        12,
         28,
         29,
         30,
@@ -3647,7 +3647,6 @@
         64,
         65,
         66,
-        80,
         82,
         83,
         84,

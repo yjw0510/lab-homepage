@@ -79,7 +79,7 @@ export function RDFPlot({ progress, accentColor }: { progress: number; accentCol
             {
               x: margin.left + innerWidth / 2,
               y: height - font.axisLabel * 0.8,
-              latex: "r\\,(\\AA)",
+              latex: "r\\,(\\text{\\AA})",
               align: "middle",
               color: PLOT_COLORS.axisLabel,
               fontSize: font.axisLabel,

@@ -38,6 +38,7 @@ MINIMIZE_ITERS = 1000
 MD_STEPS = 0
 REPORT_STRIDE = 1
 LOCAL_CUTOFF = 5.2
+GRAPH_CUTOFF_ANGSTROM = 3.6
 
 
 def run_command(args: list[str], cwd: Path) -> None:
@@ -156,11 +157,11 @@ def build_parity(predictions: dict) -> dict:
     return {"dftE": dft_e, "mlffE": mlff_e, "dftF": dft_f[:360], "mlffF": mlff_f[:360]}
 
 
-def build_subset_indices(local: dict) -> tuple[dict[str, dict], dict[str, list[float]]]:
+def build_subset_indices(local: dict, graph_cutoff_angstrom: float) -> tuple[dict[str, dict], dict[str, list[float]]]:
     atoms = np.asarray(local["atoms"], dtype=np.float64)
     focus = atoms[local["focusIndex"]]
     distances = np.linalg.norm(atoms - focus, axis=1)
-    local_core = [index for index, distance in enumerate(distances) if distance <= 3.7]
+    local_core = [index for index, distance in enumerate(distances) if distance <= graph_cutoff_angstrom]
     expanded_local = [index for index, distance in enumerate(distances) if distance <= 5.4]
     return (
         {
@@ -265,11 +266,12 @@ def main():
 
         local = extract_local_neighborhood(system, focus_index, LOCAL_CUTOFF, final_forces)
         local_atom_count = len(local["atoms"])
-        subsets, anchors = build_subset_indices(local)
+        subsets, anchors = build_subset_indices(local, GRAPH_CUTOFF_ANGSTROM)
         force_display_selection = select_force_display_indices(local)
         system_data = {
             "focusIndex": local["focusIndex"],
-            "cutoff": 3.6,
+            "cutoff": GRAPH_CUTOFF_ANGSTROM,
+            "lengthUnit": "angstrom",
             "sourceAtomCount": atom_count,
             "atoms": [[round(float(value), 4) for value in atom] for atom in local["atoms"]],
             "elements": local["elements"],
