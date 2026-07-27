@@ -1,0 +1,115 @@
+{
+  "loopEdge": 1024,
+  "posterEdge": 1280,
+  "fps": 24,
+  "backgrounds": {
+    "light": "#f5f5f5",
+    "dark": "#100f0f"
+  },
+  "systems": {
+    "woven-cof": {
+      "renderId": "01_cof505",
+      "tier": "dft",
+      "bytes": {
+        "loop-dark.mp4": 2758745,
+        "loop-light.mp4": 2796226,
+        "poster-dark-sm.webp": 48910,
+        "poster-dark.webp": 157424,
+        "poster-light-sm.webp": 49952,
+        "poster-light.webp": 159630
+      },
+      "frames": 96
+    },
+    "molecular-knot": {
+      "renderId": "02_knot",
+      "tier": "dft",
+      "bytes": {
+        "loop-dark.mp4": 2399887,
+        "loop-light.mp4": 2433015,
+        "poster-dark-sm.webp": 41414,
+        "poster-dark.webp": 122936,
+        "poster-light-sm.webp": 43404,
+        "poster-light.webp": 127584
+      },
+      "frames": 96
+    },
+    "buckycatcher": {
+      "renderId": "03_buckycatcher",
+      "tier": "mlff",
+      "bytes": {
+        "loop-dark.mp4": 742302,
+        "loop-light.mp4": 803526,
+        "poster-dark-sm.webp": 20496,
+        "poster-dark.webp": 48854,
+        "poster-light-sm.webp": 22614,
+        "poster-light.webp": 55304
+      },
+      "frames": 96
+    },
+    "nanotube": {
+      "renderId": "04_dwcnt",
+      "tier": "mlff",
+      "bytes": {
+        "loop-dark.mp4": 1244224,
+        "loop-light.mp4": 1436601,
+        "poster-dark-sm.webp": 30420,
+        "poster-dark.webp": 78274,
+        "poster-light-sm.webp": 36096,
+        "poster-light.webp": 91110
+      },
+      "frames": 96
+    },
+    "goldberg-cage": {
+      "renderId": "05_pd30l60",
+      "tier": "allatom",
+      "bytes": {
+        "loop-dark.mp4": 2338148,
+        "loop-light.mp4": 2462675,
+        "poster-dark-sm.webp": 48014,
+        "poster-dark.webp": 129670,
+        "poster-light-sm.webp": 51664,
+        "poster-light.webp": 141746
+      },
+      "frames": 96
+    },
+    "dendrimer": {
+      "renderId": "06_pamam_g5",
+      "tier": "allatom",
+      "bytes": {
+        "loop-dark.mp4": 2239026,
+        "loop-light.mp4": 2441502,
+        "poster-dark-sm.webp": 53610,
+        "poster-dark.webp": 158462,
+        "poster-light-sm.webp": 59822,
+        "poster-light.webp": 175550
+      },
+      "frames": 96
+    },
+    "double-gyroid": {
+      "renderId": "07_gyroid",
+      "tier": "meso",
+      "bytes": {
+        "loop-dark.mp4": 2085832,
+        "loop-light.mp4": 2111350,
+        "poster-dark-sm.webp": 51766,
+        "poster-dark.webp": 157206,
+        "poster-light-sm.webp": 53076,
+        "poster-light.webp": 163054
+      },
+      "frames": 96
+    },
+    "capsid": {
+      "renderId": "08_capsid",
+      "tier": "meso",
+      "bytes": {
+        "loop-dark.mp4": 3566178,
+        "loop-light.mp4": 3945766,
+        "poster-dark-sm.webp": 92254,
+        "poster-dark.webp": 352092,
+        "poster-light-sm.webp": 94408,
+        "poster-light.webp": 361448
+      },
+      "frames": 96
+    }
+  }
+}

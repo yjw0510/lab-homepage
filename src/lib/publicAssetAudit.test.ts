@@ -12,12 +12,12 @@ const ALLOWED_SOURCE_FILES = new Set([
 ]);
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mdx", ".md", ".json"]);
 const FORBIDDEN_SOURCE_PATTERNS = [
-  /fetch\s*\(\s*["']\/(?:images|data|files|fonts)\//g,
-  /src\s*=\s*["']\/(?:images|data|files|fonts)\//g,
-  /src\s*=\s*\{\s*["']\/(?:images|data|files|fonts)\//g,
+  /fetch\s*\(\s*["']\/(?:images|data|files|fonts|renders)\//g,
+  /src\s*=\s*["']\/(?:images|data|files|fonts|renders)\//g,
+  /src\s*=\s*\{\s*["']\/(?:images|data|files|fonts|renders)\//g,
 ];
 const FORBIDDEN_CONTENT_PATTERNS = [
-  /["']\/(?:images|data|files|fonts)\//g,
+  /["']\/(?:images|data|files|fonts|renders)\//g,
 ];
 
 function collectFiles(dir: string): string[] {

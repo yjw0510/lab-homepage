@@ -4,12 +4,18 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getAllMultiscaleAreas, getMultiscaleArea } from "@/lib/multiscale";
 import { MultiscaleMoleculeViewer } from "@/components/multiscale/MultiscaleMoleculeViewer";
+import { TierSpecimens } from "@/components/renders/TierSpecimens";
 import { globalStepFromLevel, LEVELS } from "@/components/multiscale/scrollState";
+import type { SpecimenTier } from "@/lib/renderSpecimens";
 import {
   parseMarkdownSections,
   renderMarkdownBody,
 } from "@/lib/markdown";
 import { getDictionary, hasLocale, locales } from "../../dictionaries";
+
+// LEVELS already owns the four tier ids; re-declaring them here is how they drift apart.
+const isSpecimenTier = (slug: string): slug is SpecimenTier =>
+  LEVELS.some((level) => level.id === slug);
 
 export function generateStaticParams() {
   const areas = getAllMultiscaleAreas();
@@ -138,6 +144,12 @@ export default async function MultiscaleDetailPage({
 
         {/* Double rule closes the title block (content-page masthead) */}
         <div className="mt-10 h-[3px] border-y border-border-strong" aria-hidden="true" />
+
+        {isSpecimenTier(area.slug) && (
+          <div className="mt-12">
+            <TierSpecimens tier={area.slug} lang={lang} />
+          </div>
+        )}
 
         {area.moleculeViewer && (
           <figure className="mt-12 border border-border">

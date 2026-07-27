@@ -31,6 +31,7 @@
   --lv-dft-line: rgba(30, 76, 154, 0.35);
   --lv-dft-wash: rgba(30, 76, 154, 0.08);
   --lv-mlff: #c3272b;
+  --lv-mlff-text: #c3272b;
   --lv-mlff-line: rgba(195, 39, 43, 0.35);
   --lv-mlff-wash: rgba(195, 39, 43, 0.07);
   --lv-aa: #7a6000;
@@ -102,6 +103,7 @@
   --lv-dft-line: rgba(67, 133, 190, 0.42);
   --lv-dft-wash: rgba(67, 133, 190, 0.14);
   --lv-mlff: #d14d41;
+  --lv-mlff-text: #e8705f;
   --lv-mlff-line: rgba(209, 77, 65, 0.42);
   --lv-mlff-wash: rgba(209, 77, 65, 0.13);
   --lv-aa: #d0a215;
@@ -162,6 +164,7 @@
   --color-lv-dft-line: var(--lv-dft-line);
   --color-lv-dft-wash: var(--lv-dft-wash);
   --color-lv-mlff: var(--lv-mlff);
+  --color-lv-mlff-text: var(--lv-mlff-text);
   --color-lv-mlff-line: var(--lv-mlff-line);
   --color-lv-mlff-wash: var(--lv-mlff-wash);
   --color-lv-aa: var(--lv-aa);

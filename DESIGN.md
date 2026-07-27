@@ -105,7 +105,15 @@ Level triads (`--lv-{dft,mlff,aa,meso}` + `-line` + `-wash`, globals.css):
 /* light inks */  #1E4C9A  #C3272B  #7A6000 /* 황 text-grade */  #1A1A1A
 /* dark inks  */  #4385BE  #D14D41  #D0A215  #B7B5AC /* base-300 */
 /* lines/washes = rgba() of the ink (light: 황 wash from #F9D537) */
+/* text-grade  */ --lv-mlff-text: #C3272B light / #E8705F dark
 ```
+
+The MLFF mark ink is the one level colour that does not survive as small type:
+`#D14D41` on `#100F0F` measures 4.42:1, under the AA floor. `--lv-mlff-text`
+carries a lightened red (`#E8705F`, 6.3:1) for level ink at 11–13px; the mark
+value stays palette-exact for fills, rules and ticks. Light mode needs no split
+(`#C3272B` is 5.28:1). This is the same mark-versus-text split the 황 ink
+already uses.
 
 Rules: no pure #000/#fff anywhere — Flexoki black `#100F0F` and paper
 `#FFFCF0` are the extremes, and paper is reserved (body text is tx `#CECDC3`
@@ -148,6 +156,11 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
 
 ## 3. Spacing, shape, layout
 
+- **Height breakpoints.** Width alone cannot budget a full-viewport composition, so
+  the specimen hero also switches on viewport height: `820px` (the stacked plate
+  label appears), `800px` (tray cells tighten), `700px` and `660px` (type rhythm and
+  plate shrink). These four values are viewport thresholds, not spacing; nothing
+  else in the system may introduce a height query without declaring it here.
 - 4-pt Tailwind scale. Section rhythm: `py-20 sm:py-28` standard,
   `py-28 sm:py-40` for major breaks. Content container: `max-w-6xl px-6 sm:px-8`.
 - **Shape lock: sharp.** `border-radius: 0` on every redesigned element
@@ -198,13 +211,35 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
 - **Icons**: lucide-react (kept, already project-wide), `strokeWidth 1.75`,
   16–20px, functional only (external-link, menu, theme, zoom). Never
   decorative tiles.
+- **Specimen plate** (`SpecimenPlate`): one Cycles render of a system the lab
+  actually simulated, **square at every breakpoint** (the `lg` hero plate is
+  height-driven and capped at `58vw` so a tall viewport cannot crop it), full-bleed
+  inside its box, no border and no shadow. The assets in `public/renders/<slug>/`
+  are composited over the two background tokens at bake time, and the poster is
+  frame 0 of its own loop, so poster and loop agree pixel for pixel and the plate
+  sits on `bg-background` with no visible edge. Both posters ship in the markup and
+  swap by the `dark:` variant (so the right one paints before hydration) and stay
+  painted underneath; the loop mounts over them only after hydration, only while on
+  screen, and fades in on `playing`. The loop's outer **2% on each axis is masked to
+  a fade** so H.264's residual backdrop drift never draws a rectangle. Reduced
+  motion, Save-Data and 2G hold the poster.
+  Its caption is a **printed plate label**, not a title, in one of two shapes:
+  - *stacked* (tier page figcaption, hero left field at `lg` on a tall viewport):
+    tier name and scale tick in that level's identity ink, then the system name at
+    `type-heading`, then method and size as `type-mono-meta` lines each opened by a
+    hairline.
+  - *inline* (hero readout band): index, tier name in level ink, system name, and —
+    wherever the stacked label is not shown — method and size on a wrapped second row.
+  Never set caption text over the render.
 
 ## 5. Motion — quiet, GPU-only, visible-by-default
 
 - Easings: `--ease-out: cubic-bezier(0.16, 1, 0.3, 1)`; durations
   `--dur-fast: 180ms`, `--dur-med: 320ms`, `--dur-slow: 600ms`.
-- One orchestrated hero entrance on home (type lines stagger 60ms, WebGL scene
-  crossfades in). Everything else: micro (hover lift, underline sweep).
+- The home hero rotates through the eight specimen plates, crossfading each loop
+  in over its poster at 600ms. Rotation is 7s, pauses off screen, is suppressed
+  below `sm`, stops when the reader picks a specimen, and carries a visible pause
+  control. Everything else: micro (hover lift, underline sweep).
 - **Reveal policy (hard rule)**: content is visible without JS. Reveal-on-
   scroll may only ADD a transform/opacity animation via a `.pre-reveal` class
   that JS applies before observing; no CSS that hides content by default.
@@ -235,10 +270,16 @@ plain headings elsewhere.
 
 ## 8. Per-page macrostructure families
 
-- **Home**: full-viewport marquee hero (WebGL molecular scene right/back,
-  left-aligned display type, 2 CTAs, no scroll cue) → scale-index of research
-  areas (margin-column + ruler spine) → publications ledger (top 3) → news
-  colophon rows. No cards anywhere.
+- **Home**: full-viewport specimen hero — left-aligned display type and 2 CTAs
+  over a clean field, a square specimen plate anchored to the right edge from
+  `lg` (its left third dissolved by a mask), the printed plate label under the
+  CTAs, then a full-width readout band and an eight-cell specimen tray on the
+  bottom edge. The hero rotates through the eight renders and carries a pause
+  control; below `lg` the masthead comes first and the tray degrades to ruler
+  ticks. No scroll cue. → scale-index of research areas (margin-column + ruler
+  spine) → publications ledger (top 3) → news colophon rows. No cards anywhere.
+- **Multiscale tier pages**: the two specimens run at that tier lead the
+  document, each a plate with its printed label, above the article sections.
 - **Content pages** (publications, news, funding): ledger/index — title block
   with double rule, then hairline rows, mono year/date margin column. Filters
   render as mono text toggles with accent active state, not pills.
@@ -263,7 +304,7 @@ plain headings elsewhere.
 ## What pages MAY differ on
 
 - Macrostructure within their family (above).
-- The hero visual (home = WebGL scene; multiscale = viewer; others = typographic).
+- The hero visual (home = rotating specimen plate; multiscale = viewer; others = typographic).
 - Ledger metadata column content (year vs date vs scale).
 
 ## Appendix — scientific layer (declared domain tokens)
@@ -275,6 +316,26 @@ against them. Light: `#334155` `#64748b` `#2B2D42` `#6b7280` `#475569`
 `#f8fafc` `#6f7a89`. The WebGL bridge uses `#ededed` in light mode and
 `#0a0909` in dark mode; its no-WebGL state derives from the semantic surface
 tokens. CPK/element colors inside WebGL scenes are data, not design tokens.
+
+Rendered specimens (`public/renders/`, baked by `tools/build-render-assets.py`)
+are photographic content, not tokens — but their **backdrop** is a token and is
+load-bearing. Each render is composited over `#F5F5F5` (light) / `#100F0F`
+(dark) from the straight-alpha Cycles master, and the poster is frame 0 of the
+same loop, which is what lets a plate meet the page with no seam.
+
+The encoder's sample range and the container's colour tag must agree. The loops
+are encoded limited-range and left **untagged**, which matches what a browser
+assumes by default, so the dark backdrop decodes to (15,15,15) — one level off
+the token, invisible. Tagging the stream full-range BT.709 (or an sRGB transfer)
+without matching the encode makes the browser apply a transfer conversion the
+pixels never went through, crushing the same backdrop to (0,0,0) and drawing a
+hard rectangle. Measured in Chrome across element sizes; the shipped pages sample
+0–1 level of difference in both modes. Do not add colour metadata to these
+encodes. A 2% edge fade on the loop (see §4) covers the residual.
+
+The single video format is a repo-size and simplicity decision, not a quality
+one: at the shipped operating point a matched VP9 encode measures ~7% smaller and
+~0.4 dB better, so H.264-only costs a little efficiency to avoid a second ladder.
 
 Schematic accent tokens (`--sch-*` in globals.css): every chromatic accent a
 schematic animates (SCF ring, packets, force-field term colors, electron
