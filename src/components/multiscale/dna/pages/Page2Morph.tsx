@@ -64,7 +64,11 @@ export function Page2Morph({
   if (!assets.aaPositions || !assets.aaTopology || !bpBeads) return null;
 
   const displayPhase = reducedMotion ? 1 : phase;
-  const atomOpacity = Math.max(0.1, 1 - displayPhase * 0.9);
+  // The atom half is the context the bead half is measured against: it has to survive a
+  // near-white background without reading as a second foreground. 0.1 vanished in light
+  // mode (probe-canvas-fit measured 2.7% painted canvas against 4.6% in dark for the same
+  // scene); 0.32 came back too present. 0.22 sits between them.
+  const atomOpacity = 1 - displayPhase * 0.78;
   const beadOpacity = Math.min(0.96, 0.08 + displayPhase * 0.88);
 
   return (
@@ -81,6 +85,7 @@ export function Page2Morph({
         radius={0.006}
         color="#94a3b8"
         opacity={atomOpacity * 0.75}
+        trim={0.038}
         center={atomCenter}
       />
       <group position={[-beadCenter[0], -beadCenter[1], -beadCenter[2]]}>

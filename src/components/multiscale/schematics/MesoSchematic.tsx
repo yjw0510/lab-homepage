@@ -68,7 +68,7 @@ const S = 1.5;                       // blob scale
 const AT_TX = -52.5, AT_TY = -24.6;  // all-atom group: centre → (150,105)
 const CG_TX = 207.5, CG_TY = 20.4;   // CG group: centre → (410,150)
 
-export function MesoSchematic({ active }: { active: boolean }) {
+export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: boolean }) {
   const clusters = CENTERS.map((c, i) => makeAtomGroup(c, i));
   const beads = CENTERS.map((p, i) => ({
     cx: p.x, cy: p.y, r: i % 2 === 0 ? 10 : 8.5, delay: 0.52 + i * 0.035,
@@ -153,8 +153,8 @@ export function MesoSchematic({ active }: { active: boolean }) {
       </g>
 
       {/* labels */}
-      <text x="150" y="206" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.25s" }}>All-atom</text>
-      <text x="410" y="244" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.85s" }}>CG beads</text>
+      <text x="150" y="206" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.25s" }}>{ko ? "전원자" : "All-atom"}</text>
+      <text x="410" y="244" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.85s" }}>{ko ? "조대 비드" : "CG beads"}</text>
       </AtomPaintProvider>
     </svg>
   );

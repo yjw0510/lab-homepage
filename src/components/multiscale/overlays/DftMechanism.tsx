@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { useMeasuredBox } from "../useMeasuredBox";
 import type { ReactNode } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -125,10 +126,16 @@ function D4Scf({
     Math.min(snapshot?.index ?? 0, scf.trajectory.length - 1),
   );
   const activePoint = scf.trajectory[activeIndex] ?? scf.trajectory[0];
-  const chartLeft = 44;
-  const chartRight = 500;
-  const chartTop = 18;
-  const chartBottom = 154;
+  // The chart draws in its own pixel box, so fontSize="12" reaches the reader as twelve
+  // real pixels whatever the host width is. Under the old fixed 520x180 viewBox the
+  // mobile host measured 184x136, scaled the whole drawing to 0.354, and painted the
+  // decade labels at 4.25px while getComputedStyle still reported 12.
+  const [chartSvgRef, chartBox] = useMeasuredBox<SVGSVGElement>({ width: 520, height: 180 });
+
+  const chartLeft = 46;
+  const chartRight = Math.max(chartLeft + 60, chartBox.width - 18);
+  const chartTop = 16;
+  const chartBottom = Math.max(chartTop + 60, chartBox.height - 30);
   const logMax = 0;
   const logMin = -10;
   const pointCoordinates = scf.trajectory.map((point, index) => {
@@ -157,7 +164,8 @@ function D4Scf({
 
   const convergenceChart = (
     <svg
-      viewBox="0 0 520 180"
+      ref={chartSvgRef}
+      viewBox={`0 0 ${chartBox.width} ${chartBox.height}`}
       className="h-full w-full"
       role="img"
       aria-label={
@@ -261,7 +269,7 @@ function D4Scf({
 
   if (isMobile) {
     return (
-      <MechanismPanel className={`dft-enter ${MULTISCALE_PANEL.mobileOverlay}`}>
+      <MechanismPanel className={`dft-enter ${MULTISCALE_PANEL.mobileBand}`}>
         <div className="flex items-start justify-between gap-4 border-b border-lv-aa-line bg-lv-aa-wash px-4 py-3">
           <div>
             <p className="text-base font-semibold text-lv-aa">
@@ -269,24 +277,29 @@ function D4Scf({
             </p>
             <p className="mt-1 text-sm leading-5 text-muted-foreground">
               {ko
-                ? "배경의 전자 밀도와 아래 점이 같은 반복을 나타낸다."
-                : "The density above and the point below show the same iteration."}
+                ? "반복할수록 밀도가 덜 움직인다."
+                : "Each pass moves the density a little less."}
             </p>
           </div>
-          <p className="shrink-0 text-2xl font-semibold tabular-nums text-foreground">
+          <p className="type-quiet shrink-0 text-2xl text-foreground">
             {activePoint.iteration}
             <span className="ml-1 text-sm font-normal text-muted-foreground">/ 14</span>
           </p>
         </div>
 
-        <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-3 border-b border-border px-4 py-3">
-          <div>
-            <p className="text-sm text-muted-foreground">|ΔE|</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-lv-aa">
-              {deltaLabel}
+        {/* The readout sits above the chart rather than beside it. Sharing the row left
+            the plot 184px for a 14-point log curve, which is both too tight to read the
+            curve and the reason its labels were painting at 4.25px. */}
+        <div className="border-b border-border px-4 py-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              |ΔE|
+              <span className="ml-2 text-xl font-semibold tabular-nums text-lv-aa">
+                {deltaLabel}
+              </span>
+              <span className="ml-1">Ha</span>
             </p>
-            <p className="text-xs text-muted-foreground">Ha</p>
-            <p className={`mt-2 text-sm font-semibold ${converged ? "text-lv-aa" : "text-muted-foreground"}`}>
+            <p className={`text-sm font-semibold ${converged ? "text-lv-aa" : "text-muted-foreground"}`}>
               {converged
                 ? ko
                   ? "수렴"
@@ -296,7 +309,7 @@ function D4Scf({
                   : "iterating"}
             </p>
           </div>
-          <div className="h-[8.5rem]">{convergenceChart}</div>
+          <div className="mt-2 h-[8.5rem]">{convergenceChart}</div>
         </div>
 
         <div className="px-4 py-3">
@@ -325,8 +338,8 @@ function D4Scf({
         }
         description={
           ko
-            ? "배경의 전자 밀도, 그래프의 점, 반복 번호가 함께 움직인다."
-            : "The density surface, chart point, and iteration number advance together."
+            ? "반복할수록 밀도가 덜 움직인다. 그 남은 움직임이 |ΔE|다."
+            : "Each pass moves the density a little less. What is left of that motion is |ΔE|."
         }
         aside={
           <div className="flex items-baseline gap-3">
@@ -428,8 +441,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             ? `${data.homoEV.toFixed(2)} eV · 가장 높은 점유 오비탈`
             : `${data.homoEV.toFixed(2)} eV · highest occupied orbital`
           : ko
-            ? "자산 로딩 중"
-            : "loading asset",
+            ? "값 불러오는 중"
+            : "loading",
     },
     {
       id: "lumo" as const,
@@ -441,8 +454,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             ? `${data.lumoEV.toFixed(2)} eV · 가장 낮은 비점유 오비탈`
             : `${data.lumoEV.toFixed(2)} eV · lowest unoccupied orbital`
           : ko
-            ? "자산 로딩 중"
-            : "loading asset",
+            ? "값 불러오는 중"
+            : "loading",
     },
   ];
   const activeRow = rows.find((row) => row.id === mode) ?? rows[0];
@@ -480,8 +493,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
       {mode === "density" && showDensityCaption ? (
         <p className="absolute inset-x-0 top-1/2 -translate-y-1/2 pr-28 text-sm leading-5 text-muted-foreground">
           {ko
-            ? "전자 밀도는 에너지 준위가 아니라 모든 점유 오비탈이 만든 공간 분포다."
-            : "Electron density is a spatial distribution built from all occupied orbitals, not an energy level."}
+            ? "전자 밀도는 점유 오비탈 전부가 겹쳐 만든 공간 분포다. 준위 하나에 대응하지 않는다."
+            : "Electron density is one spatial distribution built from every occupied orbital. It does not correspond to a single level."}
         </p>
       ) : null}
     </div>
@@ -489,15 +502,15 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
 
   if (isMobile) {
     return (
-      <MechanismPanel className={`dft-enter ${MULTISCALE_PANEL.mobileOverlay}`}>
+      <MechanismPanel className={`dft-enter ${MULTISCALE_PANEL.mobileBand}`}>
         <div className="border-b border-lv-dft-line bg-lv-dft-wash px-4 py-3">
           <p className="text-base font-semibold text-lv-dft">
             {ko ? "같은 계산에서 서로 다른 정보를 읽는다" : "Read different information from the same calculation"}
           </p>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
             {ko
-              ? "위의 3D 표면과 아래 설명이 함께 바뀐다."
-              : "The 3D surface above and the explanation below change together."}
+              ? "밀도는 전하가 고인 곳을, HOMO와 LUMO는 그 전하가 먼저 움직이는 곳을 보여 준다."
+              : "The density shows where charge has collected; HOMO and LUMO show where it moves first."}
           </p>
         </div>
         <div className="grid grid-cols-3 gap-px bg-border p-px">
@@ -518,7 +531,11 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             </button>
           ))}
         </div>
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_10.5rem] gap-4 px-4 py-3">
+        {/* The right column is capped rather than fixed. At 10.5rem flat it doubled
+            under a 200% text-resize setting and, with the gap and padding, exceeded a
+            390px viewport on its own, clipping the density explanation by 35px. It
+            still takes its full width whenever there is room for it. */}
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,10.5rem)] gap-4 px-4 py-3">
           <div>
             <MathNotation latex={activeRow.symbol} className="text-3xl text-lv-dft" />
             <h4 className="mt-2 text-lg font-semibold text-foreground">{activeRow.label}</h4>
@@ -541,8 +558,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             {mode === "density" ? (
               <p className="text-sm leading-5 text-muted-foreground">
                 {ko
-                  ? "전자 밀도는 에너지 준위가 아니라 모든 점유 오비탈이 만든 공간 분포다."
-                  : "Electron density is a spatial distribution built from all occupied orbitals, not an energy level."}
+                  ? "전자 밀도는 점유 오비탈 전부가 겹쳐 만든 공간 분포다. 준위 하나에 대응하지 않는다."
+                  : "Electron density is one spatial distribution built from every occupied orbital. It does not correspond to a single level."}
               </p>
             ) : (
               renderEnergyLevels(false)
@@ -551,8 +568,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
         </div>
         <p className="border-t border-border px-4 py-2.5 text-sm leading-5 text-muted-foreground">
           {ko
-            ? "HOMO-LUMO 간격은 2.02 eV이지만 광학 들뜸 에너지와 같다고 해석하지 않는다."
-            : "The HOMO-LUMO gap is 2.02 eV, but it is not interpreted as an optical excitation energy."}
+            ? "이 간격이 넓을수록 전자를 내주거나 받기 어렵다. 다만 흡수 스펙트럼이 알려 주는 들뜸 에너지와 같은 값은 아니다."
+            : "A wider gap means the molecule parts with an electron, or accepts one, less readily. It is not the excitation energy an absorption spectrum reports."}
         </p>
       </MechanismPanel>
     );
@@ -569,8 +586,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
         }
         description={
           ko
-            ? "3D 표면이 전자 밀도, HOMO, LUMO 순서로 바뀌며 아래 해석과 연결된다."
-            : "The 3D surface cycles through density, HOMO, and LUMO while the interpretation updates below."
+            ? "밀도는 전하가 고인 곳을, HOMO와 LUMO는 그 전하가 먼저 움직이는 곳을 보여 준다."
+            : "The density shows where charge has collected; HOMO and LUMO show where it moves first."
         }
         aside={
           <p className={MULTISCALE_TYPE.description}>B3LYP / 6-31G*</p>
@@ -636,8 +653,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
       <div className="flex items-center justify-between gap-5 border-t border-border px-5 py-3">
         <p className="text-sm leading-5 text-muted-foreground">
           {ko
-            ? "HOMO-LUMO 간격은 2.02 eV이다. 바닥상태 Kohn-Sham 오비탈의 차이이며 광학 들뜸 에너지로 직접 해석하지 않는다."
-            : "The HOMO-LUMO gap is 2.02 eV. It is a ground-state Kohn-Sham orbital difference, not a direct optical excitation energy."}
+            ? "이 간격은 전자를 내주거나 받기가 얼마나 쉬운지를 가늠하게 한다. 바닥상태 Kohn-Sham 오비탈의 차이이므로 흡수 스펙트럼의 들뜸 에너지로 바로 옮겨 읽지는 않는다."
+            : "The gap gauges how readily the molecule parts with an electron or accepts one. It is a ground-state Kohn-Sham orbital difference, so it is not read straight across to an absorption spectrum's excitation energy."}
         </p>
         <span className="shrink-0 text-sm font-semibold text-lv-dft">
           {mode === "density" ? (ko ? "전자 밀도" : "DENSITY") : mode.toUpperCase()}
@@ -649,12 +666,12 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
 
 const SCENE_ARIA: Record<DftSceneKey, { en: string; ko: string }> = {
   D4_scf: {
-    en: "Self-consistent field cycle synchronized with the selected total-density iteration.",
-    ko: "선택된 총 전자 밀도 반복과 연결된 자기일관장 순환.",
+    en: "SCF cycle sitting at the same iteration as the total density on screen.",
+    ko: "고른 반복의 총 전자 밀도와 같은 지점을 가리키는 SCF 순환.",
   },
   D6_outputs: {
-    en: "Calculated density, HOMO, and LUMO outputs with asset-derived energies.",
-    ko: "자산에서 읽은 에너지를 포함한 계산 밀도, HOMO, LUMO 출력.",
+    en: "Calculated electron density, HOMO, and LUMO, with the corresponding orbital energies.",
+    ko: "계산된 전자 밀도와 HOMO, LUMO, 그리고 각 오비탈 에너지.",
   },
 };
 
@@ -674,7 +691,7 @@ export function DftMechanism({
   return (
     <div
       key={sceneKey}
-      className={`dft-mechanism pointer-events-none absolute inset-0 z-[2] overflow-hidden ${
+      className={`dft-mechanism z-[2] ${isMobile ? "relative" : "pointer-events-none absolute inset-0 overflow-hidden"} ${
         reducedMotion ? "dft-reduced" : ""
       }`}
       role="img"

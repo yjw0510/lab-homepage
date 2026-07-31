@@ -3,7 +3,7 @@ import { siteConfig } from "../../../data/site-config";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
 const scaleIndex = [
-  { slug: "dft", scale: "10⁻¹⁰ m", ko: "제일원리", en: "DFT" },
+  { slug: "dft", scale: "10⁻¹⁰ m", ko: "DFT", en: "DFT" },
   { slug: "mlff", scale: "10⁻⁹ m", ko: "MLFF", en: "MLFF" },
   { slug: "allatom", scale: "10⁻⁸ m", ko: "전원자", en: "All-atom" },
   { slug: "meso", scale: "10⁻⁷ m", ko: "메조", en: "Meso" },
@@ -30,7 +30,7 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
                   aria-hidden="true"
                   className="inline-block h-2.5 w-2.5 self-center bg-primary"
                 />
-                <span className="text-[15px] font-[650] tracking-[-0.015em] text-foreground">
+                <span className="text-[15px] font-[700] tracking-[-0.015em] text-foreground">
                   {dict.site.name}
                 </span>
               </div>

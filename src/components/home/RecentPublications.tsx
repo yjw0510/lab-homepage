@@ -16,7 +16,7 @@ export function RecentPublications({
   if (publications.length === 0) return null;
 
   return (
-    <section className="py-20 sm:py-28">
+    <section data-bibliographic className="py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-6 sm:px-8">
         <SectionHeading
           title={dict.home.recentPublications}
@@ -59,7 +59,10 @@ export function RecentPublications({
                   {pub.doi && (
                     <>
                       {" · "}
-                      <ExternalLink href={`https://doi.org/${pub.doi}`}>
+                      <ExternalLink
+                        href={`https://doi.org/${pub.doi}`}
+                        className="inline-flex min-h-6 items-center leading-none"
+                      >
                         {pub.doi}
                       </ExternalLink>
                     </>

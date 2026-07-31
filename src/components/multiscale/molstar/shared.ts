@@ -3,6 +3,7 @@
 import type { MutableRefObject } from "react";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context.js";
 import { DefaultPluginUISpec } from "molstar/lib/mol-plugin-ui/spec.js";
+import { PluginBehaviors } from "molstar/lib/mol-plugin/behavior.js";
 import { PluginConfig } from "molstar/lib/mol-plugin/config.js";
 import { PluginCommands } from "molstar/lib/mol-plugin/commands.js";
 import { PluginStateObject as SO, PluginStateTransform } from "molstar/lib/mol-plugin-state/objects.js";
@@ -11,6 +12,9 @@ import { StateTransformer } from "molstar/lib/mol-state/index.js";
 import { ParamDefinition as PD } from "molstar/lib/mol-util/param-definition.js";
 import { Task } from "molstar/lib/mol-task/index.js";
 import { Mesh } from "molstar/lib/mol-geo/geometry/mesh/mesh.js";
+import { Spheres } from "molstar/lib/mol-geo/geometry/spheres/spheres.js";
+import { Cylinders } from "molstar/lib/mol-geo/geometry/cylinders/cylinders.js";
+import { CylindersBuilder } from "molstar/lib/mol-geo/geometry/cylinders/cylinders-builder.js";
 import { MeshBuilder } from "molstar/lib/mol-geo/geometry/mesh/mesh-builder.js";
 import { addSphere } from "molstar/lib/mol-geo/geometry/mesh/builder/sphere.js";
 import { addCylinder, addSimpleCylinder, addFixedCountDashedCylinder } from "molstar/lib/mol-geo/geometry/mesh/builder/cylinder.js";
@@ -33,6 +37,9 @@ export interface CameraSnapshotLike {
   target: Vec3;
   position: Vec3;
   radius: number;
+  // Mol* bails out of Camera.update() while this is 0, and only sets it itself when its
+  // own automatic reset is enabled. It has to be written alongside the placement.
+  radiusMax?: number;
 }
 
 export interface SpherePrimitive {
@@ -96,6 +103,124 @@ export interface ResearchLayerSpec {
   params?: Partial<Record<string, unknown>>;
 }
 
+/**
+ * A layer drawn as impostor spheres instead of meshes.
+ *
+ * The mesh path tessellates every sphere into 320 triangles on the CPU, which is fine for the
+ * few hundred a schematic draws and impossible for the ten thousand a periodic cell holds:
+ * 3.2 M triangles rebuilt per frame is seconds, not milliseconds. Impostors upload three
+ * floats per atom and let the fragment shader do the sphere, so a full simulation box can be
+ * re-sent every frame. Use this for atom counts in the thousands, the mesh path for
+ * everything shaped like a diagram.
+ *
+ * One colour and one radius for the whole layer, so callers split by element rather than pass
+ * per-atom arrays. Mol* builds its colour and size arrays by calling a theme once per group,
+ * and at twenty thousand groups a frame that was 45% of the frame time: making both uniform
+ * took the whole-cell view from 13.3 to 23.5 frames a second with nothing else changed.
+ */
+export interface ResearchSpheresLayerSpec {
+  label: string;
+  centers: Float32Array;
+  radius: number;
+  color: ColorValue;
+  params?: Partial<Record<string, unknown>>;
+}
+
+/**
+ * Bonds drawn as impostor cylinders, for the same reason the spheres above are impostors: the
+ * periodic cell holds 9,482 of them, which as meshed tubes is 1.1 M triangles rebuilt per frame.
+ * One start, one end and a radius per bond instead, and the fragment shader does the tube.
+ */
+export interface ResearchCylindersLayerSpec {
+  label: string;
+  starts: Float32Array;
+  ends: Float32Array;
+  radius: number;
+  color: ColorValue;
+  params?: Partial<Record<string, unknown>>;
+}
+
+export type ResearchLayer =
+  | ResearchLayerSpec
+  | ResearchSpheresLayerSpec
+  | ResearchCylindersLayerSpec;
+
+const isSpheresLayer = (layer: ResearchLayer): layer is ResearchSpheresLayerSpec =>
+  "centers" in layer;
+const isCylindersLayer = (layer: ResearchLayer): layer is ResearchCylindersLayerSpec =>
+  "starts" in layer;
+const isImpostorLayer = (layer: ResearchLayer) => isSpheresLayer(layer) || isCylindersLayer(layer);
+
+/**
+ * Bounds of what these layers paint, for framing a camera on them.
+ *
+ * Mol* keeps the same measurement in `canvas3d.boundingSphereVisible`, but that is a stale
+ * object between its own commits: read at the moment a placement is computed it is still 0,
+ * and reading it late means placing the camera twice with a visible jump. The layer list is
+ * the draw list, so measure that. Centre is the midpoint of the extremes rather than a
+ * centroid — a centroid weighted by primitive count sits inside whichever cluster has the
+ * most atoms and leaves the frame lopsided.
+ */
+export function layerBounds(layers: ResearchLayer[]) {
+  const min: [number, number, number] = [Infinity, Infinity, Infinity];
+  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+  const grow = (point: ArrayLike<number>, pad = 0) => {
+    for (let axis = 0; axis < 3; axis++) {
+      if (point[axis] - pad < min[axis]) min[axis] = point[axis] - pad;
+      if (point[axis] + pad > max[axis]) max[axis] = point[axis] + pad;
+    }
+  };
+
+  const points: Array<{ point: ArrayLike<number>; pad: number }> = [];
+  for (const layer of layers) {
+    // A layer faded to nothing is not painted, so it must not pull the frame.
+    const alpha = layer.params?.alpha;
+    if (typeof alpha === "number" && alpha < 0.02) continue;
+    if (isSpheresLayer(layer)) {
+      for (let i = 0; i < layer.centers.length; i += 3) {
+        points.push({ point: layer.centers.subarray(i, i + 3), pad: layer.radius });
+      }
+      continue;
+    }
+    if (isCylindersLayer(layer)) {
+      for (let i = 0; i < layer.starts.length; i += 3) {
+        points.push({ point: layer.starts.subarray(i, i + 3), pad: layer.radius },
+                    { point: layer.ends.subarray(i, i + 3), pad: layer.radius });
+      }
+      continue;
+    }
+    for (const primitive of layer.primitives) {
+      switch (primitive.kind) {
+        case "sphere":
+          points.push({ point: primitive.center, pad: primitive.radius });
+          break;
+        case "cylinder":
+        case "dashed-cylinder":
+          points.push({ point: primitive.start, pad: 0 }, { point: primitive.end, pad: 0 });
+          break;
+        case "triangle":
+          points.push({ point: primitive.a, pad: 0 }, { point: primitive.b, pad: 0 }, { point: primitive.c, pad: 0 });
+          break;
+        case "mesh":
+          for (const vertex of primitive.vertices) points.push({ point: vertex, pad: 0 });
+          break;
+      }
+    }
+  }
+  if (!points.length) return null;
+  for (const { point, pad } of points) grow(point, pad);
+
+  const center = [0, 1, 2].map((axis) => (min[axis] + max[axis]) / 2) as [number, number, number];
+  let radius = 0;
+  for (const { point, pad } of points) {
+    radius = Math.max(
+      radius,
+      Math.hypot(point[0] - center[0], point[1] - center[1], point[2] - center[2]) + pad,
+    );
+  }
+  return { center, radius: Math.max(radius, 0.5) };
+}
+
 export const BACKGROUND = Color.fromHexStyle("#0a0909");
 export const SLATE = Color.fromHexStyle("#9ca3af");
 export const WHITE = Color.fromHexStyle("#f8fafc");
@@ -128,6 +253,8 @@ export const ELEMENT_RADII: Record<string, number> = {
 
 const molstarResearchGlobals = globalThis as typeof globalThis & {
   __labHomepageResearchMeshProvider3D__?: unknown;
+  __labHomepageResearchSpheresProvider3D__?: unknown;
+  __labHomepageResearchCylindersProvider3D__?: unknown;
 };
 
 function createResearchMeshProvider() {
@@ -170,6 +297,132 @@ function createResearchMeshProvider() {
 const ResearchMeshProvider3D =
   (molstarResearchGlobals.__labHomepageResearchMeshProvider3D__ as ReturnType<typeof createResearchMeshProvider>) ??
   (molstarResearchGlobals.__labHomepageResearchMeshProvider3D__ = createResearchMeshProvider());
+
+function createShapeFromSpheresLayer(spec: ResearchSpheresLayerSpec) {
+  const count = spec.centers.length / 3;
+  const groups = new Float32Array(count);
+  for (let i = 0; i < count; i++) groups[i] = i;
+  const spheres = Spheres.create(spec.centers, groups, count);
+  return Shape.create(
+    spec.label,
+    spec,
+    spheres,
+    () => spec.color,
+    () => spec.radius,
+    () => spec.label,
+  );
+}
+
+function createResearchSpheresProvider() {
+  return PluginStateTransform.BuiltIn({
+    name: "multiscale-spheres-provider-3d",
+    display: "Research Spheres",
+    from: SO.Root,
+    to: SO.Shape.Provider,
+    params: {
+      label: PD.Text("Research Layer"),
+      spec: PD.Value<ResearchSpheresLayerSpec>({
+        label: "Research Layer",
+        centers: new Float32Array(0),
+        radius: 1,
+        color: WHITE,
+      }),
+    },
+  })({
+    canAutoUpdate() {
+      return true;
+    },
+    apply({ params }) {
+      return Task.create("Research Spheres Provider", async () => {
+        return new SO.Shape.Provider(
+          {
+            label: params.label,
+            data: params.spec,
+            params: Spheres.Params,
+            getShape: (_, spec) => createShapeFromSpheresLayer(spec),
+            geometryUtils: Spheres.Utils,
+          },
+          { label: params.label },
+        );
+      });
+    },
+    update({ b, newParams }) {
+      b.data.label = newParams.label;
+      b.data.data = newParams.spec;
+      b.label = newParams.label;
+      return Task.create("Research Spheres Provider", async () => StateTransformer.UpdateResult.Updated);
+    },
+  });
+}
+
+function createShapeFromCylindersLayer(spec: ResearchCylindersLayerSpec) {
+  const count = spec.starts.length / 3;
+  const builder = CylindersBuilder.create(count, count);
+  for (let i = 0; i < count; i++) {
+    builder.add(spec.starts[i * 3], spec.starts[i * 3 + 1], spec.starts[i * 3 + 2],
+                spec.ends[i * 3], spec.ends[i * 3 + 1], spec.ends[i * 3 + 2],
+                1, true, true, 2, i);
+  }
+  return Shape.create(
+    spec.label,
+    spec,
+    builder.getCylinders(),
+    () => spec.color,
+    () => spec.radius,
+    () => spec.label,
+  );
+}
+
+function createResearchCylindersProvider() {
+  return PluginStateTransform.BuiltIn({
+    name: "multiscale-cylinders-provider-3d",
+    display: "Research Cylinders",
+    from: SO.Root,
+    to: SO.Shape.Provider,
+    params: {
+      label: PD.Text("Research Layer"),
+      spec: PD.Value<ResearchCylindersLayerSpec>({
+        label: "Research Layer",
+        starts: new Float32Array(0),
+        ends: new Float32Array(0),
+        radius: 1,
+        color: WHITE,
+      }),
+    },
+  })({
+    canAutoUpdate() {
+      return true;
+    },
+    apply({ params }) {
+      return Task.create("Research Cylinders Provider", async () => {
+        return new SO.Shape.Provider(
+          {
+            label: params.label,
+            data: params.spec,
+            params: Cylinders.Params,
+            getShape: (_, spec) => createShapeFromCylindersLayer(spec),
+            geometryUtils: Cylinders.Utils,
+          },
+          { label: params.label },
+        );
+      });
+    },
+    update({ b, newParams }) {
+      b.data.label = newParams.label;
+      b.data.data = newParams.spec;
+      b.label = newParams.label;
+      return Task.create("Research Cylinders Provider", async () => StateTransformer.UpdateResult.Updated);
+    },
+  });
+}
+
+const ResearchCylindersProvider3D =
+  (molstarResearchGlobals.__labHomepageResearchCylindersProvider3D__ as ReturnType<typeof createResearchCylindersProvider>) ??
+  (molstarResearchGlobals.__labHomepageResearchCylindersProvider3D__ = createResearchCylindersProvider());
+
+const ResearchSpheresProvider3D =
+  (molstarResearchGlobals.__labHomepageResearchSpheresProvider3D__ as ReturnType<typeof createResearchSpheresProvider>) ??
+  (molstarResearchGlobals.__labHomepageResearchSpheresProvider3D__ = createResearchSpheresProvider());
 
 function toMolstarVec3(point: [number, number, number] | number[]) {
   return Vec3.create(point[0], point[1], point[2]);
@@ -277,34 +530,59 @@ function createShapeFromLayer(spec: ResearchLayerSpec) {
 // Mutex to prevent concurrent tree operations (causes "Node not present" errors)
 let _commitLock: Promise<void> = Promise.resolve();
 
-export async function commitResearchLayers(plugin: PluginLike, layers: ResearchLayerSpec[]) {
+function representationParams(layer: ResearchLayer) {
+  const defaults = isSpheresLayer(layer) ? Spheres.Params
+    : isCylindersLayer(layer) ? Cylinders.Params : Mesh.Params;
+  return {
+    ...PD.getDefaultValues(defaults),
+    quality: "high",
+    alpha: 1,
+    material: { metalness: 0.04, roughness: 0.6, bumpiness: 0, ...(layer.params?.material as object) },
+    emissive: 0,
+    xrayShaded: false,
+    transparentBackfaces: "on",
+    ...(isImpostorLayer(layer) ? { sizeFactor: 1, solidInterior: true } : null),
+    ...(layer.params ?? {}),
+  };
+}
+
+/**
+ * Rebuild the whole draw list. Every animation frame goes through here.
+ *
+ * Reusing the existing state nodes and only pushing new positions into them was tried, on the
+ * theory that dropping and reallocating the GPU buffers each frame was the cost. It is not, and
+ * it silently broke the animation: the provider mutates its object in place, so the downstream
+ * representation saw an unchanged input and never recomputed the geometry. Measured on the
+ * whole-cell view, the share of ink pixels that moved between two readbacks 200 ms apart went
+ * from 0.84 to 0.11 while the frame counter kept reporting 40 fps, because the camera was still
+ * moving. A full rebuild costs nothing here: 32-49 fps across both scenes and every viewport.
+ */
+export async function commitResearchLayers(plugin: PluginLike, layers: ResearchLayer[]) {
   // Wait for any in-flight commit to finish before starting a new one
   const prev = _commitLock;
   let release: () => void;
   _commitLock = new Promise<void>((r) => { release = r; });
   await prev;
 
+  const drawn = layers.filter((l) => (isSpheresLayer(l) ? l.centers.length
+    : isCylindersLayer(l) ? l.starts.length : l.primitives.length) > 0);
+
   try {
     await plugin.clear();
     const build = plugin.build();
 
-    layers.forEach((layer) => {
-      if (layer.primitives.length === 0) return;
-      const provider = build.toRoot().apply(ResearchMeshProvider3D, {
-        label: layer.label,
-        spec: layer,
-      });
-      const representationParams = {
-        ...PD.getDefaultValues(Mesh.Params),
-        quality: "high",
-        alpha: 1,
-        material: { metalness: 0.04, roughness: 0.6, bumpiness: 0, ...(layer.params?.material as object) },
-        emissive: 0,
-        xrayShaded: false,
-        transparentBackfaces: "on",
-        ...(layer.params ?? {}),
-      };
-      provider.apply(StateTransforms.Representation.ShapeRepresentation3D, representationParams as never);
+    drawn.forEach((layer) => {
+      const provider = build
+        .toRoot()
+        .apply(isSpheresLayer(layer) ? ResearchSpheresProvider3D
+          : isCylindersLayer(layer) ? ResearchCylindersProvider3D : ResearchMeshProvider3D, {
+          label: layer.label,
+          spec: layer,
+        } as never);
+      provider.apply(
+        StateTransforms.Representation.ShapeRepresentation3D,
+        representationParams(layer) as never,
+      );
     });
 
     await build.commit();
@@ -348,14 +626,19 @@ interface CanvasSettingsProps {
   renderer: {
     backgroundColor: ColorValue;
     pickingAlphaThreshold: number;
+    ambientIntensity?: number;
   };
   postprocessing: {
-    occlusion?: { name: string };
-    outline?: { name: string };
-    shadow?: { name: string };
+    occlusion?: { name: string; params?: Record<string, unknown> };
+    outline?: { name: string; params?: Record<string, unknown> };
+    shadow?: { name: string; params?: Record<string, unknown> };
     antialiasing?: { name: string };
+    sharpening?: { name: string; params?: Record<string, unknown> };
   };
   transparency: string;
+  camera: {
+    manualReset: boolean;
+  };
   trackball: {
     bindings: Record<string, unknown>;
     zoomSpeed: number;
@@ -379,8 +662,17 @@ function researchPixelScale() {
 }
 
 export function createResearchPlugin() {
+  const spec = DefaultPluginUISpec();
   return new PluginUIContext({
-    ...DefaultPluginUISpec(),
+    ...spec,
+    // Mol*'s camera-focus behaviour, dropped. It binds a double-click to `camera.focus` on
+    // whatever was hit and a plain click on empty space to a camera reset, both of which
+    // overwrite the placement these scenes solve for themselves. Its floor is worse than the
+    // hijack: `minRadius` is 8, written for structures measured in angstroms, and this scene is
+    // in nanometres, so one double-click asks for a 8 nm framing of a 4.8 nm cell. Framing here
+    // belongs to the fit and reset controls next to the canvas.
+    behaviors: spec.behaviors.filter(
+      (behavior) => behavior.transformer.id !== PluginBehaviors.Camera.FocusLoci.id),
     layout: {
       initial: {
         isExpanded: false,
@@ -407,20 +699,77 @@ export function createResearchPlugin() {
   });
 }
 
+/**
+ * Screen-space ambient occlusion and a depth outline, the two passes that separate a Mol*
+ * gallery render from a flat pile of spheres. Off by default: the schematic stages draw a few
+ * dozen well-separated primitives where occlusion has nothing to darken and an outline only
+ * adds noise. They earn their cost on a condensed-phase box, where the crevices between ten
+ * thousand atoms are the entire sense of depth.
+ *
+ * Mol* takes the occlusion radius as an exponent, `2^radius`, in scene units. Scene units here
+ * are nanometres, so its default of 5 would sample 32 nm across a 5 nm cell and shade nothing.
+ * 0 is the parameter's floor and gives 1 nm, about six atom radii.
+ */
+const CINEMATIC_POSTPROCESSING = {
+  occlusion: {
+    name: "on",
+    params: {
+      samples: 16,
+      multiScale: { name: "off", params: {} },
+      radius: 0,
+      bias: 0.9,
+      blurKernelSize: 11,
+      blurDepthBias: 0.5,
+      resolutionScale: 0.5,
+      color: Color.fromHexStyle("#000000"),
+      transparentThreshold: 0.4,
+    },
+  },
+  outline: {
+    name: "on",
+    params: {
+      scale: 1,
+      threshold: 0.15,
+      color: Color.fromHexStyle("#000000"),
+      includeTransparent: false,
+    },
+  },
+  // Contact shadows. Mol* has no path tracer, so this ray-marched pass is the closest thing to
+  // real light transport it offers, and on a packed cell it is what puts atoms behind other
+  // atoms rather than beside them. maxDistance is in scene units, so it is set to a few atom
+  // radii; at Mol*'s default of 3 it would march across the whole 4.8 nm box and flatten out.
+  shadow: { name: "on", params: { steps: 1, maxDistance: 0.6, tolerance: 1.0 } },
+  sharpening: { name: "on", params: { sharpness: 0.5, denoise: true } },
+} as const;
+
 export async function applyResearchCanvasSettings(
   plugin: PluginLike,
   autoRotate: boolean,
   backgroundColor = BACKGROUND,
+  cinematic = false,
 ) {
   await PluginCommands.Canvas3D.SetSettings(plugin, {
     settings: (props) => {
       const canvasProps = props as unknown as CanvasSettingsProps;
       canvasProps.renderer.backgroundColor = backgroundColor;
       canvasProps.renderer.pickingAlphaThreshold = 0.05;
+      // Mol* re-frames the camera onto the visible scene bounding sphere after any commit
+      // that grows it, which on an animating trajectory is most of them. It overwrote every
+      // placement this app computes: the force-field page asked for a camera distance of
+      // 8.35 and ended up at 20.63, so the whole view schedule — padding, targetOccupancy,
+      // the zoom ladder — was configuration nothing read. Own the camera; every path that
+      // moves it (scroll, zoom buttons, fit, reset) already goes through
+      // applyMolstarPlacement.
+      canvasProps.camera.manualReset = true;
       canvasProps.postprocessing ??= {};
-      if (canvasProps.postprocessing.occlusion) canvasProps.postprocessing.occlusion.name = "off";
-      if (canvasProps.postprocessing.outline) canvasProps.postprocessing.outline.name = "off";
-      if (canvasProps.postprocessing.shadow) canvasProps.postprocessing.shadow.name = "off";
+      if (cinematic) {
+        Object.assign(canvasProps.postprocessing, structuredClone(CINEMATIC_POSTPROCESSING));
+        canvasProps.renderer.ambientIntensity = 0.75;
+      } else {
+        if (canvasProps.postprocessing.occlusion) canvasProps.postprocessing.occlusion.name = "off";
+        if (canvasProps.postprocessing.outline) canvasProps.postprocessing.outline.name = "off";
+      }
+      if (!cinematic && canvasProps.postprocessing.shadow) canvasProps.postprocessing.shadow.name = "off";
       if (canvasProps.postprocessing.antialiasing) canvasProps.postprocessing.antialiasing.name = "smaa";
       canvasProps.transparency = "wboit";
       canvasProps.trackball.bindings = {
@@ -447,8 +796,21 @@ export function applyResearchCanvasBackground(plugin: PluginLike, backgroundColo
   });
 }
 
+const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
 export async function fitScene(plugin: PluginLike, durationMs = 0): Promise<CameraSnapshotLike | null> {
+  const before = plugin.canvas3d?.camera.getSnapshot() as CameraSnapshotLike | undefined;
   await PluginCommands.Camera.Reset(plugin, { durationMs });
+  // The command only queues the reset; Mol* applies it inside its render loop, so the
+  // snapshot is still the previous camera the moment the command resolves. Mol*'s own
+  // automatic re-fit used to correct that a frame later. With `manualReset` on nothing does,
+  // and reading early left every MLFF panel framed at Mol*'s default 10 A radius, which drew
+  // the molecules as specks. Wait for the camera to actually move.
+  for (let frame = 0; frame < 12; frame++) {
+    await nextFrame();
+    const now = plugin.canvas3d?.camera.getSnapshot() as CameraSnapshotLike | undefined;
+    if (now && (!before || !Vec3.exactEquals(now.position, before.position))) return now;
+  }
   return (plugin.canvas3d?.camera.getSnapshot() as CameraSnapshotLike | undefined) ?? null;
 }
 
@@ -493,12 +855,14 @@ export async function mountResearchPlugin({
   backgroundColor,
   actionsRef,
   defaultSnapshotRef,
+  cinematic = false,
 }: {
   container: HTMLDivElement;
   autoRotate: boolean;
   backgroundColor?: string;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   defaultSnapshotRef: MutableRefObject<CameraSnapshotLike | null>;
+  cinematic?: boolean;
 }) {
   const plugin = createResearchPlugin();
   await plugin.init();
@@ -512,6 +876,7 @@ export async function mountResearchPlugin({
     plugin,
     autoRotate,
     backgroundColor ? Color.fromHexStyle(backgroundColor) : BACKGROUND,
+    cinematic,
   );
   bindResearchCameraActions(plugin, actionsRef, defaultSnapshotRef);
   return { plugin, error: null };

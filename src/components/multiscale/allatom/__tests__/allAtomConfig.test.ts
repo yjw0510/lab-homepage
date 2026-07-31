@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getViewSpec } from "../../multiscaleViewSchedule";
+import { getAllAtomVisuals } from "../allAtomConfig";
 import {
   ALLATOM_PAGE_POLICY,
   ALLATOM_SCENE_KEYS,
@@ -26,13 +27,21 @@ describe("classical all-atom scene routing", () => {
     expect(getAllAtomPagePolicy(0)).toEqual({
       maxSupportObjects: 6,
       frameIntervalMs: 240,
-      targetOccupancy: 0.52,
+      targetOccupancy: 0.68,
     });
     expect(getAllAtomPagePolicy(1)).toEqual({
       maxSupportObjects: 4,
       frameIntervalMs: 220,
-      targetOccupancy: 0.76,
+      targetOccupancy: 0.72,
     });
+  });
+
+  it("keeps the solute visible on the step boundary", () => {
+    // An `enter` window starting at 0 evaluates to 0 at stepProgress 0, so a reader who stops
+    // scrolling exactly on the boundary saw the molecule at zero alpha — silhouette rings only.
+    for (const step of [0, 1]) {
+      expect(getAllAtomVisuals(step, 0).primaryStructuralOpacity).toBeGreaterThan(0.5);
+    }
   });
 
   it("reindexes the retained camera views without changing their framing", () => {

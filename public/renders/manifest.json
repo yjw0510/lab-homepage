@@ -1,5 +1,8 @@
 {
-  "loopEdge": 1024,
+  "loopEdge": {
+    "large": 2048,
+    "floor": 1024
+  },
   "posterEdge": 1280,
   "fps": 24,
   "backgrounds": {
@@ -11,7 +14,9 @@
       "renderId": "01_cof505",
       "tier": "dft",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 9863372,
         "loop-dark.mp4": 2758745,
+        "loop-light-2048.av1.mp4": 10085335,
         "loop-light.mp4": 2796226,
         "poster-dark-sm.webp": 48910,
         "poster-dark.webp": 157424,
@@ -24,7 +29,9 @@
       "renderId": "02_knot",
       "tier": "dft",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 4710201,
         "loop-dark.mp4": 2399887,
+        "loop-light-2048.av1.mp4": 4848046,
         "loop-light.mp4": 2433015,
         "poster-dark-sm.webp": 41414,
         "poster-dark.webp": 122936,
@@ -37,7 +44,9 @@
       "renderId": "03_buckycatcher",
       "tier": "mlff",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 1656946,
         "loop-dark.mp4": 742302,
+        "loop-light-2048.av1.mp4": 1829641,
         "loop-light.mp4": 803526,
         "poster-dark-sm.webp": 20496,
         "poster-dark.webp": 48854,
@@ -50,7 +59,9 @@
       "renderId": "04_dwcnt",
       "tier": "mlff",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 3120801,
         "loop-dark.mp4": 1244224,
+        "loop-light-2048.av1.mp4": 3536061,
         "loop-light.mp4": 1436601,
         "poster-dark-sm.webp": 30420,
         "poster-dark.webp": 78274,
@@ -63,7 +74,9 @@
       "renderId": "05_pd30l60",
       "tier": "allatom",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 3727558,
         "loop-dark.mp4": 2338148,
+        "loop-light-2048.av1.mp4": 4153796,
         "loop-light.mp4": 2462675,
         "poster-dark-sm.webp": 48014,
         "poster-dark.webp": 129670,
@@ -76,7 +89,9 @@
       "renderId": "06_pamam_g5",
       "tier": "allatom",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 5033859,
         "loop-dark.mp4": 2239026,
+        "loop-light-2048.av1.mp4": 5694871,
         "loop-light.mp4": 2441502,
         "poster-dark-sm.webp": 53610,
         "poster-dark.webp": 158462,
@@ -89,7 +104,9 @@
       "renderId": "07_gyroid",
       "tier": "meso",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 4816691,
         "loop-dark.mp4": 2085832,
+        "loop-light-2048.av1.mp4": 4901213,
         "loop-light.mp4": 2111350,
         "poster-dark-sm.webp": 51766,
         "poster-dark.webp": 157206,
@@ -102,7 +119,9 @@
       "renderId": "08_capsid",
       "tier": "meso",
       "bytes": {
+        "loop-dark-2048.av1.mp4": 14992529,
         "loop-dark.mp4": 3566178,
+        "loop-light-2048.av1.mp4": 16806784,
         "loop-light.mp4": 3945766,
         "poster-dark-sm.webp": 92254,
         "poster-dark.webp": 352092,

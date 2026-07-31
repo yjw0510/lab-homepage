@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import "molstar/build/viewer/molstar.css";
 
+// One text family for both scripts. The second face was Latin-only, so every Korean string
+// in the metadata register fell back mid-line to a system Hangul face at a monospace-ish
+// advance. Pretendard carries the whole scientific character set the register needs —
+// Å µ ≈ → superscripts, subscripts, Greek — plus tabular figures, so the register survives
+// as a style rather than a family. Code keeps a real monospace via --font-mono.
 const pretendard = localFont({
   src: "../../public/fonts/PretendardVariable.woff2",
   variable: "--font-pretendard",
   display: "swap",
   weight: "45 920",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -41,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${pretendard.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${pretendard.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground break-keep">

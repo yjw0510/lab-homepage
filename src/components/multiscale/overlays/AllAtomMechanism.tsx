@@ -53,26 +53,26 @@ const COPY: Record<
 > = {
   A3_forcefield: {
     en: {
-      title: "A force field assigns energy to molecular geometry",
+      title: "The range of answers five terms allow",
       description:
-        "Bonded terms preserve local molecular shape; nonbonded terms describe packing, dispersion, and electrostatics.",
+        "Bonded terms hold a molecule's shape and nonbonded terms set how closely molecules come together. Conformation and solubility are therefore answerable; bond breaking sits outside the model.",
     },
     ko: {
-      title: "역장은 분자 구조에 에너지를 부여한다",
+      title: "다섯 항이 정하는 답의 범위",
       description:
-        "결합 항은 분자의 국소 구조를 유지하고, 비결합 항은 분자 사이 배치·분산·정전기를 나타낸다.",
+        "결합 항은 분자의 모양을 붙잡고, 비결합 항은 분자끼리 다가서는 방식을 정한다. 그래서 배좌와 용해도는 물을 수 있고, 결합이 끊어지는 일만 이 모형 밖에 있다.",
     },
   },
   A6_observables: {
     en: {
-      title: "Scientific observables come from a sequence of frames",
+      title: "Turning a trajectory into something measurable",
       description:
-        "The same production trajectory can be projected into hydration, packing, orientation, or other measurable quantities.",
+        "A hydration number or a contact lifetime comes out of thousands of frames averaged together, in the form an NMR or scattering measurement reports it.",
     },
     ko: {
-      title: "연속된 프레임에서 연구 관측량을 계산한다",
+      title: "궤적을 측정 가능한 값으로 바꾸기",
       description:
-        "같은 생산 궤적에서 수화, 분자 배치, 방향성 등 연구 질문에 맞는 물리량을 계산한다.",
+        "수화수나 접촉 수명은 프레임 수천 장을 평균해서 얻는다. NMR과 산란이 내놓는 값과 같은 형태다.",
     },
   },
 };
@@ -157,6 +157,10 @@ function A3ForceField({
               type="button"
               role="tab"
               aria-selected={selectedNow}
+              // The two spans below are adjacent grid children with no text node
+              // between them, so the computed name ran them together: "결합결합 항",
+              // "Bondbonded". Naming the tab explicitly puts the separator back.
+              aria-label={`${item.label[ko ? "ko" : "en"]}, ${item.family[ko ? "ko" : "en"]}`}
               onMouseEnter={() => onTermChange?.(term)}
               onFocus={() => onTermChange?.(term)}
               onClick={() => onTermChange?.(term)}
@@ -300,10 +304,10 @@ export function AllAtomMechanism({
   const copy = COPY[sceneKey][ko ? "ko" : "en"];
 
   return (
-    <div className="allatom-mechanism pointer-events-none absolute inset-0 z-[3]">
+    <div className={`allatom-mechanism z-[3] ${isMobile ? "relative" : "pointer-events-none absolute inset-0"}`}>
       <MechanismPanel
         className={`pointer-events-auto overflow-hidden ${
-          isMobile ? MULTISCALE_PANEL.mobileOverlay : MULTISCALE_PANEL.desktopOverlay
+          isMobile ? MULTISCALE_PANEL.mobileBand : MULTISCALE_PANEL.desktopOverlay
         }`}
       >
         <MechanismHeader

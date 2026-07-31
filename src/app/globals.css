@@ -28,6 +28,7 @@
   /* Level identity colors (DESIGN.md §1) — 청/적/황/묵 from L21.
      Triads: mark+ink / hairline / broad wash. */
   --lv-dft: #1e4c9a;
+  --lv-dft-text: #1e4c9a;
   --lv-dft-line: rgba(30, 76, 154, 0.35);
   --lv-dft-wash: rgba(30, 76, 154, 0.08);
   --lv-mlff: #c3272b;
@@ -100,6 +101,7 @@
 
   /* Level identity colors — Flexoki 400 inks, hue held vs light */
   --lv-dft: #4385be;
+  --lv-dft-text: #66a0c8;
   --lv-dft-line: rgba(67, 133, 190, 0.42);
   --lv-dft-wash: rgba(67, 133, 190, 0.14);
   --lv-mlff: #d14d41;
@@ -161,6 +163,7 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-lv-dft: var(--lv-dft);
+  --color-lv-dft-text: var(--lv-dft-text);
   --color-lv-dft-line: var(--lv-dft-line);
   --color-lv-dft-wash: var(--lv-dft-wash);
   --color-lv-mlff: var(--lv-mlff);
@@ -174,7 +177,9 @@
   --color-lv-meso-line: var(--lv-meso-line);
   --color-lv-meso-wash: var(--lv-meso-wash);
   --font-sans: var(--font-pretendard);
-  --font-mono: var(--font-geist-mono);
+  /* Reserved for actual code and raw numeric dumps, which need real fixed advance.
+     The metadata register is `type-mono-meta` and is not a monospace. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --ease-ledger: var(--ease-ledger);
 }
 
@@ -200,25 +205,57 @@ body {
   line-height: 1.75;
 }
 
-/* Type roles (DESIGN.md §2) */
+/* Type roles (DESIGN.md §2).
+   One rule governs the whole ladder: weight encodes how much emphasis an element
+   carries, and two adjacent levels never sit closer than 100 apart. The previous
+   system ran 830 / 650 / 600 / 430, so `heading` and `strong` differed by 50 and
+   read identically, which meant weight was decoration rather than hierarchy.
+   Every level below is a role, not a size — the same role keeps its weight at
+   15px and at 49px. */
 @utility type-display {
-  font-weight: 830;
-  letter-spacing: -0.03em;
-  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: -0.032em;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+@utility type-title {
+  font-weight: 800;
+  letter-spacing: -0.024em;
+  line-height: 1.14;
   text-wrap: balance;
 }
 
 @utility type-heading {
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.2;
   text-wrap: balance;
 }
 
+@utility type-lead {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.45;
+}
+
+/* Scientific metadata register. Pretendard with tabular figures and open tracking,
+   not a second family: the Latin-only mono face it replaces had no Hangul, so every
+   Korean label broke into two typefaces inside one line. Small text gets more weight,
+   not less — 500 is the floor for anything at or below 13px. */
 @utility type-mono-meta {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-feature-settings: "tnum";
-  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 500;
+  letter-spacing: 0.055em;
+}
+
+/* The one place a light weight is allowed: large readouts, at or above 21px, where
+   thin strokes read as instrument precision. Never for small text. */
+@utility type-quiet {
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 @utility type-math {
@@ -326,6 +363,22 @@ body {
   .multiscale-scene-title-inner { animation: none; }
 }
 
+/* MLFF overview: reference data → model → value, left to right.
+   Three columns plus two arrow gutters need real width. At a 1024 viewport the stage is
+   about 560px wide, which leaves the value plot 203px — narrower than the 340px the same
+   panel gets on a 390px phone. Its labels stay at the right absolute size there because
+   MlffValueSchematic converts them through the measured render ratio, but the geometry they
+   sit in is still sized for a wider box, so that viewport wants fewer columns rather than a
+   rebalanced three. Stacking was tried and is worse: a full-width row at 1024x768 is only
+   127px tall, which makes the plot height-bound and the labels 1.7x larger in user units
+   than the boxes were drawn for. */
+.mlff-overview-grid {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(0, .86fr) 2rem minmax(0, .78fr) 2rem minmax(0, 1.18fr);
+}
+
 /* Hi-res framing appears only when real margin exists around the capped shell. */
 @media (min-width: 2600px) {
   .multiscale-hires-frame {
@@ -381,8 +434,11 @@ body {
   line-height: 0;
   margin-left: 1px;
   letter-spacing: 0.01em;
+  /* Same ink as the term it annotates. Dimming was tried and cannot work here: the body text
+     is itself 5.19:1 on this background, so every opacity that still reads as subordinate
+     lands under the 4.5:1 floor (0.6 measured 2.61:1, and even 0.9 only reaches 4.41:1).
+     The gloss is already subordinate by being superscript and three quarters the size. */
   color: currentColor;
-  opacity: 0.6;
   font-weight: 500;
 }
 

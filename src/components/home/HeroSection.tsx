@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Pause, Play } from "lucide-react";
 import { SpecimenPlate } from "@/components/renders/SpecimenPlate";
 import {
   SPECIMENS,
@@ -34,6 +35,11 @@ const TIER: Record<
 const ROTATE_MS = 7000;
 const pad = (n: number) => String(n + 1).padStart(2, "0");
 
+/** The export ships one HTML file to every visitor, so a random first specimen cannot be
+ *  chosen during render without a hydration mismatch. A layout effect runs after hydration
+ *  and before the browser paints, so the draw is never seen as a swap away from 01. */
+const useDrawOnMount = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) {
   const ko = lang === "ko";
   const reduceMotion = useReducedMotion();
@@ -43,7 +49,18 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
   const sectionRef = useRef<HTMLElement>(null);
   const [index, setIndex] = useState(0);
   const [inView, setInView] = useState(true);
-  const [paused, setPaused] = useState(false);
+  // Two independent things, which a single flag used to conflate: whether the loop runs,
+  // and whether the carousel steps on its own. Selecting a specimen must stop the second
+  // without touching the first, or the reader's own choice arrives frozen.
+  const [playing, setPlaying] = useState(true);
+  const [autoAdvance, setAutoAdvance] = useState(true);
+  // Announced only when the reader caused the change. An automatic advance leaves this
+  // string alone, so the live region stays silent instead of reading out every 7 seconds.
+  const [announcement, setAnnouncement] = useState("");
+
+  useDrawOnMount(() => {
+    setIndex(Math.floor(Math.random() * SPECIMENS.length));
+  }, []);
 
   const active = SPECIMENS[index];
   const tier = TIER[active.tier];
@@ -62,7 +79,7 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
     return () => observer.disconnect();
   }, []);
 
-  const rotating = !reduceMotion && !paused && !isPhone && inView;
+  const rotating = playing && autoAdvance && !reduceMotion && !isPhone && inView;
 
   useEffect(() => {
     if (!rotating) return;
@@ -73,16 +90,35 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
     return () => window.clearTimeout(id);
   }, [index, rotating]);
 
+  const describe = (i: number) => {
+    const s = SPECIMENS[i];
+    return `${pad(i)} ${t(TIER_LABEL[s.tier])} ${t(s.name)}`;
+  };
+
   // Picking a specimen is an explicit choice; letting the timer overwrite it seven seconds
-  // later would undo the reader's action.
+  // later would undo it. It holds the carousel only, so the chosen specimen keeps moving.
   const select = (i: number) => {
     setIndex(i);
-    setPaused(true);
+    setAutoAdvance(false);
+    setAnnouncement(describe(i));
+  };
+
+  // One control, asymmetric on purpose: pause holds the whole hero, play releases the whole
+  // hero. Splitting it into two buttons would spend a second 44px column to expose a
+  // distinction between "stop the carousel" and "stop the picture" that a reader making
+  // either choice does not have in mind.
+  const togglePlaying = () => {
+    const next = !playing;
+    setPlaying(next);
+    if (next) setAutoAdvance(true);
+    setAnnouncement(
+      next ? describe(index) : ko ? "자동 재생 멈춤" : "Autoplay paused"
+    );
   };
 
   const label = {
-    pause: ko ? "회전 멈춤" : "Pause rotation",
-    resume: ko ? "회전 재개" : "Resume rotation",
+    pause: ko ? "자동 재생 멈춤" : "Pause autoplay",
+    play: ko ? "자동 재생" : "Resume autoplay",
     tray: ko ? "표본 선택" : "Select specimen",
   };
 
@@ -99,12 +135,12 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
             pixels. The height cap keeps it square on tall viewports instead of cropping. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none order-2 mx-auto aspect-square h-[min(27dvh,58vw)] [@media(max-height:660px)]:h-[min(25dvh,56vw)] sm:h-[min(34dvh,72vw)] lg:absolute lg:inset-y-0 lg:right-0 lg:order-none lg:mx-0 lg:h-full lg:max-h-[58vw] lg:w-auto lg:max-w-[58%] lg:[mask-image:linear-gradient(to_right,transparent,black_34%)]"
+          className="pointer-events-none order-2 mx-auto aspect-square h-[min(27dvh,58vw)] [@media(max-height:660px)]:h-[min(14dvh,32vw)] sm:h-[min(34dvh,72vw)] lg:absolute lg:inset-y-0 lg:right-0 lg:order-none lg:mx-0 lg:h-full lg:max-h-[58vw] lg:w-auto lg:max-w-[58%] lg:[mask-image:linear-gradient(to_right,transparent,black_34%)]"
         >
           <div key={active.slug} className="animate-fade-in h-full w-full">
             <SpecimenPlate
               specimen={active}
-              play={inView && !paused}
+              play={playing && inView}
               priority
               sizes="(min-width: 1024px) 58vw, 72vw"
               className="h-full w-full"
@@ -118,19 +154,23 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
               {dict.site.university}{" "}
               {dict.site.departments.replace(" · ", " · ")}
             </p>
+            {/* On a short viewport the type steps down as well as the margins. The English
+                name is 48 characters against the Korean's 17, so at 360x640 it took three
+                display lines where Korean took two and pushed the readout band and the
+                whole specimen tray 154px past the fold. */}
             <h1
-              className={`type-display mt-5 break-keep text-foreground [@media(max-height:660px)]:mt-3 ${
+              className={`type-display mt-5 break-keep text-foreground [@media(max-height:660px)]:mt-2 ${
                 ko
-                  ? "text-[clamp(2.35rem,5.2vw,3.4rem)]"
-                  : "text-[clamp(1.85rem,3.1vw,2.5rem)]"
+                  ? "text-[clamp(2.35rem,5.2vw,3.4rem)] [@media(max-height:660px)]:text-[1.95rem]"
+                  : "text-[clamp(1.85rem,3.1vw,2.5rem)] [@media(max-height:660px)]:text-[1.5rem]"
               }`}
             >
               {dict.site.fullName}
             </h1>
-            <p className="mt-4 max-w-[34rem] break-keep text-[17px] leading-relaxed text-muted-foreground sm:text-lg [@media(max-height:700px)]:mt-3">
+            <p className="mt-4 max-w-[34rem] break-keep text-[17px] leading-relaxed text-muted-foreground sm:text-lg [@media(max-height:700px)]:mt-2 [@media(max-height:660px)]:text-[15px] [@media(max-height:660px)]:leading-snug">
               {dict.site.description}
             </p>
-            <div className="mt-7 flex flex-wrap gap-4 [@media(max-height:700px)]:mt-4">
+            <div className="mt-7 flex flex-wrap gap-4 [@media(max-height:700px)]:mt-3 [@media(max-height:660px)]:gap-3">
               <Link
                 href={`/${lang}/research-topics`}
                 className="inline-flex min-h-11 items-center justify-center bg-primary px-6 py-3 font-[600] text-primary-foreground transition-[transform,background-color] duration-[180ms] hover:-translate-y-px hover:bg-primary/90 active:translate-y-0"
@@ -166,15 +206,16 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
         </div>
       </div>
 
-      {/* Readout band: the one line that always names what is on screen. It only announces
-          when the reader caused the change; a seven-second automatic announcement would
-          talk over a screen-reader user indefinitely. */}
+      {/* Readout band: the one line that always names what is on screen. The band itself
+          is not a live region — toggling `aria-live` on a live node is handled unevenly,
+          and a seven-second automatic announcement would talk over a screen-reader user
+          indefinitely. A dedicated node below carries reader-initiated changes only. */}
       <div className="relative z-10 shrink-0 border-t border-border bg-background">
+        <p className="sr-only" role="status" aria-live="polite">
+          {announcement}
+        </p>
         <div className="mx-auto flex w-full max-w-6xl items-baseline gap-x-4 px-6 py-2 sm:px-8 [@media(max-height:660px)]:py-1.5">
-          <div
-            aria-live={rotating ? "off" : "polite"}
-            className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-4 gap-y-0.5"
-          >
+          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-4 gap-y-0.5">
             <span className="type-mono-meta text-[12px] text-muted-foreground">
               {pad(index)} / {pad(SPECIMENS.length - 1)}
             </span>
@@ -190,25 +231,17 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
               {t(active.size)}
             </span>
           </div>
-          {!reduceMotion && !isPhone && (
-            <button
-              type="button"
-              onClick={() => setPaused((p) => !p)}
-              className="type-mono-meta inline-flex min-h-11 shrink-0 items-center self-center px-2 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {paused ? label.resume : label.pause}
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Specimen selector. Ruler ticks on a phone, where eight thumbnails cannot fit; the
-          tray of plates from sm up, cells sharing the width so it never scrolls sideways. */}
-      <div
-        role="group"
-        aria-label={label.tray}
-        className="relative z-10 flex shrink-0 border-t border-border"
-      >
+      {/* Specimen selector and transport. Ruler ticks on a phone, where eight thumbnails
+          cannot fit; the tray of plates from sm up, cells sharing the width so it never
+          scrolls sideways. The transport is the row's terminal column rather than a widget
+          in the readout band: it then shares the row's separator, its 2px baseline and its
+          height ladder instead of breaking the band's baseline, and it costs no vertical
+          space, which the band placement was measured to cost at 360x640. */}
+      <div className="relative z-10 flex shrink-0 border-t border-border">
+      <div role="group" aria-label={label.tray} className="flex min-w-0 flex-1">
         {SPECIMENS.map((specimen, i) => {
           const marks = TIER[specimen.tier];
           const isActive = i === index;
@@ -219,7 +252,7 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
               onClick={() => select(i)}
               aria-current={isActive ? "true" : undefined}
               aria-label={`${pad(i)} ${t(TIER_LABEL[specimen.tier])} ${t(specimen.name)}`}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-1.5 border-t-2 border-l border-l-border px-1 py-2.5 outline-offset-[-2px] first:border-l-0 sm:gap-2 sm:px-2 sm:py-2 sm:[@media(max-height:800px)]:py-1 [@media(max-height:700px)]:py-1.5 ${
+              className={`flex min-w-0 flex-1 flex-col items-center gap-1.5 border-t-2 border-l border-l-border px-1 py-2.5 first:border-l-0 [&:focus-visible]:outline-offset-[-2px] sm:gap-2 sm:px-2 sm:py-2 sm:[@media(max-height:800px)]:py-1 [@media(max-height:700px)]:py-1.5 ${
                 isActive ? marks.line : "border-t-transparent hover:bg-muted"
               }`}
             >
@@ -262,6 +295,28 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
             </button>
           );
         })}
+        </div>
+
+        {/* Transport. Under reduced motion no loop is mounted and the carousel is off, so
+            the control would govern nothing. Its 2px baseline carries the held state in
+            the same grammar the tray uses for the current cell, which is what makes the
+            paused hero legible from the composition rather than from a 16px glyph. */}
+        {!reduceMotion && (
+          <button
+            type="button"
+            onClick={togglePlaying}
+            aria-label={playing ? label.pause : label.play}
+            className={`flex shrink-0 basis-11 flex-col items-center gap-1.5 border-t-2 border-l border-l-border px-1 py-2.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&:focus-visible]:outline-offset-[-2px] sm:basis-14 sm:gap-2 sm:py-2 sm:[@media(max-height:800px)]:py-1 [@media(max-height:700px)]:py-1.5 ${
+              playing ? "border-t-transparent" : "border-t-foreground text-foreground"
+            }`}
+          >
+            {playing ? (
+              <Pause className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+            ) : (
+              <Play className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+            )}
+          </button>
+        )}
       </div>
     </section>
   );

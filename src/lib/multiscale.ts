@@ -27,6 +27,7 @@ export function getAllMultiscaleAreas(): MultiscaleArea[] {
         color: data.color || "#06b6d4",
         order: data.order ?? 99,
         scale: data.scale || "",
+        scaleKo: data.scaleKo || "",
         moleculeViewer: data.moleculeViewer || false,
         content,
         contentKo: data.contentKo || "",

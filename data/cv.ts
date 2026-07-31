@@ -99,7 +99,7 @@ export const skills = {
   ko: [
     { category: "분자 시뮬레이션", items: "LAMMPS, GROMACS, HOOMD-blue" },
     { category: "제일원리 계산", items: "VASP, CP2K, Quantum ESPRESSO, Gaussian, PySCF" },
-    { category: "기계학습 퍼텐셜", items: "DeePMD-kit, MACE, NequIP, JAX-MD" },
+    { category: "머신러닝 퍼텐셜", items: "DeePMD-kit, MACE, NequIP, JAX-MD" },
     { category: "시각화", items: "VMD, OVITO" },
     { category: "프로그래밍", items: "Python, C++, JAX, CUDA, OpenMP/MPI" },
     { category: "인프라", items: "PBS, SGE, Slurm, Docker" },
@@ -116,7 +116,7 @@ export const professional = {
   ko: [
     "미국물리학회 (APS)",
     "미국화학회 (ACS)",
-    "International Centre for Multiscale Simulations (ICMS)",
+    "국제 멀티스케일 시뮬레이션 센터 (ICMS)",
     "세계이론전산화학회 (WATOC)",
   ],
 };

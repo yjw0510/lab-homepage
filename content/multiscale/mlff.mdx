@@ -1,12 +1,13 @@
 ---
 title: "Machine Learning Force Fields"
 titleKo: "머신러닝 역장"
-shortDescription: "Learns an interatomic potential from quantum-mechanical reference data, aiming to retain near-reference accuracy at lower cost for the atomic environments represented in training."
-shortDescriptionKo: "양자역학 참조 데이터로 원자 간 퍼텐셜을 학습해, 학습에 포함된 원자 환경에서 더 낮은 비용으로 참조 수준에 가까운 정확도를 목표로 한다."
+shortDescription: "Learning the forces DFT assigns makes them cheap enough to evaluate again and again, which opens up following bonds as they break and re-form over nanoseconds."
+shortDescriptionKo: "DFT가 매긴 힘을 학습해 두면 거의 같은 정확도를 훨씬 싸게 되풀이할 수 있다. 결합이 끊어지고 다시 생기는 과정을 나노초 동안 따라가는 계산이 그렇게 열린다."
 icon: "Brain"
 color: "#8b5cf6"
 order: 2
 scale: "1-10 nm (ab initio accuracy)"
+scaleKo: "1-10 nm (제일원리 수준 정확도)"
 contentKo: |
   ## 개요
 
@@ -22,10 +23,6 @@ contentKo: |
   ## 방법론
 
   밀도범함수이론(DFT) 양자역학 참조 데이터로 MLFF를 훈련하며, 물리적 대칭을 만족하는 신경망 아키텍처를 사용한다. 분자를 회전하거나 이동해도 예측이 변하지 않는다. 향상된 표본추출 기법과 결합하면, 학습에 포함된 원자 환경에서 참조 수준에 가까운 정확도를 목표로 더 긴 시간 규모를 탐색할 수 있다. 적용 범위는 별도의 참조 데이터로 계속 점검한다.
-
-  ## 멀티스케일 체계에서의 역할
-
-  MLFF는 DFT가 만든 에너지와 힘의 참조값을 더 긴 원자 수준 궤적에 쓸 수 있는 퍼텐셜로 바꾼다. 이 연결은 전자구조 계산만으로는 다루기 어려운 시간과 계 크기를 탐색하게 해 주며, 전원자 및 조대화 모형과 비교할 때는 동일한 구조·동역학 측정량으로 적용 범위를 점검한다.
 
   ## 관련 논문
 
@@ -48,10 +45,6 @@ In molecular simulation, a force field is the mathematical model that describes 
 ## Methods
 
 We train MLFFs on quantum-mechanical reference data from density functional theory (DFT) calculations using neural network architectures that respect physical symmetries; predictions remain unchanged when the molecule is rotated or translated. Combined with enhanced sampling techniques that accelerate the observation of rare events, they can explore longer time scales while targeting near-reference accuracy for atomic environments represented in training. Their domain of reliable use still requires checks against separate reference data.
-
-## Role in Multiscale Framework
-
-An MLFF turns DFT reference energies and forces into a potential that can be evaluated along longer atomistic trajectories. This connection opens time and system-size regimes that direct electronic-structure calculations cannot routinely reach. Its scope is checked with shared structural and dynamical measurements when it is compared with all-atom or coarse-grained models.
 
 ## Related Publications
 

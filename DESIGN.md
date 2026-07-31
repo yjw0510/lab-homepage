@@ -106,7 +106,15 @@ Level triads (`--lv-{dft,mlff,aa,meso}` + `-line` + `-wash`, globals.css):
 /* dark inks  */  #4385BE  #D14D41  #D0A215  #B7B5AC /* base-300 */
 /* lines/washes = rgba() of the ink (light: 황 wash from #F9D537) */
 /* text-grade  */ --lv-mlff-text: #C3272B light / #E8705F dark
+/* text-grade  */ --lv-dft-text:  #1E4C9A light / #66A0C8 dark  /* Flexoki blue-300 */
 ```
+
+Two level inks do not survive as text on their own wash in dark mode, so each has a
+text-grade sibling. Measured against the level's `-wash` composited over
+`--surface-raised`: DFT mark `#4385BE` gives **3.71:1**, under AA; Flexoki blue-300
+`#66A0C8` gives **5.16:1**. MLFF mark `#D14D41` gives **3.48:1**; `#E8705F` gives
+**4.96:1**. 황 (5.93:1) and 묵 (7.26:1) need no split. The mark values stay
+palette-exact for fills, rules and ticks.
 
 The MLFF mark ink is the one level colour that does not survive as small type:
 `#D14D41` on `#100F0F` measures 4.42:1, under the AA floor. `--lv-mlff-text`
@@ -125,7 +133,10 @@ temperature split is the theme, not drift. Scrim and sheet-shadow color is
 green `#879A39`, cyan `#3AA99F`, purple `#8B7EC8`, magenta `#CE5D97`) are
 declared reserves — never in chrome. WebGL and Molstar viewports derive their
 background from the active site theme; scientific representations keep their
-domain palette in both modes.
+domain palette in both modes. The mesoscale R3F scene's lighting rig is part of that
+domain layer and is declared here so the gate can verify chrome against it: ambient
+`#E2E8F0`, hemisphere `#DBEAFE`/`#09090F`, fill `#93C5FD`, bounce `#FCA5A5`, ambient
+occlusion `#000010`.
 
 Existing Tailwind semantic names (`bg-background`, `text-foreground`,
 `text-primary`, `border-border`, `bg-card`, `text-muted-foreground`,
@@ -134,17 +145,43 @@ Existing Tailwind semantic names (`bg-background`, `text-foreground`,
 engine re-skins without engine edits. New utilities: `text-accent-ink`,
 `border-border-strong`.
 
-## 2. Typography — one family, committed extremes, mono register
+## 2. Typography — one family, one weight ladder, a register not a second face
 
-- `--font-sans`: **Pretendard Variable** (kept; carries ko + en). Weight roles:
-  - **display** 830, `tracking -0.03em`, `leading 1.08`, `text-wrap: balance`
-  - **heading** 650, `tracking -0.015em`, `leading 1.2`
-  - **body** 430, `leading 1.7` (Korean needs air); dark mode body 400
-  - **strong** 600 (inline emphasis; never italic for Korean, never italic headings)
-- `--font-mono`: **Geist Mono** (kept) — the *scientific metadata register*:
-  dates, years, DOIs, volume/page, scale ticks (`10⁻¹⁰ m`), counts, index
-  numerals. `font-feature-settings: "tnum"`. Sizes 11–13px, `tracking 0.01em`.
-  Mono appears only in this role; never as body prose.
+**Pretendard Variable is the only text family**, carrying Korean and English alike
+(`wght 45–930`, `tnum`, and the whole scientific character set the site needs:
+`Å µ ≈ → ⁻¹ ₀ α Δ ρ ∑`). KaTeX remains the mathematical register (below). A second
+Latin-only face was retired because it carried no Hangul, so every Korean metadata
+string silently broke into two typefaces inside one line.
+
+**The master rule: weight encodes emphasis, size encodes scale, and the two are set
+independently.** A role keeps its weight at 15px and at 49px. **Adjacent levels never
+sit closer than 100 apart** — the retired system ran 830 / 650 / 600 / 430, so
+`heading` and `strong` differed by 50 and were indistinguishable, which is how a site
+ends up using six weights that read as two.
+
+| role | weight | what carries it |
+|---|---|---|
+| `type-display` | **900** Black | the page's own name; **one per page** |
+| `type-title` | **800** ExtraBold | section openings (`h2`), 26–49px |
+| `type-heading` | **700** Bold | block titles (`h3`), 15–24px |
+| `type-lead` | **600** SemiBold | the one sentence a block turns on; inline `strong` |
+| body | **430** | prose, `leading 1.7` (Korean needs air); dark mode 400 |
+| `type-mono-meta` | **500** | the metadata register, 11–13px |
+| `type-quiet` | **300** Light | large readouts only, **≥21px** |
+
+Two constraints keep the ladder from decaying back into a palette:
+- **At most one level above 600 per composition block.** A block with a title does not
+  also get a heavier sub-label.
+- **300 is forbidden below 21px.** Small text needs more weight, not less, which is why
+  the metadata register sits at 500 while the large numeric readouts sit at 300. Thin
+  strokes read as instrument precision at 30px and as a rendering fault at 12px.
+
+**Metadata register** (`type-mono-meta`): dates, years, DOIs, volume/page, scale ticks,
+counts, index numerals, provenance lines. `font-variant-numeric: tabular-nums`,
+weight 500, `tracking 0.055em`, sizes 11–13px. It is a *style*, not a family — the open
+tracking and locked figure widths are what make it read as instrument metadata, and
+they work in both scripts. Never as body prose. `--font-mono` still resolves to a real
+system monospace and is reserved for actual code and raw numeric dumps.
 - **Mathematical notation**: KaTeX's LaTeX/Computer-Modern-derived family is
   the sole mathematical register. Block equations render at 21px in display
   style; inline equations stay at 1em–1.05em on the prose baseline. Never type
@@ -176,6 +213,159 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
   as tags (tags render as mono text with `[brackets]` or plain).
 - Zebra/zigzag splits: never more than 2 consecutive; home uses ≥4 layout
   families (full-bleed hero / margin-column index / ledger list / colophon).
+
+## 3a. Bounded columns — the reading policy
+
+A bounded column is any panel given a fixed height and asked to hold reading matter:
+today only the multiscale rail, but the rules are the general ones. They exist because
+this column shipped twice in a state where the reader could not read it. First the body
+copy sat inside a box of literally zero height on a 1024x768 laptop; then, after that
+was "fixed" by flattening to a single scroller, the body had 336-476px of height and
+sat entirely below the fold, so the reader still met zero lines of prose. Both states
+would pass a rule about box height or about share of the column. Hence R1.
+
+Every block in a bounded column declares `data-rail-role`, and the numbers below are
+checked against what the browser laid out, not against what the classes intended, by
+`.superloopy/evidence/frontend/20260729-parity/probe-rail-policy.mjs` reading
+`rail-policy.json`. That script is the binding half of this section; if the two ever
+disagree, the script is right and this text is stale.
+
+| role | what it is |
+|---|---|
+| `frame` | orients the reader: the scale descriptor, the tier tabs, the applicability lede |
+| `instrument` | the reader acts on it: a slider, a term selector, an interactive plot |
+| `body` | the prose the page exists to deliver, plus its takeaway |
+| `provenance` | where the numbers on screen came from |
+| `readout` | a live measurement taken from the scene |
+| `nav` | moving between steps, or out to the method notes |
+
+- **R1 — eight lines of prose on screen before any scrolling.** At `scrollTop 0`, the
+  intersection of `[data-rail-role=body]` with the scroller's viewport is at least
+  `8lh`. Eight is not taste: it is the largest floor payable at every declared viewport
+  by ordering alone, verified at 202px of chrome against a 495-695px scroll viewport.
+  A measurement that comes back null fails; only a rail short enough that nothing
+  scrolls is exempt, because then all of it is on screen.
+- **R2 — at most 55% of the scroll viewport may precede the body.** The ratio form of
+  R1, and the one that fails first when a block is added, naming the block. Measured
+  after the reordering: 23-40% at every viewport, in both locales.
+- **R3 — exactly one scroll container.** The rail scrolls; nothing inside it does.
+  Nested scrollbars were the visible symptom a reader reported.
+- **R4 — nothing may be pinned above the body except the scale descriptor, the tier
+  tabs and the applicability lede.** The equation, the controls, the provenance strip
+  and the interaction hint render after the body. On desktop the stage sits in the
+  left column beside the rail, so a control's vertical position in the rail does not
+  separate it from what it drives. The stacked path leads with controls instead,
+  because there the stage is above.
+- **R5 — a reading floor is written in `lh`, on the element that carries the prose
+  `line-height`.** `lh` resolves against the element it is written on, so a floor set
+  on a wrapper silently uses the wrong number.
+- **R6 — `min-h-0` is a permission, never a floor.** `flex: 1` is `1 1 0%`; zero is a
+  conforming used size. Any `flex-1` + `overflow-y-auto` element holding text needs a
+  declared minimum as well.
+- **R7 — the scroll container is keyboard-reachable and named.** It carries
+  `tabindex="0"`, `role="region"`, an accessible name, and `data-rail-scroll`, and any
+  window-level arrow-key handler stands down inside it. Without the stand-down,
+  ArrowDown advances the step and roughly 1500px of prose cannot be reached at all.
+- **R8 — no `overscroll-behavior: contain` on a column that is the only wheel path to
+  what lies below it.** The instrument is a full-viewport pane with the overview
+  section beneath it.
+- **R9 — budget in the longer locale, per step.** English applicability lines ran 277px
+  against Korean's 194px at 1024x768; sizing against Korean alone passed the gate and
+  shipped the defect in English. The gate runs `ko` and `en` at every viewport.
+- **R10 — a bare length is never a grid track.** Use `minmax(0, ...)`, `fit-content()`
+  or a length inside `min()`. A fixed `rem` track doubles under text resize and clipped
+  a paragraph by 35px at 200%.
+
+Content is a layout instrument here, not a fixed input. Where a block will not fit its
+budget, shortening the copy is a legitimate and preferred fix, and
+`src/components/multiscale/consistency.test.ts` keeps the eight steps inside one shape
+so that shortening one does not make it an outlier.
+
+## 3b. Drawn surfaces — what a check on the DOM cannot see
+
+Section 3a governs boxes of prose, where `getBoundingClientRect` is ground truth. This
+section governs everything drawn: SVG schematics, WebGL canvases, and annotations laid
+over them. It exists because a full apparatus of DOM-geometry gates certified this page
+green while a reader opened it and found molecules poking through five bordered boxes,
+labels painting at four pixels, and an equation sliced in half. None of those are visible
+to element geometry, so each rule below names the measurement that does see it.
+
+- **R11 — a fixed `viewBox` is a silent font shrinker.** `fontSize="12"` inside
+  `viewBox="0 0 520 180"` is twelve *user units*. Drop that svg into a 184px box and the
+  reader gets 4.25px while `getComputedStyle` still reports 12, which is why every
+  style-based check passed. Either the viewBox tracks the measured pixel box so one unit
+  is one pixel (`DftMechanism`, `PlotContainer`), or every declared size must clear the
+  floor at the *narrowest* container the element is ever given (`MlffValueSchematic`,
+  trimmed to its real extent and floored at 13.5 units). Floor: 9px hard, 11px intended.
+  Measured by `probe-tiny-text.mjs` through `getScreenCTM`, never through the cascade.
+- **R12 — never clamp a measured dimension.** `PlotContainer` floored its own measured
+  width at 320, so in a 254px column the viewBox stopped matching pixels and every label
+  in three plots shrank by that ratio. If a floor is needed for layout maths, apply it to
+  the derived margins, not to the measurement.
+- **R13 — `overflow: hidden` may never be what makes content fit.** It does not scroll,
+  does not warn, and does not report; it stops painting. `probe-clipped-content.mjs`
+  walks every clipping ancestor and fails on any leaf painted past its edge.
+- **R14 — centre inside a bounded box with `safe center`.** Plain `center` pushes the
+  overflow out of *both* ends: the MLFF interaction core printed its first box straight
+  over the panel's own header at 1024. `safe` centres while it fits and top-aligns when
+  it does not.
+- **R15 — a bounded scroll pane says whether it continues.** A pane that cuts a line
+  through the middle with no cue reads as a finished paragraph. Signal it with a mask,
+  not a painted gradient, so it carries no colour of its own and is right in both themes;
+  apply it only to an edge that really has more behind it, and keep the fade shorter than
+  one line box so it costs none of the eight lines R1 requires.
+- **R16 — an annotation over a drawn scene is placed by clearance, not by offset.** A
+  constant offset knows nothing about what is under it: `center.x + 12` put the `i` chip
+  on a neighbouring atom, and `cutoffEnd - 56` made the `r_cut` label erase the arc it
+  names. Search candidate positions and score them against the things already drawn.
+- **R17 — what a canvas paints must fit inside the canvas, use it, and be centred in
+  it.** Three separate failures, three separate measurements, all in
+  `probe-canvas-fit.mjs`: content reaching two or more edges is a camera cutting the
+  scene; a bounding box spanning under 25% of the canvas is a stage the scene does not
+  use; margins skewed by more than 30% of a dimension is a scene pinned to one end. Do
+  not gate on *inked* pixels — a ball-and-stick molecule covers about 5% of its own
+  bounding box because it is spheres with gaps, so an ink rule flags a perfectly framed
+  scene and says nothing about framing. Ink is reported as context only.
+  `probe-frame-fit.mjs` applies the same pixel reading to the bands between framed boxes.
+  Both crop the *composited* page, so both must discard the pixels the canvas does not own:
+  a step counter or a nav button drawn over the canvas is otherwise counted as scene
+  content, which is how a scene starting 60px down reported a top margin of zero. Mask by
+  DOM geometry, never by hit-testing — a decorative overlay is `pointer-events-none`, so
+  `elementFromPoint` returns the canvas straight through it, and the all-atom title card was
+  being read as molecule. The tell was margins of exactly 32/33/32px on two differently
+  sized canvases: that is a CSS inset, not a camera result. Scene probes also run with
+  `reducedMotion: "reduce"`, which pins the trajectory to one frame; without it the same
+  layout measured differently in light and dark because the captures landed on different
+  frames of a playing animation.
+- **R19 — no text may be printed over other text.** Distinct from R13: nothing overflows
+  and nothing is clipped, both boxes are exactly where their CSS put them, and they simply
+  collide. Seven MLFF panels each reserved a guessed `top-[Xrem]` for a header they did not
+  measure (3.2, 4.5, 4.6 and 4.8rem, each right for exactly one string); at 1024 in English
+  that header wrapped to five lines and printed straight through the card beneath it. The
+  fix is structural: the header sits in flow and the body takes `flex-1`, so there is no
+  number to guess. `probe-overlap.mjs` enforces it, and like every geometry check it has to
+  intersect each rect with its scrollports first — comparing raw rects made a rail body
+  taller than its scroller appear to sit on the pager below it.
+- **R18 — a decorative floor is not a visibility guarantee.** `Math.max(0.1, …)` on the
+  atom layer read on near-black and vanished on near-white, taking half of an
+  atom-to-bead mapping with it. Opacity floors are checked against the light surface,
+  which is the one that loses.
+- **R20 — frame what is painted, and own the camera that does it.** Mol* re-frames onto its
+  own visible bounding sphere after any commit that grows it, which on a playing trajectory
+  is most of them. It silently overwrote every placement this app computed: the force-field
+  page asked for a camera distance of 8.35 and ended up at 20.63, so `padding`,
+  `targetOccupancy` and the whole zoom ladder were configuration nothing read, and the
+  values in them had been "tuned" against a pipeline that discarded them.
+  `canvas3d.camera.manualReset = true` takes that back, and once it does the camera must
+  also write `radiusMax` itself, because `Camera.update()` returns early while that is 0.
+  What gets framed is the **painted** set, measured from the committed layer list — not the
+  asset's camera metadata, which describes the whole solvated box while a page paints the
+  24-atom solute (framing 10.4 Å for a 4.2 Å subject rendered it at 21% of the frame).
+  `canvas3d.boundingSphereVisible` is the same measurement but is a stale object between
+  Mol*'s own commits: read when a placement is computed it is still 0. Centre on the
+  midpoint of the extremes, never a centroid — a centroid weighted by atom count sits inside
+  whichever cluster is denser and leaves the frame lopsided. And whatever sets the radius
+  sets the near plane and the fog, so a frame tightened without it clips the context out.
 
 ## 4. Components
 
@@ -211,6 +401,21 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
 - **Icons**: lucide-react (kept, already project-wide), `strokeWidth 1.75`,
   16–20px, functional only (external-link, menu, theme, zoom). Never
   decorative tiles.
+- **Icon button** (masthead theme/language/menu, hero transport): no border, no
+  fill, no tile — `h-11 w-11`, glyph 16–20px, `text-muted-foreground` →
+  `hover:bg-muted hover:text-foreground`. This is the site's only icon-button
+  language; a bordered cell is not an alternative, because no border token
+  reaches the 3:1 that WCAG 1.4.11 asks of a boundary identifying a control
+  (`--border` measures 1.26:1 light / 1.52:1 dark on `--background`,
+  `--border-strong` 2.08 / 2.61).
+- **Hero transport**: the terminal column of the home specimen tray, not a widget
+  in the readout band — it shares the row's `border-l` separator, its `border-t-2`
+  baseline and its height ladder, so it reads as part of the ruler rather than as
+  a control sitting on top of it. `basis-11 sm:basis-14`. Pause and play are the
+  lucide glyphs in the icon-button treatment above; the held state additionally
+  fills the column's 2px baseline with `foreground`, the same grammar the tray
+  uses for the current cell. Chrome stays neutral: level identity ink is scoped to
+  surfaces that belong to a level, and the transport belongs to the mechanism.
 - **Specimen plate** (`SpecimenPlate`): one Cycles render of a system the lab
   actually simulated, **square at every breakpoint** (the `lg` hero plate is
   height-driven and capped at `58vw` so a tall viewport cannot crop it), full-bleed
@@ -238,8 +443,12 @@ engine re-skins without engine edits. New utilities: `text-accent-ink`,
   `--dur-fast: 180ms`, `--dur-med: 320ms`, `--dur-slow: 600ms`.
 - The home hero rotates through the eight specimen plates, crossfading each loop
   in over its poster at 600ms. Rotation is 7s, pauses off screen, is suppressed
-  below `sm`, stops when the reader picks a specimen, and carries a visible pause
-  control. Everything else: micro (hover lift, underline sweep).
+  below `sm`, and stops when the reader picks a specimen. **Playback and rotation
+  are separate states**: picking a specimen holds the carousel and leaves the
+  picture moving, and the transport (§4) holds or releases both together. Pause
+  freezes the loop on its current frame and play resumes from it, which means the
+  element is held, never unmounted. Everything else: micro (hover lift, underline
+  sweep).
 - **Reveal policy (hard rule)**: content is visible without JS. Reveal-on-
   scroll may only ADD a transform/opacity animation via a `.pre-reveal` class
   that JS applies before observing; no CSS that hides content by default.
@@ -273,9 +482,9 @@ plain headings elsewhere.
 - **Home**: full-viewport specimen hero — left-aligned display type and 2 CTAs
   over a clean field, a square specimen plate anchored to the right edge from
   `lg` (its left third dissolved by a mask), the printed plate label under the
-  CTAs, then a full-width readout band and an eight-cell specimen tray on the
-  bottom edge. The hero rotates through the eight renders and carries a pause
-  control; below `lg` the masthead comes first and the tray degrades to ruler
+  CTAs, then a full-width readout band and, on the bottom edge, a row of eight
+  specimen cells closed by the transport column (§4). The hero rotates through the
+  eight renders; below `lg` the masthead comes first and the tray degrades to ruler
   ticks. No scroll cue. → scale-index of research areas (margin-column + ruler
   spine) → publications ledger (top 3) → news colophon rows. No cards anywhere.
 - **Multiscale tier pages**: the two specimens run at that tier lead the
@@ -296,7 +505,7 @@ plain headings elsewhere.
 
 - The token palette (signal red, link blue, highlight yellow; zero other
   chrome hues).
-- Pretendard weight roles + Geist Mono metadata register.
+- The Pretendard weight ladder + the metadata register (§2).
 - Sharp shape lock, hairline rule language, margin-column grid.
 - CTA voice (one contact-intent label: `연구실 참여` / `Join the lab`).
 - Nav masthead + footer colophon.
@@ -351,7 +560,8 @@ Light: `--sch-amber #d97706` `--sch-amber-bright #f59e0b` `--sch-amber-label
 literals (CPK-adjacent mid tones, HOMO/LUMO, frame hairlines, MLFF cyan
 packets, MLFF glyph atoms/PES mesh) stay inline: `#ef4444` `#dc2626`
 `#f1f5f9` `#3b82f6` `#06b6d4` `#f97316` `#9ca3af` `#cbd5e1` `#67e8f9`
-`#a5f3fc` `#f43f5e` `#8b5cf6` `#e2e8f0` `#111a3e`. MLFF force-arrow magnitude interpolants (data, `#3b82f6`→`#ef4444`
+`#a5f3fc` `#f43f5e` `#8b5cf6` `#e2e8f0` `#111a3e` `#22c55e` (force-field angle
+term in the plot legend) `#07111f` (plot well fill). MLFF force-arrow magnitude interpolants (data, `#3b82f6`→`#ef4444`
 per-atom): `#3e80f2` `#3f80f1` `#427fee` `#497ce7` `#4b7ce5` `#5678da`
 `#5e75d2` `#6374ce` `#6573cc` `#6d70c4` `#6f6fc1` `#786cb9` `#97629a`
 `#9f5f92` `#a05f91` `#a55d8c` `#a75c8a` `#aa5b88` `#ac5a85` `#b7577a`

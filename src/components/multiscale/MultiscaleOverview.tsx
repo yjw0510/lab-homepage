@@ -3,9 +3,9 @@ import type { MultiscaleArea } from "@/types/multiscale";
 
 /* Method-aware ruler: MLFF and classical all-atom share atomistic resolution. */
 const rulerMarks = [
-  { slug: "dft", scale: "Å–nm", ko: "전자 명시 · DFT", en: "electrons explicit · DFT" },
+  { slug: "dft", scale: "Å-nm", ko: "전자 명시 · DFT", en: "electrons explicit · DFT" },
   { slug: "atomistic", scale: "nm", ko: "원자 해상도 분기 · MLFF / 고전 역장", en: "atomistic fork · MLFF / classical FF" },
-  { slug: "meso", scale: "10 nm–μm", ko: "집단 변수 · 메조", en: "collective variables · meso" },
+  { slug: "meso", scale: "10 nm-µm", ko: "집단 변수 · 메조", en: "collective variables · meso" },
 ];
 
 /* Level identity text colors (mode-aware tokens in globals.css). Full literal
@@ -31,7 +31,7 @@ export function MultiscaleOverview({
       <div className="mx-auto max-w-6xl px-6 py-20 sm:px-8 sm:py-28">
         {/* Masthead */}
         <header className="max-w-3xl">
-          <h2 className="type-display text-4xl text-foreground sm:text-5xl">
+          <h2 className="type-title text-4xl text-foreground sm:text-5xl">
             {lang === "ko" ? "방법을 더 살펴보기" : "Study the methods in depth"}
           </h2>
           <p className="mt-5 break-keep leading-relaxed text-muted-foreground">
@@ -67,10 +67,10 @@ export function MultiscaleOverview({
               className="group grid grid-cols-1 gap-x-6 gap-y-2 border-t border-border py-7 transition-colors hover:bg-muted/50 md:grid-cols-12"
             >
               <div className="type-mono-meta pt-1 text-[12px] text-muted-foreground md:col-span-3">
-                {area.scale}
+                {lang === "ko" && area.scaleKo ? area.scaleKo : area.scale}
               </div>
               <div className="md:col-span-9">
-                <h2 className="type-heading text-xl text-foreground sm:text-2xl">
+                <h2 className="type-title text-xl text-foreground sm:text-2xl">
                   {lang === "ko" && area.titleKo ? area.titleKo : area.title}
                 </h2>
                 <p className="mt-2 max-w-[42rem] break-keep text-sm leading-relaxed text-muted-foreground">

@@ -17,8 +17,8 @@ const HEADER_TONE: Record<Tone, string> = {
 
 const TITLE_TONE: Record<Tone, string> = {
   amber: "text-lv-aa",
-  sky: "text-lv-dft",
-  mlff: "text-lv-mlff",
+  sky: "text-lv-dft-text",
+  mlff: "text-lv-mlff-text",
   meso: "text-lv-meso",
   neutral: "text-foreground",
 };

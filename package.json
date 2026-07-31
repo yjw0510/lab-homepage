@@ -14,7 +14,22 @@
     "validate:multiscale-scenes": "python3 scripts/validate_multiscale_scenes.py",
     "generate:math-svg": "node scripts/generate-math-svg.mjs",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "qa:serve": "serve out -l 3222 --no-clipboard",
+    "qa:geometry": "node .superloopy/evidence/frontend/20260729-parity/probe-geometry.mjs",
+    "qa:webkit": "node .superloopy/evidence/frontend/20260729-parity/probe-webkit.mjs",
+    "qa:parity": "node .superloopy/evidence/frontend/20260729-parity/probe-parity.mjs",
+    "qa:mobile": "npm run qa:geometry && npm run qa:webkit && npm run qa:parity",
+    "qa:rail": "node .superloopy/evidence/frontend/20260729-parity/probe-rail-policy.mjs",
+    "qa:frame-fit": "node .superloopy/evidence/frontend/20260729-parity/probe-frame-fit.mjs",
+    "qa:canvas-fit": "node .superloopy/evidence/frontend/20260729-parity/probe-canvas-fit.mjs",
+    "qa:tiny-text": "node .superloopy/evidence/frontend/20260729-parity/probe-tiny-text.mjs",
+    "qa:clipped": "node .superloopy/evidence/frontend/20260729-parity/probe-clipped-content.mjs",
+    "qa:i18n": "node .superloopy/evidence/frontend/20260729-parity/probe-untranslated.mjs",
+    "qa:drawn": "npm run qa:tiny-text && npm run qa:clipped && npm run qa:overlap && npm run qa:frame-fit && npm run qa:canvas-fit",
+    "qa:all": "npm run test:run && npm run qa:rail && npm run qa:drawn && npm run qa:i18n && npm run qa:hero && npm run qa:mobile",
+    "qa:overlap": "node .superloopy/evidence/frontend/20260729-parity/probe-overlap.mjs",
+    "qa:hero": "node .superloopy/evidence/frontend/20260729-parity/probe-hero-specimen.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

@@ -173,11 +173,16 @@ export function computeScheduledPlacement({
     blendedAnchor[1] + effectiveSpec.targetOffset[1],
     blendedAnchor[2] + effectiveSpec.targetOffset[2],
   ];
-  const metaTarget = Array.isArray(meta?.camera?.target) && meta.camera.target.length >= 3
+  // A bounds override is a measurement of the scene as painted, so it outranks the asset's
+  // own camera metadata. The all-atom assets describe the whole solvated box while each page
+  // paints a fraction of it, and letting that metadata win framed empty space.
+  const metaTarget = !boundsOverride && Array.isArray(meta?.camera?.target) && meta.camera.target.length >= 3
     ? (meta.camera.target as [number, number, number])
     : null;
   const targetPoint = metaTarget ?? target;
-  const radius = typeof meta?.camera?.radius === "number" ? Math.max(meta.camera.radius, 0.5) : computedRadius;
+  const radius = !boundsOverride && typeof meta?.camera?.radius === "number"
+    ? Math.max(meta.camera.radius, 0.5)
+    : computedRadius;
   const padding = typeof meta?.camera?.padding === "number" ? meta.camera.padding : effectiveSpec.padding;
   const zoomFactor = effectiveSpec.zoomLadder[Math.max(0, Math.min(zoomIndex, effectiveSpec.zoomLadder.length - 1))] ?? 1;
   const distance = computeCameraDistance({
@@ -246,6 +251,10 @@ export function applyMolstarPlacement(
     target: Vec3.create(...placement.target),
     position: Vec3.create(...placement.position),
     radius: Math.max(placement.radius * placement.zoomFactor, placement.radius * 0.8),
+    // With Mol*'s automatic reset off (see applyResearchCanvasSettings) nothing else writes
+    // this, and Camera.update() returns early while it is 0. It only has to be wide enough
+    // to keep the far plane behind the whole scene, not to frame anything.
+    radiusMax: Math.max(current.radiusMax ?? 0, placement.radius * 2),
   };
   plugin.managers.camera.setSnapshot(snapshot, durationMs);
   return snapshot;

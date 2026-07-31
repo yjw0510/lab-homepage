@@ -14,7 +14,9 @@ export function FundingCard({
   lang: string;
   statusLabels: { active: string; completed: string };
 }) {
-  const title = lang === "ko" && grant.titleKo ? grant.titleKo : grant.title;
+  const ko = lang === "ko";
+  const title = ko && grant.titleKo ? grant.titleKo : grant.title;
+  const agency = ko && grant.agencyKo ? grant.agencyKo : grant.agency;
 
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-border py-5 md:grid-cols-12">
@@ -23,7 +25,7 @@ export function FundingCard({
       </div>
       <div className="md:col-span-9">
         <h3 className="font-[600] leading-relaxed text-foreground">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{grant.agency}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{agency}</p>
         <p className="type-mono-meta mt-2 text-[12px] text-muted-foreground">
           {grant.role} · {statusLabels[grant.status]}
         </p>

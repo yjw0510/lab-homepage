@@ -4,7 +4,13 @@ import { BASE_PATH } from "@/lib/basePath";
 import { getInitials } from "@/lib/utils";
 import type { Person } from "@/types/person";
 
-export function PIProfile({ person }: { person: Person }) {
+export function PIProfile({ person, lang }: { person: Person; lang: string }) {
+  // The 경력 section below this block already prints these three facts in Korean, from
+  // data/cv.ts. Printing them in English here left one page saying both.
+  const ko = lang === "ko";
+  const title = (ko && person.titleKo) || person.title;
+  const departments = (ko && person.departmentsKo) || person.departments;
+  const university = (ko && person.universityKo) || person.university;
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-12">
       {/* Photo or initials fallback */}
@@ -41,10 +47,10 @@ export function PIProfile({ person }: { person: Person }) {
             </span>
           )}
         </h3>
-        <p className="mt-2 text-foreground">{person.title}</p>
+        <p className="mt-2 text-foreground">{title}</p>
         <div className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          {person.departments
-            ? person.departments.map((dept, i) => (
+          {departments
+            ? departments.map((dept, i) => (
                 <span key={i} className="block">
                   {dept}
                 </span>
@@ -52,7 +58,7 @@ export function PIProfile({ person }: { person: Person }) {
             : person.department && (
                 <span className="block">{person.department}</span>
               )}
-          <span className="block">{person.university}</span>
+          <span className="block">{university}</span>
         </div>
 
         {/* Links */}

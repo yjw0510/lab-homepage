@@ -17,15 +17,15 @@
     "exploreMultiscale": "Explore Research",
     "joinLab": "Join the lab",
     "recentPublications": "Recent Publications",
-    "recentPublicationsSubtitle": "Selected recent work from our group.",
+    "recentPublicationsSubtitle": "",
     "viewAllPublications": "View all publications",
     "labNews": "Lab News",
-    "labNewsSubtitle": "Latest updates from Yu Lab.",
+    "labNewsSubtitle": "",
     "allNews": "All news"
   },
   "multiscale": {
     "title": "Multiscale",
-    "subtitle": "Molecular dynamics, machine learning force fields, coarse-grained simulation, and first-principles calculations applied to soft matter and solution chemistry.",
+    "subtitle": "Each scale answers a question the others cannot, from the one that asks where the electrons sit to the one that asks what shape a material settles into.",
     "learnMore": "Learn more"
   },
   "publications": {
@@ -40,26 +40,26 @@
   },
   "people": {
     "title": "People",
-    "subtitle": "Current lab members.",
+    "subtitle": "The principal investigator and researchers of the Multiscale Molecular Computational Chemistry Lab.",
     "pi": "Principal Investigator",
     "labMembers": "Lab Members",
     "noMembers": "New members will be announced soon."
   },
   "news": {
     "title": "News",
-    "subtitle": "Latest updates from our lab.",
+    "subtitle": "Announcements and updates from Yu Lab at Ajou University.",
     "noNews": "No news yet."
   },
   "funding": {
     "title": "Funding",
-    "subtitle": "Research grants.",
+    "subtitle": "Active and completed research grants.",
     "active": "Active",
     "completed": "Completed",
     "noGrants": "Funding information will be updated soon."
   },
   "contact": {
     "title": "Contact",
-    "subtitle": "Office location and contact information.",
+    "subtitle": "Lab location in the Wonchun Hall at Ajou University, and how to reach us.",
     "location": "Location",
     "email": "Email",
     "office": "Office"
@@ -83,7 +83,7 @@
     "undergradLabel": "Undergraduate Researchers",
     "undergradStatus": "Applications welcome year-round",
     "howToApply": "How to apply",
-    "howToApplyText": "Before you write to us, please look through our research and read at least one of our papers. Then share, in a few sentences, which topic or paper interested you and how it connects to what you want to work on, and attach your CV. Send these to:",
+    "howToApplyText": "Before you write to us, please look through our research and read at least one of our papers. Then tell us in a few sentences which topic or paper interested you and how it connects to what you want to work on, and attach your CV. Send it to:",
     "fields": "Fields",
     "fieldsText": "Chemistry, Chemical Engineering, Physics, Computer Science, etc."
   },

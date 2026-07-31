@@ -123,7 +123,7 @@ export const EQUATIONS: Record<string, EquationSet> = {
         { latex: "\\varepsilon_i", termId: "Ei" },
         { latex: "(\\mathcal N_i)" },
       ],
-      ariaLabel: "A representative local ML potential sums latent atomic energy contributions.",
+      ariaLabel: "A local machine-learned potential sums per-atom energy contributions.",
     },
     subs: [],
   },
@@ -162,7 +162,7 @@ export const EQUATIONS: Record<string, EquationSet> = {
         { latex: "\\mathbf F_i^\\theta", termId: "Fi" },
         { latex: "=-\\nabla_iE_\\theta" },
       ],
-      ariaLabel: "Latent atomic contributions sum to total energy and conservative forces are its coordinate gradient.",
+      ariaLabel: "Per-atom contributions sum to the total energy, and the forces are the negative gradient of that same energy.",
     },
     subs: [
       {

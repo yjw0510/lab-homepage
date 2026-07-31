@@ -13,7 +13,7 @@ export function LanguageToggle({ lang }: { lang: string }) {
     <button
       type="button"
       className="flex min-h-11 items-center gap-1.5 px-2.5 py-2.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      aria-label={`Switch to ${targetLang === "ko" ? "Korean" : "English"}`}
+      aria-label={targetLang === "ko" ? "한국어로 전환" : "Switch to English"}
       onClick={() => {
         const search = window.location.search;
         router.push(`${targetPathname}${search}`);

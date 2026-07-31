@@ -73,7 +73,12 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background">
       <div className="mx-auto max-w-6xl px-6 sm:px-8">
-        <div className="flex h-16 items-center justify-between">
+        {/* Wraps rather than overflows. The icon buttons are sized in rem, so at a
+            200% text-resize setting three of them plus the brand ran 81px past a
+            390px viewport and the menu button left the screen entirely: no way to
+            reach the navigation at all. Wrapping costs nothing at normal text, where
+            the row still fits on one line. */}
+        <div className="flex min-h-16 flex-wrap items-center justify-between gap-y-1 py-1">
           {/* Brand mark */}
           <Link
             href={`/${lang}`}
@@ -83,7 +88,7 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
               aria-hidden="true"
               className="inline-block h-2.5 w-2.5 self-center bg-primary"
             />
-            <span className="text-[15px] font-[650] tracking-[-0.015em]">
+            <span className="text-[15px] font-[700] tracking-[-0.015em]">
               Yu Lab
             </span>
             <span className="type-mono-meta text-[11px] text-muted-foreground">
@@ -101,18 +106,18 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
             />
             <div className="ml-2 flex items-center gap-1">
               <LanguageToggle lang={lang} />
-              <ThemeToggle />
+              <ThemeToggle lang={lang} />
             </div>
           </div>
 
           {/* Mobile controls */}
           <div className="flex items-center gap-2 lg:hidden">
             <LanguageToggle lang={lang} />
-            <ThemeToggle />
+            <ThemeToggle lang={lang} />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex h-11 w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Toggle menu"
+              aria-label={lang === "ko" ? "메뉴 열기" : "Toggle menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav-sheet"
             >

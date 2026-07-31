@@ -47,7 +47,16 @@ export function TopicIndex({
       </section>
       {others.length > 0 && (
         <section className="mt-12">
-          <div className="border-t border-border-strong" />
+          {/* Same shape as the section above. A strong rule with nothing on it reads as a gap
+              in the ledger rather than the start of a group: 48px of space, the rule, 16px
+              more, then the first row's own hairline 17px below the first. */}
+          <h2 className="type-heading flex items-baseline border-t border-border-strong pt-4 text-[21px] text-foreground">
+            <span
+              aria-hidden="true"
+              className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary"
+            />
+            {lang === "ko" ? "그 외" : "Other"}
+          </h2>
           <div className="mt-4">
             {others.map((topic) => (
               <TopicRow

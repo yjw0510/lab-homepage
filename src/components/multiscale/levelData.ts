@@ -17,7 +17,7 @@ export interface VisualLayerProvenance {
   label: Record<"en" | "ko", string>;
 }
 
-export type PlotType = "scf" | "allatomForceField" | "allatomReadout";
+export type PlotType = "scf" | "allatomForceField" | "allatomCoordination";
 
 export interface StepConfig {
   activeTerms: string[];
@@ -49,20 +49,20 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         equationDetailMode: "grouped",
         title: { en: "The Only Tier With Explicit Electrons", ko: "전자를 직접 다루는 유일한 계층" },
         question: {
-          en: "When the result turns on where the electrons go, only the tier that actually solves for them can produce it, because every cheaper model has parameterized the electrons away.",
+          en: "When the result turns on where the electrons go, only the tier that solves for them can answer; every cheaper model has parameterized them away.",
           ko: "결과가 전자의 거동에 달린 순간에는 전자를 직접 푸는 이 계층만이 그 답을 내며, 더 싼 모형에는 그 전자가 이미 남아 있지 않다.",
         },
         concept: {
-          en: "This is the one tier where electrons are computed, not assumed. Reach for it when bonding, charge transfer, spin, or orbital character controls the result, because no cheaper model can produce those quantities. A DFT calculation keeps the electrons responsive to the nuclear geometry and returns the electron density together with the total energy and the force on every atom. The surface here cycles through that density and the signed HOMO and LUMO orbitals from a single B3LYP/6-31G* solve on metal-free phthalocyanine: the density shows where charge collects, and the frontier orbitals show which regions set reactivity. The price of that explicitness is steep, so only selected configurations are solved and the system stays small.",
-          ko: "이 계층은 전자를 가정하지 않고 직접 계산하는 유일한 층이다. 결합 생성과 절단, 전하 이동, 스핀, 오비탈 성격이 결과를 좌우할 때 여기서 시작한다. 더 싼 모형으로는 그 양들을 만들어 낼 수 없기 때문이다. DFT 계산은 원자 구조에 반응하는 전자를 그대로 두고 전자 밀도와 총에너지, 원자마다 작용하는 힘을 함께 내놓는다. 화면의 표면은 금속 없는 프탈로시아닌을 B3LYP/6-31G*로 한 번 계산한 결과에서 그 밀도와 부호를 가진 HOMO·LUMO 오비탈을 차례로 보여 준다. 밀도는 전하가 어디에 모이는지 드러내고, 프런티어 오비탈은 어느 영역이 반응성을 정하는지 드러낸다. 전자를 직접 다루는 대가가 커서 선택한 소수의 구조만 풀고 계는 작게 유지한다.",
+          en: "A structural formula ends a bond at a line, and what that line stands for is electron density spread between two nuclei. Where it thins, the bond gives way first; where it piles up, a reagent comes in. This tier solves for that distribution directly, which is how a reactive site can be named on a molecule nobody has synthesized, and how readily it will surrender an electron estimated in advance. The numbers that come out sit next to the absorption wavelengths and oxidation potentials a spectrometer and a potentiostat hand back. They are expensive enough that the system stays small and only selected structures are solved. On screen the surface shows where charge has collected, then which regions move first as an electron leaves or arrives.",
+          ko: "구조식에서 결합은 선 하나로 끝나지만, 그 선이 대신하는 것은 두 원자핵 사이에 퍼져 있는 전자다. 그 전자가 얇아진 자리에서 결합이 먼저 풀리고, 두껍게 고인 자리로 시약이 다가온다. 이 계층은 그 분포를 직접 푼다. 그래서 아직 합성해 보지 않은 분자를 두고도 어느 자리가 먼저 반응할지, 전자를 얼마나 선선히 내놓을지 미리 가늠할 수 있다. 그렇게 나온 수치는 분광기와 전위 측정기가 돌려주는 흡수 파장이나 산화 전위 옆에 그대로 놓인다. 그만큼 계산이 비싸서 계는 작게 두고 고른 몇 개 구조만 푼다. 화면의 표면은 전하가 고인 자리와, 전자를 주고받을 때 가장 먼저 움직이는 영역을 차례로 보여 준다.",
         },
         takeaway: {
           en: "What crosses to the next tier is a provenance-bearing record: atomic numbers and coordinates paired with a total energy, forces, and the full calculation protocol. The electronic solve itself stays here, in the reference tier.",
           ko: "다음 계층으로는 출처가 붙은 레코드가 넘어간다. 원자 번호와 좌표에 총에너지, 힘, 계산 프로토콜을 붙인 것이다. 전자구조 계산 자체는 참조 계층에 남는다.",
         },
         systemCaption: {
-          en: "Calculated density / HOMO / LUMO · values read from one B3LYP/6-31G* asset",
-          ko: "계산된 밀도 / HOMO / LUMO · 하나의 B3LYP/6-31G* 자산에서 읽은 값",
+          en: "Calculated density / HOMO / LUMO · one B3LYP/6-31G* calculation on metal-free phthalocyanine",
+          ko: "계산된 밀도 / HOMO / LUMO · 금속 없는 프탈로시아닌 B3LYP/6-31G* 계산 하나",
         },
         visualLayers: [
           { kind: "CALCULATED", label: { en: "Density and frontier orbitals", ko: "전자 밀도와 프런티어 오비탈" } },
@@ -76,12 +76,12 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         equationDetailMode: "grouped",
         title: { en: "How the Density Is Actually Solved", ko: "밀도를 실제로 푸는 방법" },
         question: {
-          en: "A DFT result earns its place in the reference record only once the density it came from is self-consistent, so this convergence loop is the gate every electronic answer must clear.",
+          en: "A DFT result enters the reference record only once its density is self-consistent, so this loop is the gate every electronic answer clears.",
           ko: "DFT 결과는 그 밀도가 자기일관에 이른 뒤에야 참조 레코드에 들어갈 자격을 얻으므로, 이 수렴 고리는 모든 전자구조 답이 통과해야 하는 관문이다.",
         },
         concept: {
-          en: "The electronic solve is self-consistent. Start from a trial density, build the density-dependent Hamiltonian, solve its orbitals, form a new density, apply the solver's update, and test convergence. Drag the control to step through actual SCF iterations and watch the total-density snapshots settle while the energy-change trace falls. Convergence is the numerical gate a result must pass before it enters the reference record. The displayed density surfaces use changing stated isovalues, so they are not meant for quantitative area comparison.",
-          ko: "전자구조 계산은 자기일관적이다. 시험 전자 밀도에서 시작해 밀도에 의존하는 해밀토니안을 만들고, 오비탈을 푼 뒤 새 밀도를 구성하고, 갱신 연산자를 적용해 수렴을 검사한다. 조절기를 움직이면 실제 SCF 반복을 하나씩 지나며 총밀도 스냅샷이 안정되고 에너지 변화 곡선이 내려가는 과정을 볼 수 있다. 수렴은 결과가 참조 레코드에 들어가기 전에 통과해야 하는 수치적 관문이다. 화면의 밀도 표면은 표시 등치값이 달라 면적을 정량 비교하기 위한 것은 아니다.",
+          en: "Building the Hamiltonian takes the electron density, and the density is what the calculation is trying to find. So it starts from a plausible one, builds a potential, and solves the orbitals. A new density comes out, and feeding that straight back overshoots, so it is blended with the previous one before the next pass. Move the control and the real iterations go by one at a time. The density surface shifts less and less, and the energy change, after one large early excursion, drops by orders of magnitude. Isovalues differ from surface to surface, so they are not there to have their areas compared. The density and the orbital energies on the previous page become that molecule's own only once they are through this loop. When they will not come through, suspect the starting guess or the mixing scheme first; when neither is at fault, the electronic structure is. Molecules with frontier orbitals crowded together, or with an unpaired electron, are the usual case.",
+          ko: "해밀토니안을 세우려면 전자 밀도를 알아야 하는데, 그 밀도가 지금 구하려는 값이다. 그래서 그럴듯한 밀도를 하나 놓고 퍼텐셜을 세운 뒤 오비탈을 푼다. 그러면 새 밀도가 나오는데, 그대로 되먹이면 값이 튀므로 앞 밀도와 섞어 다음 입력으로 쓴다. 조절기를 움직이면 실제 반복이 하나씩 지나간다. 밀도 표면은 갈수록 덜 움직이고, 에너지 변화는 초반에 한 번 크게 튄 뒤로 자릿수를 떨어뜨린다. 표면마다 표시 등치값이 달라 면적을 견주는 용도는 아니다. 앞 장의 수치도 이 고리를 빠져나온 뒤에야 그 분자의 값이 된다. 좀처럼 못 빠져나오면 초기 추정이나 섞는 방식을 먼저 의심하고, 그래도 여전하면 전자구조 쪽이다. 프런티어 오비탈이 촘촘히 몰렸거나 홀전자를 가진 분자가 그렇다.",
         },
         takeaway: {
           en: "SCF convergence is the numerical gate applied before an electronic result enters our reference record.",
@@ -109,12 +109,12 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "From DFT Data to a Learned Potential", ko: "DFT 데이터에서 학습 퍼텐셜까지" },
         question: {
-          en: "Reach for a learned potential when you need DFT-level forces over more steps and larger systems than DFT can afford, across chemistry a fixed classical force field cannot represent.",
+          en: "Reach for a learned potential when you need DFT-level forces at a scale DFT cannot afford, on chemistry a fixed force field cannot hold.",
           ko: "DFT로는 감당 못 할 만큼 많은 스텝과 큰 계에서, 고정된 고전 역장으로는 담지 못하는 화학까지, DFT 수준의 힘이 필요할 때 학습 퍼텐셜을 꺼내 든다.",
         },
         concept: {
-          en: "DFT supplies reference configurations together with their total energies and atom-resolved forces. An MLFF fits a differentiable approximation to the potential energy surface covered by those examples. Once trained, the same model evaluates new configurations far more cheaply than solving the electronic structure again, so its forces can advance a long MD trajectory. The speedup is useful only within chemical and configurational regions represented and validated by the reference set.",
-          ko: "DFT는 여러 참조 배치와 함께 각 배치의 총에너지 및 원자별 힘을 제공한다. MLFF는 이 예시들이 덮는 퍼텐셜 에너지면을 미분 가능한 함수로 근사한다. 학습이 끝나면 전자구조를 매번 다시 풀지 않고도 새 배치의 에너지와 힘을 빠르게 평가하므로 긴 MD 궤적을 전개할 수 있다. 다만 이 속도와 정확도는 참조 데이터가 대표하고 검증한 화학적·구조적 영역 안에서만 유효하다.",
+          en: "Move an atom slightly and DFT starts the calculation over. The answer from the configuration it has just solved has nowhere to go. An MLFF treats those solved configurations as points and fits an energy surface through them. Once trained, the model skips the electronic structure and returns forces directly. A bond breaking and reforming, or an ion swapping its coordination shell in an electrolyte, can be watched long enough for statistics to accumulate. Diffusion coefficients and vibrational spectra come out of those trajectories, and because both are measured too, a disagreement shows up immediately. What the model knows ends where its training data ends, and outside that the forces go wrong. The domain of use is therefore checked continually against separate reference calculations.",
+          ko: "원자가 조금만 움직여도 DFT는 계산을 처음부터 다시 한다. 앞서 푼 배치의 답은 다음 배치에 물려줄 데가 없다. MLFF는 그렇게 풀어 둔 배치를 점 삼아 그 사이를 지나는 에너지면을 맞춘다. 학습이 끝난 모델은 전자구조를 건너뛰고 곧장 힘을 내놓는다. 결합이 끊어졌다 다시 붙는 과정도, 전해질에서 이온이 배위 껍질을 갈아타는 과정도 통계가 쌓일 만큼 오래 지켜볼 수 있다. 그 궤적에서 확산 계수가 나오고 진동 스펙트럼이 나온다. 둘 다 측정으로도 얻는 값이라 어긋나면 어디가 어긋났는지 바로 드러난다. 모델이 아는 것은 학습 데이터가 덮은 영역까지이고, 그 밖에서는 힘이 틀어진다. 그래서 적용 범위는 별도의 참조 계산으로 계속 점검한다.",
         },
         takeaway: {
           en: "MLFF carries DFT-quality labels into the repeated force evaluations needed for reactive or chemically complex atomistic sampling.",
@@ -136,12 +136,12 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "Inside the Machine Learning Force Field", ko: "머신러닝 역장 내부의 계산 흐름" },
         question: {
-          en: "The learned forces can be trusted at DFT accuracy because the model reads each atom's neighborhood through a symmetry-preserving descriptor and takes every force as the exact gradient of one scalar energy.",
-          ko: "학습된 힘을 DFT 정확도로 믿을 수 있는 이유는, 모델이 각 원자의 이웃을 대칭성을 보존하는 descriptor로 읽고 모든 힘을 하나의 스칼라 에너지의 정확한 기울기로 얻기 때문이다.",
+          en: "The learned forces hold at DFT accuracy because each neighborhood is read symmetry-preserving and every force is one scalar energy's gradient.",
+          ko: "학습된 힘이 DFT 정확도를 지키는 것은, 모델이 원자의 이웃을 대칭 보존 표현으로 읽고 힘을 하나의 스칼라 에너지의 기울기로 얻기 때문이다.",
         },
         concept: {
-          en: "For each atom, the model reads only neighbors inside a cutoff and converts their relative arrangement into a symmetry-preserving descriptor. Translation, rotation, and reordering of equivalent atoms therefore do not create a different physical input. A neural network maps each descriptor to an atomic energy contribution, and the contributions are summed into one total energy. Forces come from the negative gradient of that same learned energy, which keeps energy and force predictions mutually consistent.",
-          ko: "모델은 각 원자를 중심으로 차단 반경 안의 이웃만 읽고, 상대적 배열을 대칭성을 보존하는 descriptor로 바꾼다. 따라서 구조 전체를 이동하거나 회전하고 동일 원자의 순서를 바꾸어도 물리적으로 같은 입력은 같은 표현을 갖는다. 신경망은 각 descriptor를 원자별 에너지 기여로 변환하고, 이를 합해 하나의 총에너지를 만든다. 힘은 같은 학습 에너지의 음의 기울기에서 얻으므로 에너지와 힘 예측이 서로 일관된다.",
+          en: "What the model reads around any one atom is the few angstroms nearest to it, and nothing else. A model trained on a hundred atoms therefore runs on tens of thousands, and an unfamiliar molecule still gets an answer as long as its local environments are familiar. Rotating the whole system, moving it, or relabelling two atoms of the same element leaves the chemistry unchanged. A model that does not know this relearns the same chemistry in every new orientation and needs a far larger training set to do it. Predict energy and forces separately and the two drift apart, so the total energy of a long MD run will not stay put. Take the forces by differentiating that one energy and the drift has no way in.",
+          ko: "모델이 원자 하나를 두고 읽는 것은 그 주위 몇 옹스트롬이 전부다. 그 덕에 원자 100개로 배운 모델을 원자 수만 개짜리 계에 그대로 쓴다. 처음 보는 분자라도 국소 환경이 익숙하면 답이 나온다. 계를 통째로 돌리거나 옮겨도 화학은 그대로고, 같은 원소끼리 번호를 바꿔 달아도 마찬가지다. 이 사실을 모르는 모델은 방향이 바뀔 때마다 같은 화학을 처음부터 다시 배우고, 그만큼 훨씬 많은 학습 데이터를 요구한다. 에너지와 힘을 따로 내놓게 하면 둘이 어긋나 긴 MD에서 총에너지가 한쪽으로 흐른다. 힘을 같은 총에너지의 기울기에서 얻으면 그런 어긋남이 없다.",
         },
         takeaway: {
           en: "Locality controls cost, symmetry controls physical consistency, and energy differentiation supplies every atomic force.",
@@ -165,59 +165,59 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
     equationKey: "observable",
     steps: [
       {
-        activeTerms: ["observable", "average"],
+        activeTerms: ["observable"],
         equationKey: "observable",
         equationDetailMode: "grouped",
-        title: { en: "Where Sampling Becomes the Answer", ko: "표본이 곧 답이 되는 계층" },
+        title: { en: "Fixing the Chemistry to Buy Steps", ko: "화학을 고정해 스텝을 버는 계층" },
         question: {
-          en: "When the answer is a statistical average over millions of fixed-chemistry configurations, only an analytic force field is cheap enough to sample that deeply, a reach even MLFF cannot afford.",
-          ko: "답이 화학이 고정된 수백만 배치의 통계 평균일 때, 그만큼 깊이 표본화할 만큼 값싼 것은 해석적 역장뿐이며 이는 MLFF조차 감당하지 못하는 도달 범위다.",
+          en: "When a value only appears after millions of configurations have been averaged, it is reached by the tier that froze the chemistry into a formula and made a single step cheap.",
+          ko: "값이 수백만 번의 배치를 평균해야 비로소 나오는 것이라면, 화학을 식으로 고정해 한 스텝을 싸게 만든 계층이 그 표본을 쌓는다.",
         },
         concept: {
-          en: "This tier exists for statistics. An analytic force field fixes the chemistry and topology, which makes each force evaluation cheap enough to integrate for millions of steps. A single configuration is not the result here; the result is an ensemble average over many correlated frames. Select a readout to project the same production trajectory into a measurable quantity, such as a contact or packing metric, and watch its time trace and distribution build up. Every atom stays explicit, exactly as in MLFF-driven MD, but the potential is analytic with its own parameter provenance. The gain is the sheer reach of sampling; the cost is bond breaking, explicit electrons, and transferability beyond the parameterized chemistry.",
-          ko: "이 계층은 통계를 위해 존재한다. 해석적 역장이 화학과 위상을 고정하면 힘 계산 하나하나가 싸져서 수백만 스텝을 적분할 수 있다. 여기서는 배치 하나가 결과가 아니라, 서로 상관된 많은 프레임을 평균한 앙상블 값이 결과다. 관측량을 선택하면 같은 생산 궤적이 접촉·밀집 지표 같은 측정 가능한 양으로 투영되고, 그 시간 추이와 분포가 쌓이는 모습을 볼 수 있다. MLFF 기반 MD와 똑같이 모든 원자는 명시적으로 남지만, 퍼텐셜은 자기 나름의 모수 출처를 가진 해석적 함수다. 표본의 폭넓은 도달 범위를 얻는 대신 결합 생성과 절단, 명시적 전자, 모수화 영역 밖의 전달성을 내준다.",
+          en: "A bond is one spring, an angle is another, and the rest is charge pulling on charge. That list is the whole of the force, so no step solves for an electron and a step costs almost nothing. What a cheap step buys is sample size. A box of ten thousand atoms has to be run millions of times before an arrangement worth calling a liquid accumulates. Held at a temperature and a pressure, the box loses the way it was first packed and moves to the arrangement that force produces. Whether that arrangement is the real liquid is checked against a quantity the experiment also measures, density among them. The same list is the ceiling: a bond breaking and reforming cannot be written with this force. On screen is one ion out of that box, shown with the molecules around it.",
+          ko: "결합은 용수철 하나, 각도는 또 다른 용수철, 나머지는 전하와 전하 사이의 힘이다. 이 목록이 힘의 전부여서 전자를 푸는 단계가 들어설 자리가 없고, 그만큼 한 스텝이 싸다. 싼 스텝이 사는 것은 표본이다. 원자 만 개쯤 되는 상자를 수백만 번 굴려야 액체라 부를 만한 배열이 쌓인다. 항온기와 항압기를 걸어 두면 상자는 처음 채워 넣은 방식을 잃고 그 힘이 만드는 배열로 옮겨 간다. 그 배열이 실제 액체인지는 밀도처럼 실험이 재어 주는 양을 견주어 확인한다. 같은 목록이 천장이기도 해서, 결합이 끊어지고 새로 붙는 일은 이 힘으로 쓸 수 없다. 화면은 그 상자에서 이온 하나를 골라 지금 그것을 둘러싼 분자들과 함께 보여 준다.",
         },
         takeaway: {
-          en: "A short single trajectory shows fluctuation but leaves converged uncertainty unresolved; independent blocks or replicas are the next check. MLFF and classical force fields remain parallel atomistic engines. When the observable turns collective, this trajectory hands a mapping and target observables down to the coarse-grained tier.",
-          ko: "짧은 단일 궤적은 요동을 보여 주지만 수렴 불확실도는 남겨 둔다. 다음 검사는 독립 블록이나 반복 시뮬레이션이다. MLFF와 고전 역장은 여전히 병렬 원자 해상도 엔진이다. 관측량이 집단적 성격으로 바뀌면 이 궤적은 매핑과 목표 관측량을 조대화 계층으로 넘긴다.",
+          en: "What passes downward is an observable with its criterion and its spread attached. The effective interactions a coarse-grained model is fitted to are matched against the structure obtained here.",
+          ko: "이 계층이 다음으로 넘기는 것은 기준이 적힌 관측량과 그 폭이다. 조대화 모형이 맞추는 유효 상호작용도 여기서 얻은 구조를 목표로 삼는다.",
         },
         systemCaption: {
-          en: "Trajectory-derived readouts · caffeine/water OpenMM example · convergence check is schematic",
-          ko: "궤적에서 계산한 관측량 · 카페인/물 OpenMM 예시 · 수렴 검사는 도식",
+          en: "ByteFF-Pol polarizable force field · OpenMM NPT 298 K · 2.45 ns · barostat density 1.212 g/mL against measured ~1.20 · 200 frames over 30 ps exported for the web",
+          ko: "ByteFF-Pol 편극 역장 · OpenMM NPT 298 K · 2.45 ns · 압력 조절 밀도 1.212 g/mL, 실측 약 1.20 · 웹 표시용 30 ps 200프레임",
         },
         visualLayers: [
-          { kind: "TRAJECTORY", label: { en: "Frame-linked observables", ko: "프레임과 연결된 관측량" } },
-          { kind: "MECHANISM SCHEMATIC", label: { en: "Block/replica convergence requirement", ko: "블록/반복 수렴 요구" } },
+          { kind: "TRAJECTORY", label: { en: "Coordinated carbonyls of one Li+", ko: "리튬 하나가 붙든 카보닐" } },
+          { kind: "CALCULATED", label: { en: "Per-frame 2.8 A contact test, minimum image", ko: "프레임마다 2.8 A 접촉 판정, 최소 이미지" } },
         ],
-        plotType: "allatomReadout",
+        plotType: null,
         sceneKey: "A6_observables",
       },
       {
-        activeTerms: ["Ubond", "Uangle", "Udihedral", "UvdW", "UCoul"],
-        equationKey: "classical",
+        activeTerms: ["observable", "average"],
+        equationKey: "observable",
         equationDetailMode: "grouped",
-        title: { en: "What the Analytic Force Field Models", ko: "해석적 역장이 담는 것" },
+        title: { en: "How a Trajectory Yields an Observable", ko: "궤적에서 관측량을 얻는 방식" },
         question: {
-          en: "That depth of sampling is affordable only because a fixed analytic energy replaces the electronic solve, and its declared bonded and nonbonded terms are exactly what define and bound the trajectory.",
-          ko: "이만한 깊이의 표본화가 가능한 것은 고정된 해석적 에너지가 전자구조 계산을 대신하기 때문이며, 명시된 결합·비결합 항이 궤적을 규정하는 동시에 한계 짓는다.",
+          en: "The coordinates of a single frame are exact and answer nothing on their own, so a value from this tier arrives only once a mean and a spread have been drawn from the whole trajectory.",
+          ko: "한 프레임의 좌표는 정확하지만 그것 하나로는 답이 되지 않으므로, 이 계층의 값은 궤적 전체에서 평균과 폭을 함께 거두어야 나온다.",
         },
         concept: {
-          en: "The force field replaces the electronic solve with a fixed analytic energy, and that is what makes the sampling above affordable. Bond, angle, and torsion terms preserve the chosen molecular topology; Lennard-Jones and electrostatic terms govern nonbonded packing and orientation. Select a term in the equation or the diagram to isolate its contribution. Either nonbonded contribution can be attractive or repulsive depending on distance and charge. The selectable overlays use schematic cue values; the periodic trajectory itself evaluates long-range electrostatics with PME, and the displayed pair kernel only explains the local interaction form.",
-          ko: "역장은 전자구조 계산을 고정된 해석적 에너지로 대신하며, 바로 그 덕분에 앞의 넓은 표본이 가능해진다. 결합, 결합각, 비틀림 항은 정해진 분자 위상을 유지하고, Lennard-Jones와 정전기 항은 비결합 밀집과 배향을 결정한다. 식이나 도식의 항을 선택하면 각 항의 기여를 따로 볼 수 있다. 두 비결합 항 모두 거리와 전하에 따라 인력이나 반발이 될 수 있다. 선택 가능한 오버레이의 값은 설명용 근사다. 주기 궤적 자체는 장거리 정전기를 PME로 계산하며, 화면의 쌍 커널은 국소 상호작용 형태만 설명한다.",
+          en: "A liquid has a different shape every instant, so holding on to the present configuration only means a different one arrives at the next. A quantity readable from coordinates is fixed instead, evaluated on every frame, and averaged over a long run. Coordination number, the count of oxygens within 2.8 angstrom of an ion, is such a quantity, and the count is undefined until the distance being measured is written down. Keeping only the mean erases how much the liquid moves, so the width of the distribution is recorded with it. Neighbouring frames resemble one another, so the uncertainty is taken by splitting the trajectory into long blocks and comparing them. MLFF counts the same quantity, and freezing the chemistry into a formula is what accumulates enough sample here for a distribution to converge. In the cell on screen each lithium takes its colour from the count it is holding.",
+          ko: "액체는 매 순간 다른 모양이어서, 지금 이 배치를 붙들어도 다음 순간이면 다른 배치가 온다. 그래서 좌표에서 읽히는 양을 하나 정하고, 프레임마다 그 값을 구해 길게 평균 낸다. 이온 둘레 2.8 옹스트롬 안의 산소를 세는 배위수가 그런 양이고, 재는 거리를 적어 두지 않으면 수도 정해지지 않는다. 평균만 남기면 액체가 얼마나 움직이는지가 지워지므로, 분포의 폭도 함께 적는다. 이웃한 프레임끼리는 서로 닮아 있어, 오차는 궤적을 긴 구간으로 갈라 견주어 얻는다. MLFF도 같은 양을 세지만, 화학을 식으로 고정한 덕에 여기서는 분포가 수렴할 만큼 표본이 쌓인다. 화면의 셀에서는 리튬마다 지금 세고 있는 개수로 색이 갈린다.",
         },
         takeaway: {
-          en: "The classical atomistic branch uses a declared analytic energy model with independently documented parameters.",
-          ko: "고전 원자 해상도 분기는 독립적으로 기록된 매개변수를 가진 해석적 에너지 모형을 사용한다.",
+          en: "An observable means something only with its criterion written beside it, and changing the criterion changes the value.",
+          ko: "관측량은 기준과 함께 적힐 때만 뜻을 가지며, 기준을 바꾸면 값도 따라 바뀐다.",
         },
         systemCaption: {
-          en: "Trajectory base + mechanism overlays · overlay parameters are schematic",
-          ko: "궤적 기반 + 메커니즘 오버레이 · 오버레이 모수는 설명용",
+          en: "Per-ion coordination over the full 2.45 ns trajectory · criterion carbonyl O within 2.8 A · 68 ions, resolution 1 in 68",
+          ko: "전체 2.45 ns 궤적에서 계산한 이온별 배위수 · 기준 카보닐 산소 2.8 A · 이온 68개, 분해능 68분의 1",
         },
         visualLayers: [
-          { kind: "TRAJECTORY", label: { en: "Caffeine/water local frames", ko: "카페인/물 국소 프레임" } },
-          { kind: "MECHANISM SCHEMATIC", label: { en: "Force-field term cues", ko: "역장 항 단서" } },
+          { kind: "TRAJECTORY", label: { en: "Per-ion instantaneous coordination, 68 Li+", ko: "이온별 순간 배위수, 리튬 68개" } },
+          { kind: "CALCULATED", label: { en: "Run histogram and block-averaged mean", ko: "전체 궤적 분포와 블록 평균" } },
         ],
-        plotType: "allatomForceField",
+        plotType: "allatomCoordination",
         sceneKey: "A3_forcefield",
       },
     ],
@@ -231,12 +231,12 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "Where Collective Behavior Emerges", ko: "집단 거동이 창발하는 계층" },
         question: {
-          en: "When the behavior only emerges at sizes and times no atomistic run can reach, keeping every atom is not an option, and coarse-graining is the only route to the scale where that behavior lives.",
+          en: "When the behavior emerges only at sizes and times no atomistic run reaches, coarse-graining is the only route to the scale it lives on.",
           ko: "그 거동이 어떤 원자 계산으로도 닿지 못하는 크기와 시간에서만 나타난다면 모든 원자를 유지하는 선택지는 없고, 그 거동이 사는 규모에 이르는 길은 조대화뿐이다.",
         },
         concept: {
-          en: "Some behavior only appears once the atoms are gone. Reach for a coarse-grained model when morphology, packing, entanglement, or phase behavior needs sizes and effective evolution beyond feasible atomistic sampling. Selected collective variables stay explicit while fast, local degrees of freedom are integrated out. The active trajectory is a generic linear-polymer melt of 100 chains, 80 beads each, over 500 stored frames. Reducing the degrees of freedom makes an 8,000-bead collective field affordable and exposes chains entangling and rearranging, motion no atomistic run of this reach could follow. The gain is reach; the cost is atomistic uniqueness, transferability across state points, and a direct map from simulated to physical time.",
-          ko: "어떤 거동은 원자를 없앤 뒤에야 나타난다. 형태, 밀집, 얽힘, 상거동 같은 관측량이 전원자 표본의 한계를 넘어선 크기와 유효한 시간 진화를 요구할 때 조대화 모형을 고른다. 선택한 집단 변수만 명시적으로 남기고 빠르고 국소적인 자유도는 평균화한다. 현재 궤적은 80비드 사슬 100개로 이루어진 일반 선형 고분자 용융계이며 500개 프레임에 걸쳐 있다. 자유도를 줄인 덕분에 8,000비드 규모의 집단 장이 가능해지고, 사슬이 얽히고 재배열되는 운동이 드러난다. 이만한 크기는 전원자 계산으로는 따라갈 수 없다. 더 큰 범위를 얻는 대신 원자 수준의 유일성, 상태점 간 전달성, 시뮬레이션 시간과 실제 시간의 직접 대응을 잃는다.",
+          en: "One polymer chain is a long piece of thread and little else. Put a few thousand of them in the same box and, threading past one another, they acquire properties no single strand has. A melt that stops flowing and holds like rubber comes out of that entanglement. A block copolymer sorting itself into periodic layers takes the same crowd to happen at all. Counting atoms one at a time runs out of time long before it reaches this scale, so several atoms are folded into one bead and the system grows on what is left, the chain's contour and its connectivity. What moves on screen is a hundred chains obtained that way, and a scattering experiment hands back the same arrangement they make together.",
+          ko: "고분자 사슬 하나는 긴 실에 지나지 않는다. 그런 실을 수천 가닥 같은 통에 넣으면 서로를 꿰고 지나가면서 한 가닥에는 없던 성질이 생긴다. 용융체가 흐르다 말고 고무처럼 버티는 것이 그 얽힘에서 나온다. 블록 공중합체가 저절로 주기적인 층으로 갈라서는 것도 여럿이 모여야 일어나는 일이다. 원자를 하나씩 세는 계산은 이 규모에 닿기 전에 시간이 먼저 바닥난다. 그래서 원자 몇 개를 비드 하나로 묶고 사슬의 윤곽과 연결성만 남긴 채 계를 키운다. 움직이는 것은 그렇게 얻은 사슬 100가닥이고, 산란 실험이 되돌려 주는 것도 이 사슬들이 함께 이룬 배열이다.",
         },
         takeaway: {
           en: "This tier reaches sizes and collective motion the atomistic tiers cannot, while keeping its system size and nominal duration stated explicitly.",
@@ -244,7 +244,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         },
         systemCaption: {
           en: "Trajectory · generic linear-polymer melt · 100×80 beads · 500 frames · nominal 1 ns",
-          ko: "궤적 · 일반 선형 고분자 용융계 · 100×80비드 · 500프레임 · 명목상 1 ns",
+          ko: "궤적 · 일반 선형 고분자 용융체 · 100×80비드 · 500프레임 · 명목상 1 ns",
         },
         visualLayers: [
           { kind: "TRAJECTORY", label: { en: "8,000-bead collective trajectory", ko: "8,000비드 집단 궤적" } },
@@ -257,12 +257,12 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         showEquation: false,
         title: { en: "How Coarse-Graining Buys That Reach", ko: "조대화가 그 도달 범위를 얻는 방식" },
         question: {
-          en: "The mapping that folds several atoms into one bead is what buys the longer timestep and larger system, and that same choice fixes how much atomic fidelity is traded for the reach.",
-          ko: "여러 원자를 비드 하나로 접는 매핑이 더 긴 적분 스텝과 더 큰 계를 사들이며, 바로 그 선택이 도달 범위를 위해 내주는 원자 수준 충실도를 정한다.",
+          en: "Folding several atoms into one bead buys the longer timestep and the larger system, and that same choice fixes what atomic detail is given up.",
+          ko: "여러 원자를 비드 하나로 접는 매핑이 더 긴 적분 스텝과 더 큰 계를 가능하게 하고, 그 도달 범위의 값으로 내주는 원자 수준 충실도까지 같은 선택이 정한다.",
         },
         concept: {
-          en: "A coarse-grained bead stands in for a chosen group of atoms, and its position follows from a fixed mapping such as the group's center of mass. Averaging the fast internal motion out of the model leaves fewer particles, softer effective forces, and a longer stable timestep, and those three compounding factors are what turn atomistic reach into mesoscale reach. The motif here fades one atomistic chain into its bead representation: the retained contour and connectivity are what later carry collective structure, while atom-specific packing and bond vibrations are deliberately dropped. The speedup is not a single fixed number, since it scales with how many atoms each bead absorbs and how soft the effective interactions become. What it consistently buys is access to chain counts, system sizes, and relaxation times no atomistic run of comparable cost could follow, paid for in atom-level detail and a direct map back to physical time.",
-          ko: "조대화 비드 하나는 선택한 원자 그룹을 대표하고, 그 위치는 그룹의 질량 중심 같은 고정된 매핑으로 정해진다. 빠른 내부 운동을 모형에서 평균해 없애면 입자 수가 줄고 유효 힘이 부드러워지며 안정적인 적분 스텝이 길어진다. 이 세 요인이 겹쳐 원자 해상도의 도달 범위를 메조스케일의 범위로 바꾼다. 화면의 모티프는 원자 사슬 하나가 그 비드 표현으로 서서히 바뀌는 과정을 보여 준다. 남긴 윤곽과 연결성은 뒤에서 집단 구조를 실어 나르고, 원자별 배치와 결합 진동은 의도적으로 버린다. 가속 배수는 하나로 정해지지 않는다. 비드 하나가 흡수하는 원자 수와 유효 상호작용이 부드러워지는 정도에 따라 달라진다. 그 대신 꾸준히 얻는 것은 같은 비용의 원자 계산으로는 따라갈 수 없는 사슬 수, 계 크기, 완화 시간이고, 값은 원자 수준 세부와 실제 시간으로의 직접 대응으로 치른다.",
+          en: "How many atoms a single bead may hold has to be settled before any of this runs. Group them by centre of mass and the fast rattling inside each group leaves the model; with fewer particles and softer forces the timestep can be stretched. That is how the reach on the previous page was bought. What it costs is settled in the same place. The chain's contour and connectivity survive, so how a melt entangles is still answerable, while which hydrogen bond formed and when is no longer a question the model can take. The clock stretches too. Smoothing the fast motion makes simulated time run ahead of real time by a factor the mapping fixes, so a relaxation time from here is read as a trend. On screen, one chain dissolving into its beads is that decision made visible.",
+          ko: "비드 하나에 원자를 몇 개까지 담을지는 계산을 시작하기 전에 정해야 한다. 질량 중심으로 묶고 나면 그 안에서 떨리던 빠른 운동이 모형에서 빠져나가고, 입자 수가 줄고 힘이 부드러워지면서 적분 스텝을 길게 잡을 수 있다. 앞 장의 도달 범위는 이 대가로 얻은 것이다. 내주는 것도 이 결정에서 함께 정해진다. 사슬의 윤곽과 연결성을 남겼으니 용융체가 어떻게 얽히는지는 여전히 답하지만, 어느 수소결합이 언제 생겼는지는 더 물을 수 없다. 빠른 운동을 뭉갠 만큼 시뮬레이션 시간이 실제보다 앞서 흐르고 그 배수도 매핑이 정하므로, 여기서 나온 완화 시간은 경향으로 읽는다. 화면에서 사슬 하나가 비드로 풀어지는 장면이 그 결정을 그대로 보여 준다.",
         },
         takeaway: {
           en: "The mapping is a modeling choice, so a coarse-grained model is only as trustworthy as the atomistic or experimental targets its effective interactions were tuned to reproduce.",

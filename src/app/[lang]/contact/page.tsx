@@ -33,9 +33,6 @@ export default async function ContactPage({
           <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
             {dict.contact.title}
           </h1>
-          <p className="mt-3 max-w-[36rem] leading-relaxed text-muted-foreground">
-            {dict.contact.subtitle}
-          </p>
         </header>
         <div
           aria-hidden="true"

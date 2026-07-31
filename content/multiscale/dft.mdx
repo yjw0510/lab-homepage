@@ -1,8 +1,8 @@
 ---
 title: "First-Principles Calculations (DFT)"
-titleKo: "제일원리 계산 (DFT)"
-shortDescription: "Uses quantum-mechanical electronic-structure calculations to generate reference energies, forces, and geometries. The selected approximation and dispersion treatment determine how results are assessed."
-shortDescriptionKo: "양자역학적 전자구조 계산으로 에너지, 힘, 구조의 참조값을 만들며, 선택한 근사와 분산 보정에 따라 결과를 검토한다."
+titleKo: "밀도범함수이론 (DFT)"
+shortDescription: "Where a bond gives way is decided by the electron density spread between its nuclei. Solving for that distribution directly is how a reactive site gets named before anything is synthesized."
+shortDescriptionKo: "결합이 어디서 풀릴지는 원자핵 사이에 퍼진 전자가 정한다. 그 분포를 직접 풀어, 합성해 보기 전에 반응할 자리와 산화 환원 경향을 가늠한다."
 icon: "Orbit"
 color: "#f97316"
 order: 1
@@ -22,10 +22,6 @@ contentKo: |
   ## 방법론
 
   서로 보완하는 두 가지 전산 접근을 쓴다. 벌크 액체와 고체-액체 계면 같은 주기계에는 평면파 DFT 코드(VASP, Quantum ESPRESSO)를, 분자 수준 계산에는 국소 기저 코드(Gaussian, ORCA)를 쓴다. 양쪽 모두 분산 보정(D3, D4, TS)을 포함하는데, 표준 DFT 근사가 흔히 과소평가하는 분자 간 약한 장거리 인력을 경험적으로 메워 주는 항이다.
-
-  ## 멀티스케일 체계에서의 역할
-
-  DFT가 생성한 참조 데이터는 DFT → MLFF → All-atom MD → CG-MD/DPD 순서로 시뮬레이션 계층 전체에 전파된다.
 ---
 
 ## Overview
@@ -42,7 +38,3 @@ Density functional theory (DFT) calculates the behavior of electrons in molecule
 ## Methods
 
 We use two complementary computational approaches: plane-wave DFT codes (VASP, Quantum ESPRESSO) for periodic systems like bulk liquids and solid-liquid interfaces, and localized-basis codes (Gaussian, ORCA) for molecular-level calculations. Both include dispersion corrections (D3, D4, TS), empirical additions that account for the weak long-range attractions between molecules that standard DFT approximations tend to underestimate.
-
-## Role in Multiscale Framework
-
-DFT provides the reference data that propagates upward through our simulation hierarchy: DFT → MLFF → All-atom MD → CG-MD/DPD.

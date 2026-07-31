@@ -15,7 +15,7 @@ export const siteConfig = {
   location: {
     building: "Woncheon Hall 218",
     buildingKo: "원천관 218호",
-    address: "206, World cup-ro, Yeongtong-gu, Suwon-si, Gyeonggi-do, Republic of Korea",
+    address: "206 Worldcup-ro, Yeongtong-gu, Suwon-si, Gyeonggi-do, Republic of Korea",
     addressKo: "경기도 수원시 영통구 월드컵로 206",
   },
   social: {

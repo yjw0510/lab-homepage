@@ -29,6 +29,7 @@ import {
   type ResearchCameraActions,
   applyResearchCanvasBackground,
   commitResearchLayers,
+  layerBounds,
   mountResearchPlugin,
   updateResearchLayerParams,
 } from "./shared";
@@ -90,8 +91,13 @@ export function MolstarAllAtomStage({
       const referenceSnapshot = derivePlacementSnapshot(
         getDisplaySnapshot(snapshot, getTrajectoryPage(data.trajectory, snapshot.id), 0),
         scrollState.step,
-        activeTermRef.current,
       );
+
+      // Frame the scene as painted. Deriving it from the snapshot instead meant restating
+      // every rule buildAllAtomLayers follows — which atoms the page keeps, which waters, the
+      // contact partner, the stacking discs, the trails — and missing any one of them framed
+      // the scene off-centre. The layers are the draw list, so they are measured directly.
+      const boundsOverride = paintedBoundsRef.current ?? undefined;
 
       const container = containerRef.current;
       const aspect = (container?.clientWidth ?? 1) / Math.max(1, container?.clientHeight ?? 1);
@@ -105,6 +111,7 @@ export function MolstarAllAtomStage({
         aspect,
         isMobile,
         zoomIndex: zoomLevel,
+        boundsOverride,
       });
       defaultSnapshotRef.current = applyMolstarPlacement(plugin, placement, durationMs);
     },
@@ -120,6 +127,7 @@ export function MolstarAllAtomStage({
   const lastMeasuredRef = useRef<number | null>(null);
 
   const rebuildingRef = useRef(false);
+  const paintedBoundsRef = useRef<{ center: [number, number, number]; radius: number } | null>(null);
 
   const rebuildScene = useCallback(async (resetCamera = false, nextFrameIndex?: number) => {
     const plugin = pluginRef.current;
@@ -131,6 +139,7 @@ export function MolstarAllAtomStage({
     try {
       const fi = nextFrameIndex ?? frameTimeRef.current;
       const layers = buildAllAtomLayers(data, scrollState, activeTermRef.current, activeReadoutRef.current, fi);
+      paintedBoundsRef.current = layerBounds(layers);
       await commitResearchLayers(plugin, layers);
       if (resetCamera) applyScheduledCamera(0, effectiveZoomIndex);
       // Report the exact drawn-contact distance to the rail, from the same
@@ -288,12 +297,6 @@ export function MolstarAllAtomStage({
     const params = computeLayerEmphasis(scrollState.step, scrollState.stepProgress, activeReadout);
     void updateResearchLayerParams(plugin, params);
   }, [activeTerm, activeReadout, isReady, scrollState.step, scrollState.stepProgress]);
-
-  // Cue-aware camera: retarget when the force-field selection changes.
-  useEffect(() => {
-    if (!isReady || sceneKey !== "A3_forcefield") return;
-    applyScheduledCamera(200);
-  }, [activeTerm, applyScheduledCamera, isReady, sceneKey]);
 
   useEffect(() => {
     if (!isReady) return;

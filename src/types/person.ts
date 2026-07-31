@@ -3,9 +3,12 @@ export interface Person {
   nameKo?: string;
   role: "pi" | "phd" | "ms" | "undergraduate" | "alumni";
   title?: string;
+  titleKo?: string;
   department?: string;
   departments?: string[];
+  departmentsKo?: string[];
   university?: string;
+  universityKo?: string;
   email?: string;
   orcid?: string;
   photo?: string;

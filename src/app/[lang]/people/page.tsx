@@ -57,9 +57,6 @@ export default async function PeoplePage({
           <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
             {dict.people.title}
           </h1>
-          <p className="mt-3 max-w-[36rem] leading-relaxed text-muted-foreground">
-            {dict.people.subtitle}
-          </p>
         </header>
         <div
           aria-hidden="true"
@@ -71,13 +68,13 @@ export default async function PeoplePage({
         {/* Principal Investigator */}
         <section className="mt-14 sm:mt-16">
           <div className="border-t border-border-strong pt-6">
-            <h2 className="type-heading flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+            <h2 className="type-title flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
               {dict.people.pi}
             </h2>
           </div>
 
           <div className="mt-8">
-            <PIProfile person={pi} />
+            <PIProfile person={pi} lang={lang} />
           </div>
 
           {/* CV, aligned to the profile text column */}
@@ -184,7 +181,7 @@ export default async function PeoplePage({
         {/* Lab members */}
         <section className="mt-16 sm:mt-20">
           <div className="border-t border-border-strong pt-6">
-            <h2 className="type-heading flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+            <h2 className="type-title flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
               {dict.people.labMembers}
             </h2>
           </div>

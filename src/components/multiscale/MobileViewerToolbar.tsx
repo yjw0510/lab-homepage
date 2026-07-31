@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, ZoomIn, ZoomOut, Maximize2, RotateCcw } from "lucide-react";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { ResearchCameraActions } from "./VisualStage";
 
 interface Props {
@@ -21,10 +19,9 @@ const ACTIONS = [
 ] as const;
 
 const BTN =
-  "flex h-12 w-12 items-center justify-center text-foreground transition-colors hover:bg-muted";
+  "flex h-12 w-full items-center justify-center text-foreground transition-colors hover:bg-muted";
 
 export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }: Props) {
-  const reducedMotion = useReducedMotion();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on click outside
@@ -39,17 +36,13 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
     return () => document.removeEventListener("pointerdown", handler);
   }, [isOpen, onToggle]);
 
-  const transition = reducedMotion
-    ? { duration: 0 }
-    : { type: "spring" as const, damping: 25, stiffness: 400 };
-
   return (
     <div
       ref={panelRef}
-      className="absolute right-3 top-3 z-10"
+      className="absolute bottom-3 right-3 z-10"
       data-testid="mobile-viewer-toolbar"
     >
-      {/* Trigger stays anchored beside the title. */}
+      {/* Trigger sits in the bottom corner, clear of the sticky step navigation. */}
       <button
         type="button"
         className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border-strong bg-surface-raised text-foreground transition-colors hover:bg-muted"
@@ -60,15 +53,13 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
         <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
       </button>
 
-      {/* A compact 2×2 tray opens below the title line. */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scaleY: 0, originY: 0 }}
-            animate={{ opacity: 1, scaleY: 1 }}
-            exit={{ opacity: 0, scaleY: 0 }}
-            transition={transition}
-            className="absolute right-0 top-[7rem] grid grid-cols-2 gap-1 border border-border-strong bg-surface-raised p-1"
+      {/* A compact 2x2 tray opens below the trigger. Deliberately unanimated: it used to
+          reveal with a scaleY spring, and on the heaviest scene that animation frame never
+          arrived, so the buttons stayed at zero height and hit-testing returned nothing.
+          A control may not depend on an animation frame in order to exist. */}
+      {isOpen && (
+        <div
+            className="absolute bottom-[3.5rem] right-0 grid w-[6.5rem] grid-cols-2 gap-1 border border-border-strong bg-surface-raised p-1"
             data-testid="mobile-viewer-toolbar-tray"
           >
             {ACTIONS.map((action) => {
@@ -89,9 +80,8 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
                 </button>
               );
             })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
+import { useMeasuredBox } from "./useMeasuredBox";
 
 interface ScfSnapshotMeta {
   index: number;
@@ -22,24 +23,11 @@ export function DftScfSlider({
   lang: string;
   onChange: (nextIndex: number) => void;
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [trackWidth, setTrackWidth] = useState(0);
+  const [trackRef, track] = useMeasuredBox<HTMLDivElement>({ width: 0, height: 0 });
 
   const min = 0;
   const max = snapshots.length - 1;
-
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      setTrackWidth(entries[0]?.contentRect.width ?? 0);
-    });
-    ro.observe(el);
-    setTrackWidth(el.getBoundingClientRect().width);
-    return () => ro.disconnect();
-  }, []);
-
-  const railWidth = Math.max(0, trackWidth - THUMB);
+  const railWidth = Math.max(0, track.width - THUMB);
   const currentT = max > min ? (value - min) / (max - min) : 0;
   const currentX = THUMB_R + currentT * railWidth;
 
@@ -54,13 +42,25 @@ export function DftScfSlider({
 
   if (snapshots.length <= 1) return null;
 
+  // scf.json carries English labels ("Initial guess", "Iter 4") because it is computed
+  // output, so the readout has to be built from the iteration number the way the ticks
+  // below already are. Printing snapshot.label put English on the Korean page.
+  const activeSnapshot = snapshots[value];
+  const activeLabel = !activeSnapshot
+    ? String(value)
+    : activeSnapshot.iteration === 0
+      ? lang === "ko"
+        ? "초기 추정"
+        : "Initial guess"
+      : lang === "ko"
+        ? `반복 ${activeSnapshot.iteration}`
+        : `Iteration ${activeSnapshot.iteration}`;
+
   return (
     <div>
       <div className="type-mono-meta mb-3 flex items-center justify-between text-xs text-muted-foreground">
         <span>{lang === "ko" ? "SCF 진행" : "SCF Progress"}</span>
-        <span className="text-foreground">
-          {snapshots[value]?.label ?? snapshots[value]?.iteration ?? value}
-        </span>
+        <span className="text-foreground">{activeLabel}</span>
       </div>
 
       <div className="relative">
@@ -71,7 +71,7 @@ export function DftScfSlider({
           step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          aria-label={lang === "ko" ? "SCF iteration slider" : "SCF iteration slider"}
+          aria-label={lang === "ko" ? "SCF 반복 슬라이더" : "SCF iteration slider"}
           className="absolute inset-0 z-20 h-7 w-full cursor-ew-resize opacity-0"
         />
 

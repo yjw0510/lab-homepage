@@ -1,7 +1,7 @@
 import type { AllAtomSceneSnapshot, AllAtomSystemData, AllAtomTrajectoryData, AllAtomTrajectoryFrame, AllAtomTrajectoryPage } from "../data/allatomSolvent";
 import type { ScrollState } from "../scrollState";
 import { getViewSpec } from "../multiscaleViewSchedule";
-import { getSubsetIndices } from "../multiscaleViewRuntime";
+import { computeBounds, getSubsetIndices } from "../multiscaleViewRuntime";
 import { trimBondEndpoints } from "../molstar/geometry";
 import { getAllAtomVisuals, getScheduledAllAtomSnapshot } from "./allAtomConfig";
 import {
@@ -11,7 +11,6 @@ import {
   type AllAtomReadoutId,
 } from "./allAtomConfig";
 import {
-  computeCueAnchorPoint,
   computeBondCues,
   computeAngleCues,
   computeDihedralCue,
@@ -344,20 +343,45 @@ function buildMeasuredContact(snapshot: AllAtomSceneSnapshot): ResearchLayerSpec
   ];
 }
 
+const isWater = (residueName: string) => residueName === "HOH" || residueName === "WAT";
+
+/**
+ * The support waters stand in for the first solvation shell, so they have to be the nearest
+ * ones. Taking the first `maxWaters` in index order put them wherever the asset happened to
+ * list them: probe-canvas-fit caught faint waters in the far corner of the stage with none
+ * against the solute, which widened the measured scene to a spread of unrelated dots and
+ * left the molecule looking adrift in it.
+ */
+function nearestWaterResidues(snapshot: AllAtomSceneSnapshot, visibleAtomIndices: number[]) {
+  const focusCenter = computeBounds(
+    (snapshot.focusAtomIndices ?? []).map((index) => snapshot.atoms[index]).filter(Boolean),
+  ).center;
+  const candidates: Array<{ residueId: number; oxygenIndex: number; distance: number }> = [];
+  const seen = new Set<number>();
+  for (const index of visibleAtomIndices) {
+    const residueId = snapshot.residueIds[index];
+    if (!isWater(snapshot.residueNames[index] ?? "")) continue;
+    if (typeof residueId !== "number" || seen.has(residueId)) continue;
+    if ((snapshot.elements[index] ?? "") !== "O") continue;
+    seen.add(residueId);
+    const [x, y, z] = snapshot.atoms[index] ?? [0, 0, 0];
+    candidates.push({
+      residueId,
+      oxygenIndex: index,
+      distance: Math.hypot(x - focusCenter[0], y - focusCenter[1], z - focusCenter[2]),
+    });
+  }
+  return candidates.sort((a, b) => a.distance - b.distance);
+}
+
 function buildSelectedWaterPrimitives(
   snapshot: AllAtomSceneSnapshot,
   visibleAtomIndices: number[],
   maxWaters: number,
 ) {
-  const selectedResidues: number[] = [];
-  for (const index of visibleAtomIndices) {
-    const residueName = snapshot.residueNames[index] ?? "";
-    const residueId = snapshot.residueIds[index];
-    if ((residueName === "HOH" || residueName === "WAT") && typeof residueId === "number" && !selectedResidues.includes(residueId)) {
-      selectedResidues.push(residueId);
-      if (selectedResidues.length >= maxWaters) break;
-    }
-  }
+  const selectedResidues = nearestWaterResidues(snapshot, visibleAtomIndices)
+    .slice(0, maxWaters)
+    .map((candidate) => candidate.residueId);
   const waters = selectedResidues
     .map((residueId) => {
       const oxygenIndex = snapshot.residueIds.findIndex(
@@ -479,28 +503,18 @@ export function getDisplaySnapshot(
   };
 }
 
-export function derivePlacementSnapshot(
-  snapshot: AllAtomSceneSnapshot,
-  step: number,
-  activeTerm?: AllAtomForceFieldTerm | null,
-) {
-  const sceneKey = getAllAtomSceneKey(step);
-  const pagePolicy = getAllAtomPagePolicy(step);
-  const derivedCamera = {
-    ...(snapshot.camera ?? {} as Record<string, unknown>),
-    padding: 1 / pagePolicy.targetOccupancy,
-  } as AllAtomSceneSnapshot["camera"];
-
-  if (sceneKey === "A3_forcefield" && activeTerm && snapshot.atoms?.length) {
-    const cueTarget = computeCueAnchorPoint(activeTerm, snapshot.atoms);
-    if (cueTarget && derivedCamera) {
-      derivedCamera.target = cueTarget;
-    }
-  }
-
+export function derivePlacementSnapshot(snapshot: AllAtomSceneSnapshot, step: number) {
+  // Only the padding. Target and radius come from the scene Mol* actually painted, read back
+  // in MolstarAllAtomStage: the asset's camera describes the whole solvated box (10.4 A for
+  // A5_readout, 10.7 A for A2_forcefield) while the readout page paints the 24-atom solute
+  // and six waters and the force-field page adds a ghost of the second solute molecule.
+  // Framed against the box, the scene rendered at 30% utilisation on every viewport.
   return {
     ...snapshot,
-    camera: derivedCamera,
+    camera: {
+      ...(snapshot.camera ?? {} as Record<string, unknown>),
+      padding: 1 / getAllAtomPagePolicy(step).targetOccupancy,
+    } as AllAtomSceneSnapshot["camera"],
   };
 }
 

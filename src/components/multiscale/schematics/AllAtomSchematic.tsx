@@ -115,7 +115,7 @@ function LabelStack({ x, y, term, variable, sub, vColor }: {
 
 // ═══ Component ═══
 
-export function AllAtomSchematic({ active }: { active: boolean }) {
+export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?: boolean }) {
   const anim = (delay: number) =>
     active
       ? ({ className: "animate-fade-in", style: { animationDelay: `${delay}s` } } as const)
@@ -384,25 +384,25 @@ export function AllAtomSchematic({ active }: { active: boolean }) {
       {/* ═══ L6: Labels ═══ */}
       <g {...anim(1.0)}>
         <text x={u(328)} y={u(72)} textAnchor="middle">
-          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">1–4 nonbonded</tspan>
+          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "1-4 비결합" : "1-4 nonbonded"}</tspan>
           <tspan x={u(328)} dy={u(18)} fontSize={T.sub} fontWeight="500">
-            <tspan fill={C.lj}>Lennard–Jones</tspan>
+            <tspan fill={C.lj}>Lennard-Jones</tspan>
             <tspan fill={C.muted}> + </tspan>
             <tspan fill={C.coulomb}>Coulomb</tspan>
           </tspan>
         </text>
 
         <text x={u(138)} y={u(253)} textAnchor="middle">
-          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">bond stretch</tspan>
+          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "결합 신축" : "bond stretch"}</tspan>
           <tspan fill={C.stretch} fontSize={T.var} fontWeight="700" fontStyle="italic" dx={u(8)}>r</tspan>
         </text>
 
-        <LabelStack x={angleLabelX} y={angleLabelY} term="angle bend" variable="θ" sub="O–C′–Cα" vColor={C.angle} />
+        <LabelStack x={angleLabelX} y={angleLabelY} term={ko ? "각 굽힘" : "angle bend"} variable="θ" sub="O-C′-Cα" vColor={C.angle} />
 
         <text x={colCx + u(12)} y={colCy + u(64)} textAnchor="middle">
-          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">dihedral</tspan>
+          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "이면각" : "dihedral"}</tspan>
           <tspan x={colCx + u(12)} dy={u(26)} fill={C.torsion} fontSize={T.var} fontWeight="700" fontStyle="italic">φ</tspan>
-          <tspan x={colCx + u(12)} dy={u(22)} fill={C.muted} fontSize={T.sub}>Hα–Cα–C′–O</tspan>
+          <tspan x={colCx + u(12)} dy={u(22)} fill={C.muted} fontSize={T.sub}>Hα-Cα-C′-O</tspan>
         </text>
 
         <text x={Ha.cx - u(28) - 25} y={Ha.cy - u(16) + 25} textAnchor="middle"

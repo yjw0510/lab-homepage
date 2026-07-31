@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LEVELS, type LevelConfig, type ScrollState } from "./scrollState";
-import { LEVEL_CHROME } from "./RightRail";
+import { LEVEL_CHROME, SCALE_SHORT } from "./RightRail";
 
 interface Props {
   scrollState: ScrollState;
@@ -19,6 +19,8 @@ interface Props {
   nextStepTitle?: string;
   scfLabel?: string | null;
   onChipTap?: () => void;
+  sceneTitle?: string;
+  levelId?: string;
 }
 
 export function MobileStatusRow({
@@ -36,6 +38,8 @@ export function MobileStatusRow({
   nextStepTitle,
   scfLabel,
   onChipTap,
+  sceneTitle,
+  levelId,
 }: Props) {
   const chipLabel = scfLabel ?? null;
   const previousLabel = previousStepTitle
@@ -50,28 +54,56 @@ export function MobileStatusRow({
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {`${level.label[lang as "en" | "ko"] ?? level.label.en}: ${stepTitles[scrollState.step] ?? scrollState.step + 1}`}
       </div>
-      {/* Level tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide px-3 pt-2 pb-1">
+      {/* Level tabs. Four equal columns rather than a horizontal scroller: the full
+          labels laid out to 537px on a 390px viewport, so two of the four tiers sat
+          off screen behind a swipe with no cue that one existed. The short names are
+          the ones the footer ruler, the specimen plates and the desktop rail already
+          print, so this closes a fourth vocabulary rather than opening one. */}
+      <div className="grid grid-cols-4 px-3 pt-2 pb-1">
         {LEVELS.map((l, i) => {
           const isActive = i === scrollState.levelIndex;
+          const short = SCALE_SHORT[l.id] ?? { en: l.id, ko: l.id };
           return (
             <button
               key={l.id}
               type="button"
-              className={`type-mono-meta flex min-h-11 flex-shrink-0 items-center border-b-2 px-3 py-2 text-xs transition-colors ${
-                isActive
-                  ? LEVEL_CHROME[l.id].tab
-                  : "border-transparent text-muted-foreground"
+              className={`type-mono-meta flex min-h-11 min-w-0 items-center justify-center border-b-2 px-2 py-2 text-xs transition-colors ${
+                isActive ? LEVEL_CHROME[l.id].tab : "border-border text-muted-foreground"
               }`}
               onClick={() => onLevelSwitch(i)}
-              aria-label={`${l.label[lang as "en" | "ko"] ?? l.label.en} ${lang === "ko" ? "수준" : "level"}`}
+              aria-label={`${l.label[lang as "en" | "ko"] ?? l.label.en} ${lang === "ko" ? "계층" : "tier"}`}
               aria-current={isActive ? "true" : undefined}
             >
-              {l.label[lang as "en" | "ko"] ?? l.label.en}
+              <span className="truncate">{short[lang as "en" | "ko"] ?? short.en}</span>
             </button>
           );
         })}
       </div>
+
+      {/* What the tier resolves. The desktop rail prints this beside the level label;
+          the tab strip above carries only the short name, so without this line a phone
+          reader never learns which variables the level actually works in. */}
+      <p className="type-mono-meta px-3 pt-0.5 text-[0.625rem] leading-tight text-muted-foreground">
+        {level.scale[lang as "en" | "ko"] ?? level.scale.en}
+      </p>
+
+      {/* The scene title lives here rather than over the canvas. As an overlay it sat
+          under this sticky row and had its first line sliced off, and it covered the
+          render besides. */}
+      {sceneTitle ? (
+        <div className="flex items-baseline gap-2.5 px-3 pt-1.5">
+          <span
+            className={`type-mono-meta shrink-0 text-[0.6875rem] ${
+              levelId ? LEVEL_CHROME[levelId as keyof typeof LEVEL_CHROME].text : "text-muted-foreground"
+            }`}
+          >
+            {String(scrollState.step + 1).padStart(2, "0")}
+          </span>
+          <h2 className="type-heading min-w-0 break-keep text-[0.9375rem] leading-tight text-foreground">
+            {sceneTitle}
+          </h2>
+        </div>
+      ) : null}
 
       {/* Step navigation */}
       <div className="flex items-center gap-1 px-3 pb-2 pt-0.5">
@@ -113,7 +145,7 @@ export function MobileStatusRow({
             type="button"
             className="type-mono-meta min-h-12 flex-shrink-0 border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted"
             onClick={onChipTap}
-            aria-label={lang === "ko" ? `${chipLabel} 조절기 열기` : `Open ${chipLabel} control`}
+            aria-label={lang === "ko" ? `${chipLabel} 열기` : `Open ${chipLabel}`}
           >
             {chipLabel}
           </button>

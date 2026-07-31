@@ -30,6 +30,7 @@ import {
   applyResearchCanvasBackground,
   centerPoints,
   commitResearchLayers,
+  layerBounds,
   mixColor,
   mountResearchPlugin,
   offsetMesh,
@@ -408,6 +409,7 @@ export function MolstarDftStage({
   reducedMotion: reducedMotionProp,
   lang = "en",
   hideMechanism = false,
+  mobileSceneHeight,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
@@ -417,6 +419,7 @@ export function MolstarDftStage({
   reducedMotion?: boolean;
   lang?: string;
   hideMechanism?: boolean;
+  mobileSceneHeight?: number;
 }) {
   const canvasColor = useMultiscaleCanvasColor();
   const isKorean = lang === "ko";
@@ -465,6 +468,9 @@ export function MolstarDftStage({
     outputMode,
   }));
 
+  const paintedBoundsRef = useRef<{ center: [number, number, number]; radius: number } | null>(null);
+  const framedSceneRef = useRef("");
+
   const applyScheduledCamera = useCallback(
     (durationMs = 160, zoomLevel = zoomIndex) => {
       const plugin = pluginRef.current;
@@ -473,6 +479,9 @@ export function MolstarDftStage({
       const container = containerRef.current;
       const aspect = (container?.clientWidth ?? 1) / Math.max(1, container?.clientHeight ?? 1);
       const meta = buildDftCameraMeta(data, activeSnapshotIndex);
+      // The asset's camera radius covers the atoms; the SCF density isosurface reaches well
+      // past them, so on the second step the scene ran off all four canvas edges. Frame the
+      // layers that are actually painted, the same way the all-atom stage does.
       const placement = computeScheduledPlacement({
         level: "dft",
         step: scrollState.step,
@@ -483,6 +492,7 @@ export function MolstarDftStage({
         aspect,
         isMobile,
         zoomIndex: zoomLevel,
+        boundsOverride: paintedBoundsRef.current ?? undefined,
       });
       defaultSnapshotRef.current = applyMolstarPlacement(plugin, placement, durationMs);
     },
@@ -494,6 +504,11 @@ export function MolstarDftStage({
       zoomIndex,
     ],
   );
+
+  // Store latest camera function in a ref so the effect below doesn't re-fire
+  // on every step/snapshot change, only on level entry, zoom, or manual reset.
+  const applyScheduledCameraRef = useRef(applyScheduledCamera);
+  applyScheduledCameraRef.current = applyScheduledCamera;
 
   const rebuildingRef = useRef(false);
   const pendingRebuildRef = useRef(false);
@@ -512,15 +527,33 @@ export function MolstarDftStage({
       // which shifts the view when density mesh geometry changes between iterations.
       const snapshot = plugin.canvas3d?.camera.getSnapshot();
 
-      await commitResearchLayers(
-        plugin,
-        buildDftLayers(
-          data,
-          resolvedSceneKey,
-          activeSnapshotIndex,
-          outputMode,
-        ),
+      const layers = buildDftLayers(
+        data,
+        resolvedSceneKey,
+        activeSnapshotIndex,
+        outputMode,
       );
+      // The SCF density grows as the field converges and the reader can scrub the iteration
+      // slider either way, so frame the widest iteration rather than whichever one is on
+      // screen. Framing the one on screen would either clip the converged density or make
+      // the view breathe on every drag.
+      paintedBoundsRef.current = layerBounds(
+        resolvedSceneKey === "D4_scf"
+          ? [
+            ...layers,
+            ...data.densityEvolution.snapshots.map((entry) => ({
+              label: "scf extent",
+              primitives: [{
+                kind: "mesh" as const,
+                vertices: entry.mesh.vertices,
+                faces: entry.mesh.faces,
+                color: SLATE,
+              }],
+            })),
+          ]
+          : layers,
+      );
+      await commitResearchLayers(plugin, layers);
 
       // Restore camera so iteration changes don't shift the view.
       if (snapshot) plugin.managers.camera.setSnapshot(snapshot, 0);
@@ -685,8 +718,17 @@ export function MolstarDftStage({
     if (!plugin || !isReady) return;
     if (sceneKeyRef.current === renderKey) return;
     sceneKeyRef.current = renderKey;
-    void rebuildScene();
-  }, [isReady, rebuildScene, renderKey]);
+    // Re-frame when the scene itself changes. The camera effect below only fires on level
+    // entry and zoom, so stepping from the orbital scene to the SCF one kept the previous
+    // framing while the density isosurface, which reaches well past the atoms, ran off all
+    // four canvas edges. Scene key, not render key: the render key also changes on every
+    // SCF iteration, and re-framing there would make the view breathe under the slider.
+    void rebuildScene().then(() => {
+      if (framedSceneRef.current === resolvedSceneKey) return;
+      framedSceneRef.current = resolvedSceneKey;
+      applyScheduledCameraRef.current(0);
+    });
+  }, [isReady, rebuildScene, renderKey, resolvedSceneKey]);
 
   useEffect(() => {
     const data = dataRef.current;
@@ -713,11 +755,6 @@ export function MolstarDftStage({
         setMountError(error instanceof Error ? error.message : "Failed to load frontier orbital data.");
       });
   }, [isReady, resolvedSceneKey]);
-
-  // Store latest camera function in a ref so the effect below doesn't re-fire
-  // on every step/snapshot change, only on level entry, zoom, or manual reset.
-  const applyScheduledCameraRef = useRef(applyScheduledCamera);
-  applyScheduledCameraRef.current = applyScheduledCamera;
 
   useEffect(() => {
     if (!isReady) return;
@@ -754,13 +791,11 @@ export function MolstarDftStage({
     [activeSnapshotIndex, orbitalEnergies, outputMode],
   );
   const separateMobileMechanism = isMobile;
-  const mobileMechanismHeight =
-    resolvedSceneKey === "D4_scf" ? "440px" : "450px";
 
   return (
     <div
-      className={`multiscale-molstar relative h-full w-full overflow-hidden ${
-        separateMobileMechanism ? "flex flex-col" : ""
+      className={`multiscale-molstar relative w-full ${
+        separateMobileMechanism ? "flex flex-col" : "h-full overflow-hidden"
       }`}
       style={{ backgroundColor: canvasColor }}
       data-testid="multiscale-render-surface"
@@ -768,18 +803,12 @@ export function MolstarDftStage({
       {!isReady && <div className="absolute inset-0" style={{ backgroundColor: canvasColor }} />}
       <div
         ref={containerRef}
-        className={
-          separateMobileMechanism
-            ? "relative min-h-0 w-full flex-1"
-            : "relative h-full w-full"
-        }
+        className={separateMobileMechanism ? "relative min-h-0 w-full" : "relative h-full w-full"}
+        style={separateMobileMechanism ? { height: mobileSceneHeight } : undefined}
       />
       {isReady && !mountError ? (
         separateMobileMechanism ? (
-          <div
-            className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken"
-            style={{ height: mobileMechanismHeight }}
-          >
+          <div className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken">
             <DftMechanismDataProvider value={mechanismData}>
               <DftMechanism
                 sceneKey={resolvedSceneKey}

@@ -21,7 +21,8 @@ const TIER_INK: Record<SpecimenTier, string> = {
  *
  * Playback is left to each plate's own visibility: a pointer-driven "active plate" made the
  * second specimen unreachable for keyboard and touch readers, and on a phone it played the
- * loop on whichever plate had scrolled off screen.
+ * loop on whichever plate had scrolled off screen. Each plate carries its own transport, so
+ * stopping one to read its figcaption leaves the other running.
  */
 export function TierSpecimens({
   tier,
@@ -42,6 +43,10 @@ export function TierSpecimens({
             specimen={specimen}
             play
             priority={i === 0}
+            controls={{
+              play: ko ? "애니메이션 재생" : "Play animation",
+              pause: ko ? "애니메이션 멈춤" : "Pause animation",
+            }}
             className="aspect-square w-full"
           />
           {/* Printed plate label (DESIGN.md §4): tier name in the level's ink, then the

@@ -49,7 +49,7 @@ function renderSegments(
         tabIndex={isInteractive ? 0 : undefined}
         aria-label={
           isInteractive
-            ? `${lang === "ko" ? "힘장 항 선택" : "Select force-field term"}: ${seg.termId}`
+            ? `${lang === "ko" ? "역장 항 선택" : "Select force-field term"}: ${seg.termId}`
             : undefined
         }
         aria-pressed={isInteractive ? isSelected : undefined}
@@ -116,7 +116,7 @@ export function EquationDisplay({
 
   return (
     <div
-      className="border border-border bg-card p-4"
+      className="border-y border-border py-3"
       aria-label={eqSet.main.ariaLabel}
     >
       <div className="scientific-equation flex flex-wrap items-baseline gap-x-0 overflow-x-auto px-1 py-1 text-foreground">

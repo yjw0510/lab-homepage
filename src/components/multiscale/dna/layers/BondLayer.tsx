@@ -22,6 +22,12 @@ interface BondLayerProps {
   opacity?: number;
   center?: [number, number, number];
   maxBondLength?: number;
+  /** Pull each end back by this much so the cylinder stops at the atom's surface instead
+   *  of running to its centre. Invisible behind opaque spheres, obvious through
+   *  translucent ones — the atom-to-bead morph fades its atoms and every bond was seen
+   *  spearing straight through them.
+   *  ponytail: one radius for all elements; per-element trim if H stubs ever look short. */
+  trim?: number;
 }
 
 export const BondLayer = forwardRef<BondLayerHandle, BondLayerProps>(
@@ -34,6 +40,7 @@ export const BondLayer = forwardRef<BondLayerHandle, BondLayerProps>(
       opacity = 1,
       center,
       maxBondLength = 3.0,
+      trim = 0,
     },
     ref,
   ) {
@@ -78,7 +85,7 @@ export const BondLayer = forwardRef<BondLayerHandle, BondLayerProps>(
           dir.normalize();
           quat.setFromUnitVectors(up, dir);
 
-          scale.set(radius, len, radius);
+          scale.set(radius, Math.max(len * 0.25, len - 2 * trim), radius);
           mat.compose(mid, quat, scale);
           mesh.setMatrixAt(visible++, mat);
         }
@@ -86,7 +93,7 @@ export const BondLayer = forwardRef<BondLayerHandle, BondLayerProps>(
         mesh.count = visible;
         mesh.instanceMatrix.needsUpdate = true;
       };
-    }, [bonds, radius, cx, cy, cz, maxBondLength, scratch]);
+    }, [bonds, radius, cx, cy, cz, maxBondLength, trim, scratch]);
 
     useImperativeHandle(ref, () => ({ update: updateMatrices }), [updateMatrices]);
 

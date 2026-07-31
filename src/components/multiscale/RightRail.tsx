@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { Fragment, useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { EquationDisplay } from "./equations/EquationDisplay";
@@ -10,7 +10,7 @@ import { LEVELS, type LevelConfig, type LevelId, type ScrollState } from "./scro
 
 // Short scale labels for the flagship selector; the full level name sits in the
 // rail readout above, so the selector only needs to be scannable and jumpable.
-const SCALE_SHORT: Record<string, { en: string; ko: string }> = {
+export const SCALE_SHORT: Record<string, { en: string; ko: string }> = {
   dft: { en: "DFT", ko: "DFT" },
   mlff: { en: "MLFF", ko: "MLFF" },
   allatom: { en: "All-atom", ko: "전원자" },
@@ -22,14 +22,14 @@ const SCALE_SHORT: Record<string, { en: string; ko: string }> = {
 // `line` the translucent hairline border, `tab` the active-tab text + 2px
 // underline color.
 export const LEVEL_CHROME: Record<LevelId, { text: string; line: string; tab: string }> = {
-  dft: { text: "text-lv-dft", line: "border-lv-dft-line", tab: "border-lv-dft text-lv-dft" },
-  mlff: { text: "text-lv-mlff", line: "border-lv-mlff-line", tab: "border-lv-mlff text-lv-mlff" },
+  dft: { text: "text-lv-dft-text", line: "border-lv-dft-line", tab: "border-lv-dft text-lv-dft-text" },
+  mlff: { text: "text-lv-mlff-text", line: "border-lv-mlff-line", tab: "border-lv-mlff text-lv-mlff-text" },
   allatom: { text: "text-lv-aa", line: "border-lv-aa-line", tab: "border-lv-aa text-lv-aa" },
   meso: { text: "text-lv-meso", line: "border-lv-meso-line", tab: "border-lv-meso text-lv-meso" },
 };
 import type { StepConfig } from "./levelData";
 import { ConceptText } from "./ConceptText";
-import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
+import type { AllAtomForceFieldTerm } from "./allatom/allAtomPagePolicy";
 
 interface ScfSnapshotMeta {
   index: number;
@@ -54,11 +54,6 @@ export function RightRail({
   onAllAtomTermHover,
   onAllAtomTermLeave,
   onAllAtomTermToggle,
-  allAtomActiveReadout,
-  allAtomSelectedReadout,
-  onAllAtomReadoutHover,
-  onAllAtomReadoutLeave,
-  onAllAtomReadoutToggle,
   onLevelSwitch,
   showDftScfSlider,
   dftSnapshots,
@@ -68,7 +63,6 @@ export function RightRail({
   previousStepTitle,
   nextStepTitle,
   interactionHint,
-  measuredContactDistance,
 }: {
   scrollState: ScrollState;
   level: LevelConfig;
@@ -86,11 +80,6 @@ export function RightRail({
   onAllAtomTermHover?: (term: AllAtomForceFieldTerm) => void;
   onAllAtomTermLeave?: () => void;
   onAllAtomTermToggle?: (term: AllAtomForceFieldTerm) => void;
-  allAtomActiveReadout?: AllAtomReadoutId | null;
-  allAtomSelectedReadout?: AllAtomReadoutId | null;
-  onAllAtomReadoutHover?: (readout: AllAtomReadoutId) => void;
-  onAllAtomReadoutLeave?: () => void;
-  onAllAtomReadoutToggle?: (readout: AllAtomReadoutId) => void;
   onLevelSwitch?: (levelIndex: number) => void;
   showDftScfSlider?: boolean;
   dftSnapshots?: ScfSnapshotMeta[];
@@ -100,10 +89,8 @@ export function RightRail({
   previousStepTitle?: string;
   nextStepTitle?: string;
   interactionHint?: string;
-  measuredContactDistance?: number | null;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const prevStepRef = useRef<string>("");
   const isAllAtomLevel = level.id === "allatom";
   const isAllAtomForceFieldStep = stepConfig.sceneKey === "A3_forcefield";
@@ -119,9 +106,9 @@ export function RightRail({
   const previousButtonText = previousStepTitle ?? (lang === "ko" ? "이전" : "Prev");
   const nextButtonText = nextStepTitle ?? (lang === "ko" ? "다음" : "Next");
   const visualEvidenceBlock = (
-    <div className="mb-5 border-y border-border py-3.5">
+    <div data-rail-role="provenance" className="mb-5 border-y border-border py-3.5">
       <p className="text-sm font-medium text-muted-foreground">
-        {lang === "ko" ? "화면에 보이는 근거" : "What the visual is based on"}
+        {lang === "ko" ? "출처" : "Provenance"}
       </p>
       <div className="mt-3 space-y-2">
         {stepConfig.visualLayers.map((layer, index) => (
@@ -138,7 +125,7 @@ export function RightRail({
             >
               {layer.kind}
             </span>
-            <span className="text-muted-foreground">
+            <span className="break-keep text-muted-foreground">
               {layer.label[lang as "en" | "ko"] ?? layer.label.en}
             </span>
           </div>
@@ -156,6 +143,11 @@ export function RightRail({
     const key = `${scrollState.level}-${scrollState.step}`;
     if (key !== prevStepRef.current && railRef.current) {
       prevStepRef.current = key;
+      // This fade is set from JS, so the global reduced-motion rules cannot reach it.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        railRef.current.scrollTop = 0;
+        return;
+      }
       railRef.current.style.opacity = "0";
       railRef.current.style.transform = "translateY(8px)";
       requestAnimationFrame(() => {
@@ -166,16 +158,59 @@ export function RightRail({
           railRef.current.style.transform = "translateY(0)";
         }
       });
-      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+      // Reset the element that actually scrolls. After the rail was flattened to a
+      // single scroll context this became railRef, which is the one that scrolls.
+      railRef.current.scrollTop = 0;
     }
   }, [scrollState.level, scrollState.step]);
+
+  // Does the pane continue past its edge? With no cue the scroller cuts a line of prose
+  // through the middle and the paragraph reads as finished. The signal is a mask rather
+  // than a painted gradient, so it carries no colour of its own and is right in both
+  // themes by construction, and it is applied only on an edge that really has more
+  // behind it: at rest, top and bottom both settled, the rail is left untouched.
+  const [railEdges, setRailEdges] = useState({ atTop: true, atBottom: true });
+
+  useEffect(() => {
+    const node = railRef.current;
+    if (!node || isStack) return;
+
+    const update = () => {
+      const { scrollTop, scrollHeight, clientHeight } = node;
+      setRailEdges({
+        atTop: scrollTop <= 1,
+        atBottom: scrollTop + clientHeight >= scrollHeight - 1,
+      });
+    };
+
+    update();
+    node.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => {
+      node.removeEventListener("scroll", update);
+      observer.disconnect();
+    };
+  }, [isStack, lang, scrollState.level, scrollState.step]);
+
+  // Shorter than one line box on purpose: the cue has to say "this continues" without
+  // taking a line out of the eight the rail policy requires to stay legible.
+  const RAIL_FADE = "1.15rem";
+  const railMask =
+    isStack || (railEdges.atTop && railEdges.atBottom)
+      ? undefined
+      : railEdges.atTop
+        ? `linear-gradient(to bottom, #000 calc(100% - ${RAIL_FADE}), transparent)`
+        : railEdges.atBottom
+          ? `linear-gradient(to bottom, transparent, #000 ${RAIL_FADE})`
+          : `linear-gradient(to bottom, transparent, #000 ${RAIL_FADE}, #000 calc(100% - ${RAIL_FADE}), transparent)`;
 
   // Interactive controls wired to the live 3D view (SCF snapshot, RDF radius).
   // On mobile the view sits above this panel, so these are hoisted to the top of
   // the stack (below the status row) to stay co-visible with what they drive.
   const scfSliderBlock =
     showDftScfSlider && dftSnapshots && dftSnapshots.length > 1 && onScfChange ? (
-      <div className="mb-3 flex-shrink-0 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
+      <div id="multiscale-scf-control" data-rail-role="instrument" className="mb-3 flex-shrink-0 scroll-mt-32 border border-border px-4 py-3" style={{ touchAction: "pan-x" }}>
         <DftScfSlider
           snapshots={dftSnapshots}
           value={scfValue ?? 0}
@@ -186,6 +221,157 @@ export function RightRail({
     ) : null;
 
   const interactiveControls = scfSliderBlock;
+  const blockControls = interactiveControls;
+  const blockProvenance = visualEvidenceBlock;
+
+  // Every block the rail can render, named once. Composition is declared below as an
+  // ordered list rather than written out as nested JSX, so adding a block means
+  // choosing a position in a list that a reader of this file can see at a glance,
+  // and so the desktop and stacked orders can differ without duplicating markup.
+  // The scene title over the canvas already prints the level name, so the rail
+  // carries only what that title does not: which variables this tier resolves. It
+  // sits with the tabs it qualifies rather than on the overlay, so its existence
+  // does not depend on a pointer-events-none layer painted over the render.
+  const blockLevelIdentity = (
+    <p data-rail-role="frame" className="type-mono-meta mb-2 flex-shrink-0 text-[0.78125rem] text-muted-foreground">
+      {level.scale[lang as "en" | "ko"] ?? level.scale.en}
+    </p>
+  );
+
+  // One flagship per scale, so this is the primary cross-scale jump; the step
+  // navigation below moves between the two steps of the level in view.
+  const blockLevelTabs = onLevelSwitch ? (
+    <div data-rail-role="frame" className="mb-4 flex flex-shrink-0 gap-1">
+      {LEVELS.map((entry, i) => {
+        const isActive = i === scrollState.levelIndex;
+        const short = SCALE_SHORT[entry.id] ?? { en: entry.id, ko: entry.id };
+        return (
+          <button
+            key={entry.id}
+            type="button"
+            className={`type-mono-meta flex-1 border-b-2 px-1 pb-1.5 pt-1 text-xs transition-colors ${
+              isActive
+                ? LEVEL_CHROME[entry.id].tab
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => onLevelSwitch(i)}
+            aria-label={`${entry.label[lang as "en" | "ko"] ?? entry.label.en}`}
+            aria-current={isActive ? "step" : undefined}
+          >
+            {short[lang as "en" | "ko"] ?? short.en}
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
+
+  const blockApplicability = (
+    // The lede of the body, not a separate register. DESIGN.md defines type-lead as
+    // "the one sentence a block turns on", which is this sentence's job, and weight
+    // rather than size is what carries emphasis in that ladder. Measured across all
+    // eight steps at both rail widths, 16px never adds a line and saves 14-46px.
+    <div data-rail-role="frame" className={`flex-shrink-0 border-b border-border pb-4 ${isStack ? "mb-3" : "mb-5"}`}>
+      <p className="mb-1.5 text-[0.78125rem] font-medium leading-4 text-muted-foreground">
+        {lang === "ko" ? "적용 조건" : "Applicability"}
+      </p>
+      <p className="type-lead break-keep text-base text-foreground">
+        {stepConfig.question[lang as "en" | "ko"] ?? stepConfig.question.en}
+      </p>
+    </div>
+  );
+
+  const blockEquation = stepConfig.showEquation !== false ? (
+    <div data-rail-role="frame" className={`flex-shrink-0 ${isStack ? "mb-2" : "mb-4"}`}>
+      <EquationDisplay
+        equationKey={equationKey}
+        activeTerms={equationActiveTerms}
+        accentColor={level.color}
+        lang={lang}
+        detailMode={stepConfig.equationDetailMode}
+        interactiveTerms={isAllAtomLevel && isAllAtomForceFieldStep ? ["Ubond", "Uangle", "Udihedral", "UvdW", "UCoul"] : undefined}
+        hoveredTerm={allAtomActiveTerm}
+        selectedTerm={allAtomSelectedTerm}
+        onTermHover={onAllAtomTermHover}
+        onTermLeave={onAllAtomTermLeave}
+        onTermClick={onAllAtomTermToggle}
+      />
+    </div>
+  ) : null;
+
+  const blockHint = interactionHint ? (
+    <p data-rail-role="frame" className="mb-5 flex-shrink-0 border-y border-border py-3 text-sm leading-relaxed text-muted-foreground">
+      {interactionHint}
+    </p>
+  ) : null;
+
+  // The reading floor. `min-h-[8lh]` is written on the element that carries the prose
+  // line-height, because `lh` resolves against the element it is written on and the
+  // body sets its own leading.
+  const blockBody = (
+    <div data-rail-role="body" className={`min-h-[8lh] flex-shrink-0 ${isStack ? "" : "mb-6"}`}>
+      <ConceptText
+        text={stepConfig.concept[lang as "en" | "ko"] ?? stepConfig.concept.en}
+        lang={lang}
+        className="max-w-[65ch] break-keep text-base leading-[1.75] text-foreground"
+      />
+      {scrollState.step === 0 && (
+        <div className="mt-5 border-t border-primary/60 pt-4">
+          <p className="mb-2 text-sm font-semibold text-primary">
+            {lang === "ko" ? "다음 계층으로" : "To the next tier"}
+          </p>
+          <ConceptText
+            text={stepConfig.takeaway[lang as "en" | "ko"] ?? stepConfig.takeaway.en}
+            lang={lang}
+            className="break-keep text-base font-semibold leading-[1.7] text-foreground"
+          />
+        </div>
+      )}
+    </div>
+  );
+
+  const blockPlot = stepConfig.plotType ? (
+    <div data-rail-role="instrument" className="mb-4 flex-shrink-0">
+      <PlotSlot
+        plotType={stepConfig.plotType}
+        progress={scrollState.stepProgress}
+        accentColor={level.color}
+        lang={lang}
+        activeIndexOverride={stepConfig.plotType === "scf" ? scfActiveIndexOverride : undefined}
+        activeTerm={allAtomActiveTerm}
+        selectedTerm={allAtomSelectedTerm}
+        onTermHover={onAllAtomTermHover}
+        onTermLeave={onAllAtomTermLeave}
+        onTermToggle={onAllAtomTermToggle}
+      />
+    </div>
+  ) : null;
+
+  const blockMethodLink = (
+    <Link
+      data-rail-role="nav"
+      href={`/${lang}/multiscale/${level.id}`}
+      className="type-mono-meta mb-2 flex flex-shrink-0 items-center justify-between gap-3 border border-border-strong px-3.5 py-3 text-xs text-foreground transition-colors hover:bg-muted"
+    >
+      <span>{lang === "ko" ? "전체 방법 노트" : "Full method notes"}</span>
+      <ArrowUpRight className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+    </Link>
+  );
+
+  // Reading order.
+  //
+  // Desktop puts the body third. Measured at 1024x768, the four blocks that used to
+  // sit above it (equation 190px, slider 146px, provenance 195px, hint 92px) plus the
+  // three that remain summed to 918px of chrome against a 562px scroll viewport, so
+  // the reader landed on a screen with zero lines of prose on it at every desktop
+  // size tested. The three that remain sum to 296px, which leaves at least eight
+  // lines of body copy on screen before any scrolling.
+  //
+  // The stage sits in the left grid column on desktop, side by side with the rail, so
+  // moving the slider down the rail does not separate it from what it drives. On the
+  // stacked path the stage is above the rail, which is why the controls lead there.
+  const composition = isStack
+    ? [blockControls, blockApplicability, blockEquation, blockHint, blockBody, blockMethodLink, blockProvenance, blockPlot]
+    : [blockLevelIdentity, blockLevelTabs, blockApplicability, blockBody, blockEquation, blockControls, blockHint, blockProvenance, blockPlot, blockMethodLink];
 
   return (
     <div
@@ -196,182 +382,44 @@ export function RightRail({
           : "h-full justify-start px-6 py-8 pt-10"
       }`}
     >
+      {/* One scroll context. The rail itself scrolls; nothing inside it does. */}
       <div
         ref={railRef}
-        className={`flex min-h-0 flex-col ${isStack ? "" : "flex-1"}`}
+        {...(isStack
+          ? {}
+          : {
+              tabIndex: 0,
+              role: "region",
+              "aria-label": `${level.label[lang as "en" | "ko"] ?? level.label.en}: ${currentStepTitle}`,
+            })}
+        // No overscroll containment: the instrument is a 100dvh pane with the
+        // multiscale overview below it, and containing the chain here removes the
+        // reader's only wheel path to that section.
+        data-rail-scroll={isStack ? undefined : ""}
+        data-rail-continues={
+          isStack || (railEdges.atTop && railEdges.atBottom)
+            ? undefined
+            : railEdges.atTop
+              ? "bottom"
+              : railEdges.atBottom
+                ? "top"
+                : "both"
+        }
+        className={`flex min-h-0 flex-col ${
+          isStack ? "" : "flex-1 overflow-y-auto pr-1 [scrollbar-gutter:stable]"
+        }`}
+        style={railMask ? { maskImage: railMask, WebkitMaskImage: railMask } : undefined}
       >
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           {`${level.label[lang as "en" | "ko"] ?? level.label.en}: ${currentStepTitle}`}
         </div>
-        {/* Mobile/compact: interactive controls lead the panel so they stay
-            visible with the 3D view stacked above them. */}
-        {isStack && interactiveControls}
-        {!isStack && (
-          <div className={`flex items-baseline gap-2.5 flex-shrink-0 ${isMobile ? "mb-3" : "mb-4"}`}>
-            <span className="type-heading text-base text-foreground">
-              {level.label[lang as "en" | "ko"] ?? level.label.en}
-            </span>
-            <span className="type-mono-meta text-[0.78125rem] text-muted-foreground">
-              {level.scale[lang as "en" | "ko"] ?? level.scale.en}
-            </span>
-          </div>
+        {composition.map((block, i) =>
+          block ? <Fragment key={i}>{block}</Fragment> : null
         )}
-
-        {/* Scale selector — rail only. One flagship per scale, so this is the
-            primary cross-scale jump; prev/next steps between the same four. */}
-        {!isStack && onLevelSwitch && (
-          <div className={`flex gap-1 flex-shrink-0 ${isMobile ? "mb-3" : "mb-4"}`}>
-            {LEVELS.map((entry, i) => {
-              const isActive = i === scrollState.levelIndex;
-              const short = SCALE_SHORT[entry.id] ?? { en: entry.id, ko: entry.id };
-              return (
-                <button
-                  key={entry.id}
-                  type="button"
-                  className={`type-mono-meta flex-1 border-b-2 px-1 pb-1.5 pt-1 text-xs transition-colors ${
-                    isActive
-                      ? LEVEL_CHROME[entry.id].tab
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => onLevelSwitch(i)}
-                  aria-label={`${entry.label[lang as "en" | "ko"] ?? entry.label.en}`}
-                  aria-current={isActive ? "step" : undefined}
-                >
-                  {short[lang as "en" | "ko"] ?? short.en}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Selection criterion — fixed so deep-linked pages remain self-contained. */}
-        <div className={`flex-shrink-0 border-y border-border py-4 ${isStack ? "mb-3" : "mb-5"}`}>
-          <p className="mb-2 text-sm font-medium text-muted-foreground">
-            {lang === "ko" ? "이 계층을 선택하는 기준" : "When this tier enters the stack"}
-          </p>
-          <p className="text-lg font-semibold leading-[1.55] text-foreground">
-            {stepConfig.question[lang as "en" | "ko"] ?? stepConfig.question.en}
-          </p>
-        </div>
-
-        {/* Equation — fixed, non-scrolling */}
-        {stepConfig.showEquation !== false && (
-          <div className={`flex-shrink-0 ${isStack ? "mb-2" : "mb-4"}`}>
-            <EquationDisplay
-              equationKey={equationKey}
-              activeTerms={equationActiveTerms}
-              accentColor={level.color}
-              lang={lang}
-              detailMode={stepConfig.equationDetailMode}
-              interactiveTerms={isAllAtomLevel && isAllAtomForceFieldStep ? ["Ubond", "Uangle", "Udihedral", "UvdW", "UCoul"] : undefined}
-              hoveredTerm={allAtomActiveTerm}
-              selectedTerm={allAtomSelectedTerm}
-              onTermHover={onAllAtomTermHover}
-              onTermLeave={onAllAtomTermLeave}
-              onTermClick={onAllAtomTermToggle}
-            />
-          </div>
-        )}
-
-        {/* Desktop controls sit beside the stage; mobile controls lead the stacked panel. */}
-        {!isStack && interactiveControls}
-
-        {/* Measured contact readout — the exact O-H distance of the contact
-            drawn on the observable page, updating as the trajectory plays. */}
-        {stepConfig.sceneKey === "A6_observables" && measuredContactDistance != null && (
-          <div className="mb-3 flex-shrink-0 border border-border px-4 py-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="type-mono-meta text-xs text-muted-foreground">
-                {lang === "ko" ? "측정된 수소결합" : "Measured hydrogen bond"}
-              </p>
-              <p className="text-2xl font-semibold tabular-nums text-foreground">
-                {measuredContactDistance.toFixed(2)}
-                <span className="ml-1 text-sm font-normal text-muted-foreground">Å</span>
-              </p>
-            </div>
-            <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {lang === "ko"
-                ? "카페인 카보닐 O와 물 H 사이 거리, 현재 프레임. 프레임마다 요동한다."
-                : "Carbonyl O to water H, this frame. It fluctuates frame to frame."}
-            </p>
-          </div>
-        )}
-
-        {/* Scrollable content area: provenance + concept + takeaway + plot */}
-        <div
-          ref={scrollRef}
-          className={`min-h-0 pr-1 ${
-            isStack ? "overflow-visible" : "flex-1 overflow-y-auto"
-          }`}
-        >
-          <div>
-            {!isStack && visualEvidenceBlock}
-
-            {interactionHint && (
-              <p className="mb-5 border-y border-border py-3 text-sm leading-relaxed text-muted-foreground">
-                {interactionHint}
-              </p>
-            )}
-            <ConceptText
-              text={stepConfig.concept[lang as "en" | "ko"] ?? stepConfig.concept.en}
-              lang={lang}
-              className="max-w-[65ch] break-keep text-base leading-[1.75] text-foreground"
-            />
-
-            {scrollState.step === 0 && (
-              <div className="mt-5 border-t border-primary/60 pt-4">
-                <p className="mb-2 text-sm font-semibold text-primary">
-                  {lang === "ko" ? "우리 연구 스택에서의 역할" : "Role in our research stack"}
-                </p>
-                <ConceptText
-                  text={stepConfig.takeaway[lang as "en" | "ko"] ?? stepConfig.takeaway.en}
-                  lang={lang}
-                  className="break-keep text-base font-semibold leading-[1.7] text-foreground"
-                />
-              </div>
-            )}
-
-            {/* Bridge to the mechanism depth for this scale. */}
-            <Link
-              href={`/${lang}/multiscale/${level.id}`}
-              className="type-mono-meta mt-5 flex items-center justify-between gap-3 border border-border-strong px-3.5 py-3 text-xs text-foreground transition-colors hover:bg-muted"
-            >
-              <span>
-                {lang === "ko" ? "전체 방법 노트" : "Full method notes"}
-              </span>
-              <ArrowUpRight className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
-            </Link>
-
-            {isStack && <div className="mt-6">{visualEvidenceBlock}</div>}
-          </div>
-
-          {stepConfig.plotType && (
-            <div className="mt-4">
-              <PlotSlot
-                plotType={stepConfig.plotType}
-                progress={scrollState.stepProgress}
-                accentColor={level.color}
-                lang={lang}
-                activeIndexOverride={stepConfig.plotType === "scf" ? scfActiveIndexOverride : undefined}
-                activeTerm={allAtomActiveTerm}
-                selectedTerm={allAtomSelectedTerm}
-                onTermHover={onAllAtomTermHover}
-                onTermLeave={onAllAtomTermLeave}
-                onTermToggle={onAllAtomTermToggle}
-                activeReadout={allAtomActiveReadout}
-                selectedReadout={allAtomSelectedReadout}
-                onReadoutHover={onAllAtomReadoutHover}
-                onReadoutLeave={onAllAtomReadoutLeave}
-                onReadoutToggle={onAllAtomReadoutToggle}
-              />
-            </div>
-          )}
-
-        </div>
       </div>
 
       {!isMobile && (
-        <div className="mt-3 flex-shrink-0 border-t border-border pt-3">
+        <div data-rail-role="nav" className="mt-3 flex-shrink-0 border-t border-border pt-3">
           <div className="flex items-center justify-between gap-2">
             <button
               type="button"

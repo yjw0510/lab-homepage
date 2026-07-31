@@ -22,10 +22,16 @@ export function VisualStage({
   sceneKey,
   reducedMotion = false,
   hideMechanism = false,
-  onMeasuredDistance,
+  mobileSceneHeight,
+  onAllAtomTermChange,
+  onAllAtomReadoutChange,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
+  /** Definite height for the scene on a phone; the mechanism band below it flows. */
+  mobileSceneHeight?: number;
+  onAllAtomTermChange?: (term: AllAtomForceFieldTerm) => void;
+  onAllAtomReadoutChange?: (readout: AllAtomReadoutId) => void;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   dftManualSnapshotIndex?: number | null;
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
@@ -34,7 +40,6 @@ export function VisualStage({
   sceneKey?: string;
   reducedMotion?: boolean;
   hideMechanism?: boolean;
-  onMeasuredDistance?: (nm: number | null) => void;
 }) {
   const molstarProps = {
     scrollState,
@@ -46,6 +51,7 @@ export function VisualStage({
     case "meso":
       return (
         <MesoStage
+          mobileSceneHeight={mobileSceneHeight}
           scrollState={scrollState}
           isMobile={isMobile}
           actionsRef={actionsRef}
@@ -58,6 +64,7 @@ export function VisualStage({
     case "mlff":
       return (
         <MlffSchematicStage
+          mobileSceneHeight={mobileSceneHeight}
           sceneKey={sceneKey}
           lang={lang}
           isMobile={isMobile}
@@ -68,18 +75,21 @@ export function VisualStage({
     case "allatom":
       return (
         <AllAtomHybridStage
+          mobileSceneHeight={mobileSceneHeight}
           {...molstarProps}
           activeTerm={allAtomActiveTerm ?? null}
           activeReadout={allAtomActiveReadout ?? null}
           reducedMotion={reducedMotion}
           lang={lang}
           hideMechanism={hideMechanism}
-          onMeasuredDistance={onMeasuredDistance}
+          onTermChange={onAllAtomTermChange}
+          onReadoutChange={onAllAtomReadoutChange}
         />
       );
     case "dft":
       return (
         <MolstarDftStage
+          mobileSceneHeight={mobileSceneHeight}
           {...molstarProps}
           manualSnapshotIndex={dftManualSnapshotIndex}
           lang={lang}

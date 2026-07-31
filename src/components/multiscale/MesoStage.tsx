@@ -34,7 +34,16 @@ const BASE_ZOOM_INDEX = 3;
 const MAX_ZOOM_INDEX = 6;
 
 // M2 uses an origin-centered teaching chain rather than the manifest's melt coordinates.
-const MESO_MORPH_RADIUS = 6.5;
+// The mapping motif is one chain and its beads. At 6.5 the camera framed a sphere the
+// motif filled only 2-5% of, leaving 217-300px of dead canvas below it. 5.2 removes
+// the worst of that without letting the motif touch the canvas edges.
+//
+// OPEN, measured not guessed: the residual is vertical centering, not radius. This
+// override looks at the origin, but the motif draws above it, so probe-canvas-fit.mjs
+// still reports 187-198px of empty canvas below the content at 1024x768 and 390x844
+// while the left and right margins are 0-1px. The fix is the override's center, which
+// needs the motif's real bounds rather than another radius guess.
+const MESO_MORPH_RADIUS = 5.2;
 
 const jsonFetchCache = new Map<string, Promise<unknown>>();
 function cachedJsonFetch<T>(url: string): Promise<T> {
@@ -176,6 +185,7 @@ export function MesoStage({
   reducedMotion = false,
   lang = "en",
   hideMechanism = false,
+  mobileSceneHeight,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
@@ -184,19 +194,22 @@ export function MesoStage({
   reducedMotion?: boolean;
   lang?: string;
   hideMechanism?: boolean;
+  mobileSceneHeight?: number;
 }) {
   const canvasColor = useMultiscaleCanvasColor();
   const separateMobileMechanism = isMobile && Boolean(sceneKey);
-  const mobileMechanismHeight = sceneKey === "M2_mapping" ? "760px" : "660px";
 
   return (
     <div
-      className={`relative h-full w-full overflow-hidden bg-surface-sunken ${
-        separateMobileMechanism ? "flex flex-col" : ""
+      className={`relative w-full bg-surface-sunken ${
+        separateMobileMechanism ? "flex flex-col" : "h-full overflow-hidden"
       }`}
       data-testid="multiscale-render-surface"
     >
-      <div className={`relative min-h-0 w-full ${separateMobileMechanism ? "flex-1" : "h-full"}`}>
+      <div
+        className={`relative min-h-0 w-full ${separateMobileMechanism ? "" : "h-full"}`}
+        style={separateMobileMechanism ? { height: mobileSceneHeight } : undefined}
+      >
         <Canvas camera={{ fov: 50, position: [2.2, 1.2, 12] }} dpr={[1, 2]} shadows={{ type: THREE.PCFShadowMap }}>
           <color attach="background" args={[canvasColor]} />
           <ambientLight intensity={0.6} color="#e2e8f0" />
@@ -238,10 +251,7 @@ export function MesoStage({
         )}
       </div>
       {separateMobileMechanism && sceneKey ? (
-        <div
-          className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken"
-          style={{ height: mobileMechanismHeight }}
-        >
+        <div className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken">
           <MesoMechanism
             sceneKey={sceneKey}
             lang={lang}

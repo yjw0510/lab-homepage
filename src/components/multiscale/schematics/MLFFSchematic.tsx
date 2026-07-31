@@ -46,7 +46,7 @@ function Fx({ k, xc, yb }: { k: string; xc: number; yb: number }) {
   );
 }
 
-export function MLFFSchematic({ active }: { active: boolean }) {
+export function MLFFSchematic({ active, ko = false }: { active: boolean; ko?: boolean }) {
   // Stage 1 / 3: caffeine (C8H10N4O2), RDKit 2D coords
   const atoms = [
     { cx: 120.4, cy: 88.9, r: 5.5, color: "var(--sch-carbon)" },
@@ -266,10 +266,10 @@ export function MLFFSchematic({ active }: { active: boolean }) {
       </g>
 
       {/* labels */}
-      <text x="98" y="242" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.15s" }}>Atoms</text>
-      <text x="265" y="40" textAnchor="middle" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>Descriptor</text>
-      <text x="308" y="200" textAnchor="start" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>Graph</text>
-      <text x="265" y="250" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="600" className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.58s" }}>Local representation</text>
+      <text x="98" y="242" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.15s" }}>{ko ? "원자" : "Atoms"}</text>
+      <text x="265" y="40" textAnchor="middle" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "표현자" : "Descriptor"}</text>
+      <text x="308" y="200" textAnchor="start" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "그래프" : "Graph"}</text>
+      <text x="265" y="250" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="600" className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.58s" }}>{ko ? "국소 표현" : "Local representation"}</text>
 
       <g className={fade} style={{ animationDelay: "0.78s" }}><Fx k="eglobal" xc={440} yb={40} /></g>
       <g className={fade} style={{ animationDelay: "0.85s" }}><Fx k="ei_fi" xc={440} yb={248} /></g>

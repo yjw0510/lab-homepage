@@ -1,5 +1,5 @@
 import { formatDate } from "@/lib/utils";
-import type { NewsItem } from "@/types/news";
+import { newsCategoryLabel, type NewsItem } from "@/types/news";
 
 export function NewsCard({ item, lang }: { item: NewsItem; lang?: string }) {
   const title = lang === "ko" && item.titleKo ? item.titleKo : item.title;
@@ -15,7 +15,7 @@ export function NewsCard({ item, lang }: { item: NewsItem; lang?: string }) {
           {formatDate(item.date, lang)}
         </time>
         <p className="type-mono-meta mt-1 text-[11px] text-muted-foreground">
-          {item.category}
+          {newsCategoryLabel(item.category, lang)}
         </p>
       </div>
       <div className="col-span-12 md:col-span-9">

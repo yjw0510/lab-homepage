@@ -31,12 +31,14 @@ export function PublicationCard({
     correspondingAuthors,
   } = publication;
 
+  // Bibliography: titles, journals and author names stay in their published form in every
+  // locale, so the untranslated-English gate skips this subtree.
   return (
-    <article className="border-t border-border py-5 transition-colors hover:bg-muted/50">
+    <article data-bibliographic className="border-t border-border py-5 transition-colors hover:bg-muted/50">
       <h3 className="break-keep text-[16.5px] font-[600] leading-snug">
         <Link
           href={`/${resolvedLang}/publications/${slug}`}
-          className="text-foreground transition-colors hover:text-accent-ink"
+          className="inline py-1 text-foreground transition-colors hover:text-accent-ink"
         >
           {title}
         </Link>
@@ -66,7 +68,7 @@ export function PublicationCard({
             {" · "}
             <ExternalLink
               href={`https://doi.org/${doi}`}
-              className="text-[12px]"
+              className="inline-flex min-h-6 items-center text-[12px] leading-none"
             >
               DOI
             </ExternalLink>

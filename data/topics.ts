@@ -26,10 +26,10 @@ A polymer brush also creates forces between objects placed inside it. When two o
   {
     id: "aqueous-solution",
     title: "Machine-Learning Force Fields for Water & Reactions",
-    titleKo: "물과 반응을 위한 기계학습 역장",
+    titleKo: "물과 반응을 위한 머신러닝 역장",
     tagline:
       "Machine-learning force fields for water, ions, and chemical reactions",
-    taglineKo: "물·이온·화학 반응을 계산하는 기계학습 역장",
+    taglineKo: "물·이온·화학 반응을 계산하는 머신러닝 역장",
     description: `Dissolving salt in water changes how the water molecules move. Some salts slow the water down and others speed it up, and why this happens has long gone unexplained. Molecular simulations run on a set of rules for how atoms push and pull on one another, called a force field, and the simple force fields in common use do not reproduce these salt effects correctly.
 
 We study how water and the ions dissolved in it move, and how chemical reactions proceed in water. For this we use machine-learning force fields trained on quantum-mechanical calculations, which are accurate yet fast enough to follow many molecules for a long time, capturing the subtle ways groups of water molecules move together. These force fields reproduce the measured differences between salts that speed water up and salts that slow it down, and the cause lies in the collective motion of many molecules at once. When water fills in around a dissolved aluminum ion, for example, the incoming molecule skips the water right next to the ion and arrives from farther out, carried by several molecules moving in step.
@@ -37,7 +37,7 @@ We study how water and the ions dissolved in it move, and how chemical reactions
 The same approach extends to chemical reactions. We study how organic matter decomposes in supercritical water, a hot, high-pressure form of water, and how water responds to electric fields.`,
     descriptionKo: `물에 소금을 녹이면 물 분자의 움직임이 달라진다. 어떤 소금은 물을 더 느리게, 어떤 소금은 더 빠르게 움직이게 하는데, 왜 그런지는 오랫동안 제대로 설명되지 않았다. 분자 시뮬레이션은 원자들이 서로 밀고 당기는 방식을 정해 놓은 규칙을 바탕으로 돌아가며, 이 규칙을 역장이라고 한다. 지금까지 널리 쓰인 간단한 역장은 이 소금 효과를 정확히 재현하지 못한다.
 
-우리는 물과 그 속에 녹은 이온이 어떻게 움직이는지, 그리고 물속에서 화학 반응이 어떻게 일어나는지 연구한다. 이를 위해 양자역학 계산 결과를 학습시킨 기계학습 역장을 쓰는데, 정확하면서도 많은 분자를 오래 계산할 수 있어 물 분자 여럿이 함께 움직이는 미세한 차이까지 담아낸다. 이 역장은 소금 종류에 따라 물이 빨라지거나 느려지는 실험 결과를 재현하며, 그 원인은 물 분자들이 무리 지어 움직이는 방식에 있다. 예를 들어 알루미늄 이온 주위에 물 분자가 채워질 때, 바로 옆의 물을 건너뛰고 조금 떨어진 물이 여러 분자의 동시 움직임에 실려 들어온다.
+우리는 물과 그 속에 녹은 이온이 어떻게 움직이는지, 그리고 물속에서 화학 반응이 어떻게 일어나는지 연구한다. 이를 위해 양자역학 계산 결과를 학습시킨 머신러닝 역장을 쓰는데, 정확하면서도 많은 분자를 오래 계산할 수 있어 물 분자 여럿이 함께 움직이는 미세한 차이까지 담아낸다. 이 역장은 소금 종류에 따라 물이 빨라지거나 느려지는 실험 결과를 재현하며, 그 원인은 물 분자들이 무리 지어 움직이는 방식에 있다. 예를 들어 알루미늄 이온 주위에 물 분자가 채워질 때, 바로 옆의 물을 건너뛰고 조금 떨어진 물이 여러 분자의 동시 움직임에 실려 들어온다.
 
 같은 방법은 화학 반응으로도 이어진다. 고온·고압의 특수한 물인 초임계수에서 유기물이 분해되는 과정과, 물이 전기장에 반응하는 방식을 연구한다.`,
     icon: "Droplets",
@@ -58,7 +58,7 @@ We characterize glassy materials and work toward a theoretical and physicochemic
 Measured this way, the particle passes easily through the glass at higher temperatures, but below a certain temperature it is caught by its neighbors and moves only under large force. This boundary corresponds to the temperature at which a liquid becomes a glass. The interior of a glass is also not uniform: regions that move quickly and regions that move slowly coexist, and the slow regions widen as the temperature falls.`,
     descriptionKo: `물질을 이루는 원자나 분자는 천천히 식으면 대개 규칙적으로 줄을 맞춰 단단한 고체가 된다. 이것을 결정이라 하고, 소금이나 금속이 여기에 해당한다. 반면 아주 빠르게 식히면 원자가 줄을 맞추지 못하고 흐트러진 상태로 굳는다. 이렇게 무질서하게 굳은 고체를 유리라 하며, 창유리나 단단한 플라스틱이 이에 속한다. 유리가 액체처럼 무질서하면서도 고체처럼 단단한 이유는 아직 충분히 밝혀지지 않았다.
 
-우리는 유리 물질의 특성을 규명하고, 원자·분자 수준의 구조와 동역학을 이론과 물리화학으로 이해하려 한다. 분자동역학 시뮬레이션과 인공지능 기법을 함께 쓰며, 그중 한 가지 방법이 능동 미시유변학이다. 유리 속에서 입자 하나를 움직이며, 입자가 유리와 주고받는 상호작용(예를 들어 일정한 속도로 끌 때 받는 힘)을 기록해 유리 내부의 정보를 얻어낸다. 기존 측정법은 시료 전체에 힘을 가해 부분별 차이를 뭉개고 유리 자체를 변형시키는데, 이 방법은 그런 한계를 피한다.
+우리는 유리 물질의 특성을 규명하고, 원자·분자 수준의 구조와 동역학을 이론과 물리화학으로 이해하려 한다. 분자동역학 시뮬레이션과 머신러닝 기법을 함께 쓰며, 그중 한 가지 방법이 능동 미시유변학이다. 유리 속에서 입자 하나를 움직이며, 입자가 유리와 주고받는 상호작용(예를 들어 일정한 속도로 끌 때 받는 힘)을 기록해 유리 내부의 정보를 얻어낸다. 기존 측정법은 시료 전체에 힘을 가해 부분별 차이를 뭉개고 유리 자체를 변형시키는데, 이 방법은 그런 한계를 피한다.
 
 이 방법으로 재면 온도가 높을 때는 입자가 유리 속을 쉽게 지나가지만, 어느 온도 아래에서는 이웃 입자에 붙들려 큰 힘을 줘야 움직인다. 이 경계가 액체가 유리로 바뀌는 온도에 해당한다. 굳은 유리는 내부도 균일하지 않아서, 빠르게 움직이는 부분과 느리게 움직이는 부분이 함께 있고 느린 부분은 온도가 낮아질수록 넓어진다.`,
     icon: "Atom",
@@ -137,9 +137,9 @@ In a temperature-sensitive gel called PLGA-PEG-PLGA, whether it sets sharply or 
 - **Surface reactions at liquid metal interfaces**: Studying reactivity at the boundary between liquid metals and their environment, relevant to heterogeneous catalysis, corrosion, and emerging liquid metal battery technologies.`,
     descriptionKo: `- **HfO₂ 강유전 스위칭**: 하프늄 산화물은 외부 전기장으로 전기 분극을 반전시킬 수 있는 강유전 물질로, 나노 규모 스위치처럼 작동한다. 기존 메모리 커패시터 유전체의 대체재이자 뉴로모픽(뇌 모사) 컴퓨팅 소자 후보로 검토되고 있으며, 이 분극 스위칭의 분자 수준 메커니즘을 연구한다.
 - **구속 환경에서의 그로투스 메커니즘**: 물 속 양성자는 수소결합 사슬을 따라 호핑으로 이동할 수 있다. 분자 하나가 통째로 움직이지 않고 결합을 따라 양성자만 차례로 전달되는 릴레이 과정이며, 이를 그로투스 메커니즘이라 한다. 물이 나노미터 규모 채널에 구속될 때 이 수송이 어떻게 변하는지 연구한다. 연료전지 막과 생물학적 이온 채널에 직결되는 문제이다.
-- **기계학습 조대화 힘장**: 상세한 원자 수준 시뮬레이션에서 단순화된 입자 간 상호작용을 직접 학습하는 신경망 모형 개발. 원자 수준 물리의 정확도를 유지하면서 더 큰 시스템을 더 긴 시간에 걸쳐 시뮬레이션할 수 있게 한다.
+- **머신러닝 조대화 역장**: 상세한 원자 수준 시뮬레이션에서 단순화된 입자 간 상호작용을 직접 학습하는 신경망 모형 개발. 원자 수준 물리의 정확도를 유지하면서 더 큰 시스템을 더 긴 시간에 걸쳐 시뮬레이션할 수 있게 한다.
 - **작동 조건의 제일원리 모형화**: 대부분의 양자역학 시뮬레이션은 현실과 동떨어진 0 K 진공을 가정한다. 제일원리 계산으로 실제 소자 작동 중의 온도, 압력, 전기장 하에서 일어나는 화학 과정을 모형화한다.
-- **액체 금속 계면에서의 표면 반응**: 액체 금속과 주변 환경이 맞닿는 경계에서 일어나는 반응성 연구. 비균일 촉매, 부식, 신규 액체 금속 배터리 기술과 맞닿아 있다.`,
+- **액체 금속 계면에서의 표면 반응**: 액체 금속과 주변 환경이 맞닿는 경계에서 일어나는 반응성 연구. 불균일 촉매, 부식, 신규 액체 금속 배터리 기술과 맞닿아 있다.`,
     icon: "Orbit",
     color: "#a855f7",
     gridSpan: [2, 1],

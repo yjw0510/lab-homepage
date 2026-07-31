@@ -51,7 +51,10 @@ const DFT_VIEW_SPEC: MultiscaleViewSpec = {
   elevationDeg: 14,
   rollDeg: 0,
   targetOffset: [0, 0, 0],
-  padding: 1.22,
+  // The SCF density isosurface extends well past the atoms, and the schedule frames
+  // `molecule`, so at 1.22 the surface reached all four canvas edges on every desktop
+  // viewport. Measured clear at 1.55 by probe-canvas-fit.mjs.
+  padding: 1.55,
   nearFactor: 0.05,
   farFactor: 6,
   zoomLadder: DEFAULT_ZOOM_LADDER,
@@ -63,14 +66,20 @@ type LevelSchedule = Record<number, MultiscaleViewSpec>;
 export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> = {
   meso: {
     0: {
-      cameraSubsetId: "bundle_overview",
+      // The melt renders `all_beads`; framing the smaller `bundle_overview` subset
+      // cut the scene on all four canvas edges at every viewport and theme, measured
+      // by probe-canvas-fit.mjs. Frame what is drawn.
+      cameraSubsetId: "all_beads",
       renderSubsetId: "all_beads",
       anchorId: "bundle_center",
       azimuthDeg: 25,
       elevationDeg: 18,
       rollDeg: 0,
       targetOffset: [0, 0, 0],
-      padding: 1.35,
+      // The melt is a dense 8,000-bead box; framed to its own bounds at 1.35 it still
+      // reached all four canvas edges at every viewport and theme. Measured clear at
+      // 1.85 by probe-canvas-fit.mjs.
+      padding: 1.85,
       nearFactor: 0.05,
       farFactor: 12,
       zoomLadder: DEFAULT_ZOOM_LADDER,
@@ -110,7 +119,10 @@ export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> =
       zoomLadder: DEFAULT_ZOOM_LADDER,
       transitionMode: "snap",
       timing: {
-        systemOpacity: { enter: [0, 0.16] },
+        // No enter ramp on the solute. An `enter` window starting at 0 returns 0 at
+        // stepProgress 0, so stopping a scroll on the step boundary drew the molecule at zero
+        // alpha — visible only as the silhouette rings WBOIT leaves behind. The subject is
+        // present whenever its step is; only the surrounding context fades in.
         supportOpacity: { enter: [0.04, 0.18] },
       },
     },
@@ -128,7 +140,6 @@ export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> =
       zoomLadder: DEFAULT_ZOOM_LADDER,
       transitionMode: "hold-then-blend",
       timing: {
-        systemOpacity: { enter: [0, 0.16] },
         supportOpacity: { enter: [0.02, 0.18] },
       },
     },

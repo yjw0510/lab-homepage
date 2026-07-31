@@ -36,26 +36,26 @@ function Formula({
 const COPY = {
   M2_mapping: {
     en: {
-      title: "The mapping sets the beads, and the speedup follows",
+      title: "Choosing what counts as one particle",
       description:
-        "Each bead represents a chosen group of atoms; removing their fast internal motion is what makes larger, longer, and softer simulations affordable.",
+        "Group atoms into a bead and the fast motion inside the group leaves the model. That single choice fixes both how far the simulation reaches and which questions it can still answer.",
     },
     ko: {
-      title: "매핑이 비드를 정하고 거기서 가속이 따라온다",
+      title: "무엇을 한 입자로 셀 것인가",
       description:
-        "각 비드는 선택한 원자 그룹을 대표한다. 그 빠른 내부 운동을 없앤 것이 더 크고 긴 시뮬레이션을 가능하게 한다.",
+        "원자를 묶어 비드로 만들면 그 안의 빠른 운동이 모형에서 빠진다. 이 선택 하나가 계산이 닿는 범위와 답할 수 있는 질문을 함께 정한다.",
     },
   },
   M5_collective: {
     en: {
-      title: "The reduced model reaches collective rearrangements",
+      title: "The size at which stiffness and phase appear",
       description:
-        "Thousands of beads and many chains can be followed together, exposing entanglement, relaxation, and large-scale morphology.",
+        "Stiffness and phase appear once enough chains are followed together, and that is the size at which a measurement finds them too.",
     },
     ko: {
-      title: "줄어든 자유도로 집단 재배열을 관찰한다",
+      title: "강성과 상이 나타나는 크기",
       description:
-        "수천 개 비드와 여러 사슬을 함께 추적해 얽힘, 완화, 큰 규모의 형태 변화를 관찰한다.",
+        "강성이나 상은 여러 가닥을 함께 따라가야 나타나고, 측정이 그것을 붙잡는 것도 같은 크기에서다.",
     },
   },
 } as const;
@@ -86,14 +86,17 @@ function MappingDiagram({ ko }: { ko: boolean }) {
       ))}
       <line x1="91" y1="137" x2="181" y2="137" stroke="#f59e0b" strokeWidth="5" />
       <line x1="219" y1="137" x2="309" y2="137" stroke="#f59e0b" strokeWidth="5" />
-      <text x="401" y="139" fill="var(--sch-ink)" fontSize="14">
+      {/* Anchored to the right edge rather than to a start coordinate, so the Korean and
+          English labels both clear the bead chain at x=347 without a per-language x.
+          At 16 units this reaches 11.3px on a 390px phone, where 14 reached only 9.9. */}
+      <text x="454" y="139" textAnchor="end" fill="var(--sch-ink)" fontSize="16">
         {ko ? "비드 사슬" : "bead chain"}
       </text>
     </svg>
   );
 }
 
-function M2Mapping({ ko }: { ko: boolean }) {
+function M2Mapping({ ko, isMobile }: { ko: boolean; isMobile: boolean }) {
   const speedupFactors = [
     {
       label: ko ? "입자 수 감소" : "Fewer particles",
@@ -113,10 +116,10 @@ function M2Mapping({ ko }: { ko: boolean }) {
       <div className="grid gap-4 lg:grid-cols-[minmax(18rem,1fr)_minmax(0,1fr)] lg:items-center">
         <MappingDiagram ko={ko} />
         <div className="grid gap-4">
-          <div className={`border border-lv-meso-line bg-lv-meso-wash p-4 ${MULTISCALE_TYPE.formula}`}>
+          <div className={`border border-lv-meso-line bg-lv-meso-wash p-4 ${isMobile ? MULTISCALE_TYPE.formulaCompact : MULTISCALE_TYPE.formula}`}>
             <Formula value="\mathbf R_I=\frac{\sum_{i\in I}m_i\mathbf r_i}{\sum_{i\in I}m_i}" display />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3">
             <div className="border-l-2 border-lv-meso-line pl-4">
               <p className={MULTISCALE_TYPE.semititle}>{ko ? "보존" : "Retained"}</p>
               <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
@@ -133,12 +136,18 @@ function M2Mapping({ ko }: { ko: boolean }) {
         </div>
       </div>
       <div className="border border-lv-meso-line bg-lv-meso-wash p-4">
-        <p className={MULTISCALE_TYPE.semititle}>{ko ? "가속의 출처" : "Where the speedup comes from"}</p>
+        <p className={MULTISCALE_TYPE.semititle}>{ko ? "빨라지는 이유" : "Why it gets faster"}</p>
+        {/* Three columns break "여러 원자가 비드 하나로" across four lines at 390px, and
+            three stacked boxes cost more height than either. One hairline row each is the
+            shortest arrangement that still reads. */}
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {speedupFactors.map((factor) => (
-            <div key={factor.label} className="border border-border bg-muted/30 p-3">
-              <p className={`${MULTISCALE_TYPE.panelTitle} text-lv-meso`}>{factor.label}</p>
-              <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>{factor.note}</p>
+            <div
+              key={factor.label}
+              className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 border border-border bg-muted/30 p-3 sm:block"
+            >
+              <p className={`${MULTISCALE_TYPE.panelTitle} whitespace-nowrap text-lv-meso`}>{factor.label}</p>
+              <p className={`${MULTISCALE_TYPE.description} sm:mt-1`}>{factor.note}</p>
             </div>
           ))}
         </div>
@@ -163,17 +172,17 @@ function M5Collective({ ko }: { ko: boolean }) {
           ["500", ko ? "저장 프레임" : "saved frames"],
         ].map(([value, label], index) => (
           <div key={label} className={`border p-4 ${index === 2 ? tone.amber : tone.neutral}`}>
-            <p className="text-3xl font-semibold tabular-nums">{value}</p>
+            <p className="type-quiet text-3xl">{value}</p>
             <p className={`mt-2 ${MULTISCALE_TYPE.description}`}>{label}</p>
           </div>
         ))}
       </div>
       <div className="border-l-2 border-lv-meso-line pl-4">
-        <p className={MULTISCALE_TYPE.semititle}>{ko ? "이 규모에서 보이는 것" : "What this scale exposes"}</p>
+        <p className={MULTISCALE_TYPE.semititle}>{ko ? "여러 가닥이 만드는 배열" : "The arrangement many chains make"}</p>
         <p className={`mt-2 ${MULTISCALE_TYPE.body}`}>
           {ko
-            ? "한 사슬의 형태보다 여러 사슬이 서로 얽히고 풀리며 만드는 집단 완화와 형태 변화가 분석 대상이 된다."
-            : "The analysis shifts from one-chain conformation to collective relaxation and morphology created as many chains entangle and rearrange."}
+            ? "여러 가닥이 얽히고 풀리며 만드는 배열이 재료의 강성과 투과성을 정한다. 산란 실험이 되돌려 주는 것도 이 배열이다."
+            : "The arrangement many chains make as they entangle and release is what sets a material's stiffness and permeability. It is also what a scattering experiment hands back."}
         </p>
         <p className={`mt-3 ${MULTISCALE_TYPE.metadata}`}>5 fs × 200,000 = 1 ns nominal trajectory</p>
       </div>
@@ -184,11 +193,13 @@ function M5Collective({ ko }: { ko: boolean }) {
 function SceneContent({
   sceneKey,
   ko,
+  isMobile,
 }: {
   sceneKey: string;
   ko: boolean;
+  isMobile: boolean;
 }) {
-  if (sceneKey === "M2_mapping") return <M2Mapping ko={ko} />;
+  if (sceneKey === "M2_mapping") return <M2Mapping ko={ko} isMobile={isMobile} />;
   if (sceneKey === "M5_collective") return <M5Collective ko={ko} />;
   return null;
 }
@@ -203,19 +214,19 @@ export function MesoMechanism({
   if (!copy) return null;
 
   return (
-    <div className="meso-mechanism pointer-events-none absolute inset-0 z-[3]">
+    <div className={`meso-mechanism z-[3] ${isMobile ? "relative" : "pointer-events-none absolute inset-0"}`}>
       <MechanismPanel
         className={`pointer-events-auto overflow-hidden ${
-          isMobile ? MULTISCALE_PANEL.mobileOverlay : MULTISCALE_PANEL.desktopOverlay
+          isMobile ? MULTISCALE_PANEL.mobileBand : MULTISCALE_PANEL.desktopOverlay
         }`}
       >
         <MechanismHeader
           tone="meso"
           title={copy.title}
           description={copy.description}
-          aside={<span className={MULTISCALE_TYPE.metadata}>{ko ? "메조스케일" : "MESOSCALE"}</span>}
+          aside={isMobile ? undefined : <span className={MULTISCALE_TYPE.metadata}>{ko ? "메조스케일" : "MESOSCALE"}</span>}
         />
-        <SceneContent sceneKey={sceneKey} ko={ko} />
+        <SceneContent sceneKey={sceneKey} ko={ko} isMobile={isMobile} />
       </MechanismPanel>
     </div>
   );

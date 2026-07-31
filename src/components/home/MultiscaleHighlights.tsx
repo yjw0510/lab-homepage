@@ -9,7 +9,10 @@ import { MLFFSchematic } from "@/components/multiscale/schematics/MLFFSchematic"
 import { DFTSchematic } from "@/components/multiscale/schematics/DFTSchematic";
 import type { MultiscaleArea } from "@/types/multiscale";
 
-const schematicMap: Record<string, React.ComponentType<{ active: boolean }>> = {
+const schematicMap: Record<
+  string,
+  React.ComponentType<{ active: boolean; ko?: boolean }>
+> = {
   meso: MesoSchematic,
   allatom: AllAtomSchematic,
   mlff: MLFFSchematic,
@@ -92,7 +95,7 @@ export function MultiscaleHighlights({
                       levelTextMap[area.slug] ?? "text-muted-foreground"
                     }`}
                   >
-                    {area.scale}
+                    {lang === "ko" && area.scaleKo ? area.scaleKo : area.scale}
                   </span>
                 </div>
 
@@ -117,7 +120,7 @@ export function MultiscaleHighlights({
 
                   {Schematic && (
                     <div className="mt-6 flex items-center border border-border p-4 sm:p-5 md:mt-0">
-                      <Schematic active={true} />
+                      <Schematic active={true} ko={lang === "ko"} />
                     </div>
                   )}
                 </div>

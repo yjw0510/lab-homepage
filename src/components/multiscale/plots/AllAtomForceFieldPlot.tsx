@@ -43,7 +43,7 @@ export function AllAtomForceFieldPlot({
 }) {
   return (
     <PlotContainer
-      ariaLabel={lang === "ko" ? "결합 항과 비결합 항을 합쳐 전체 U를 만드는 전원자 힘장" : "Classical all-atom force field: bonded and non-bonded term families summing to total U"}
+      ariaLabel={lang === "ko" ? "결합 항과 비결합 항을 합쳐 전체 U를 만드는 전원자 역장" : "Classical all-atom force field: bonded and non-bonded term families summing to total U"}
       aspectRatio={0.8}
       minHeight={255}
       maxHeight={320}
@@ -134,7 +134,7 @@ export function AllAtomForceFieldPlot({
                     style={{ cursor: "pointer" }}
                     role="button"
                     tabIndex={0}
-                    aria-label={`${lang === "ko" ? "힘장 항 선택" : "Select force-field term"}: ${label}`}
+                    aria-label={`${lang === "ko" ? "역장 항 선택" : "Select force-field term"}: ${label}`}
                     aria-pressed={isSelected}
                   >
                     {/* Hit area slightly larger than pill */}

@@ -161,7 +161,7 @@ function Atom({
 
 /* ── component ── */
 
-export function DFTSchematic({ active }: { active: boolean }) {
+export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boolean }) {
   const reducedMotion = useReducedMotion();
   const phase = useMotionValue(0);
 
@@ -261,8 +261,8 @@ export function DFTSchematic({ active }: { active: boolean }) {
       <g className={f} style={{ animationDelay: "0.1s" }}>
         <rect x={LBX} y={LBY} width={LBW} height={LBH} rx={18}
           fill="none" stroke={HAIRLINE} strokeWidth="1.4" />
-        <text x={LCX} y={LBY + 28} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">nuclear</text>
-        <text x={LCX} y={LBY + 28 + FS_SUB} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">configuration</text>
+        <text x={LCX} y={LBY + 28} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">{ko ? "핵 배치" : "nuclear"}</text>
+        <text x={LCX} y={LBY + 28 + FS_SUB} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">{ko ? "배치" : "configuration"}</text>
 
         {/* mini O=C=O */}
         {(() => {
@@ -306,7 +306,7 @@ export function DFTSchematic({ active }: { active: boolean }) {
 
       {/* update ρ(r) */}
       <g className={f} style={{ animationDelay: "0.35s" }}>
-        <text x={RCX - 46} y={RCY + RRY + 40} textAnchor="end" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">update</text>
+        <text x={RCX - 46} y={RCY + RRY + 40} textAnchor="end" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "갱신" : "update"}</text>
         <Fx k="rho" xc={RCX + 16} yb={RCY + RRY + 40} color={INK} />
       </g>
 
@@ -330,10 +330,10 @@ export function DFTSchematic({ active }: { active: boolean }) {
 
       {/* ring labels — top row, clear of badges and ring */}
       <g className={f} style={{ animationDelay: "0.45s" }}>
-        <text x={RCX} y={132} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">SCF cycle</text>
-        <text x={264} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">build</text>
+        <text x={RCX} y={132} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">{ko ? "SCF 순환" : "SCF cycle"}</text>
+        <text x={264} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "구성" : "build"}</text>
         <Fx k="veff" xc={264} yb={124 + TZ.labelToFormula} color={INK} />
-        <text x={496} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">solve</text>
+        <text x={496} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "풀이" : "solve"}</text>
         <Fx k="phi_eps" xc={496} yb={124 + TZ.labelToFormula} color={INK} />
       </g>
 

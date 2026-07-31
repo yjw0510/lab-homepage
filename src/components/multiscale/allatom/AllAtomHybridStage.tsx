@@ -1,19 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { MutableRefObject } from "react";
-import { MolstarAllAtomStage } from "../molstar/MolstarAllAtomStage";
+import { MolstarElectrolyteStage } from "../molstar/MolstarElectrolyteStage";
 import type { ResearchCameraActions } from "../molstar/shared";
 import { AllAtomMechanism } from "../overlays/AllAtomMechanism";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { getAllAtomSceneKey, type AllAtomCameraState } from "./allAtomConfig";
+import { getAllAtomSceneKey } from "./allAtomConfig";
 import type { ScrollState } from "../scrollState";
 import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allAtomPagePolicy";
 import { useMultiscaleCanvasColor } from "../useMultiscaleCanvasColor";
-
-const BASE_ZOOM_INDEX = 2;
-const MIN_ZOOM_INDEX = 0;
-const MAX_ZOOM_INDEX = 4;
 
 export function AllAtomHybridStage({
   scrollState,
@@ -24,7 +20,9 @@ export function AllAtomHybridStage({
   lang,
   reducedMotion,
   hideMechanism = false,
-  onMeasuredDistance,
+  mobileSceneHeight,
+  onTermChange,
+  onReadoutChange,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
@@ -34,13 +32,11 @@ export function AllAtomHybridStage({
   lang?: string;
   reducedMotion?: boolean;
   hideMechanism?: boolean;
-  onMeasuredDistance?: (nm: number | null) => void;
+  mobileSceneHeight?: number;
+  onTermChange?: (term: AllAtomForceFieldTerm) => void;
+  onReadoutChange?: (readout: AllAtomReadoutId) => void;
 }) {
   const canvasColor = useMultiscaleCanvasColor();
-  const [cameraState, setCameraState] = useState<AllAtomCameraState>({
-    zoomIndex: BASE_ZOOM_INDEX,
-    viewRevision: 0,
-  });
   const [mechanismTerm, setMechanismTerm] = useState<AllAtomForceFieldTerm>("Ubond");
   const [mechanismReadout, setMechanismReadout] = useState<AllAtomReadoutId>("orientation");
   const activeSceneKey = getAllAtomSceneKey(scrollState.step);
@@ -53,59 +49,23 @@ export function AllAtomHybridStage({
   const effectiveReadout =
     activeReadout ?? (activeSceneKey === "A6_observables" ? mechanismReadout : null);
   const separateMobileMechanism = isMobile;
-  const mobileMechanismHeight = "720px";
-
-  useEffect(() => {
-    if (!actionsRef) return;
-    actionsRef.current = {
-      zoomIn: () => {
-        setCameraState((current) => ({
-          ...current,
-          zoomIndex: Math.max(MIN_ZOOM_INDEX, current.zoomIndex - 1),
-        }));
-      },
-      zoomOut: () => {
-        setCameraState((current) => ({
-          ...current,
-          zoomIndex: Math.min(MAX_ZOOM_INDEX, current.zoomIndex + 1),
-        }));
-      },
-      fit: () => {
-        setCameraState({
-          zoomIndex: BASE_ZOOM_INDEX,
-          viewRevision: Date.now(),
-        });
-      },
-      reset: () => {
-        setCameraState({
-          zoomIndex: BASE_ZOOM_INDEX,
-          viewRevision: Date.now(),
-        });
-      },
-    };
-
-    return () => {
-      actionsRef.current = null;
-    };
-  }, [actionsRef]);
 
   return (
     <div
-      className={`relative h-full w-full overflow-hidden bg-surface-sunken ${
-        separateMobileMechanism ? "flex flex-col" : ""
+      className={`relative w-full bg-surface-sunken ${
+        separateMobileMechanism ? "flex flex-col" : "h-full overflow-hidden"
       }`}
       data-testid="multiscale-render-surface"
     >
-      <div className={`relative min-h-0 w-full ${separateMobileMechanism ? "flex-1" : "h-full"}`}>
-        <MolstarAllAtomStage
-          scrollState={scrollState}
-          isMobile={isMobile}
-          cameraState={cameraState}
-          activeTerm={effectiveTerm}
-          activeReadout={effectiveReadout}
+      <div
+        className={`relative min-h-0 w-full ${separateMobileMechanism ? "" : "h-full"}`}
+        style={separateMobileMechanism ? { height: mobileSceneHeight } : undefined}
+      >
+        <MolstarElectrolyteStage
+          step={scrollState.step}
           reducedMotion={motionReduced}
-          onMeasuredDistance={onMeasuredDistance}
           canvasColor={canvasColor}
+          actionsRef={actionsRef}
         />
         {!separateMobileMechanism && !hideMechanism ? (
           <AllAtomMechanism
@@ -115,16 +75,19 @@ export function AllAtomHybridStage({
             reducedMotion={motionReduced}
             activeTerm={effectiveTerm}
             activeReadout={effectiveReadout}
-            onTermChange={setMechanismTerm}
-            onReadoutChange={setMechanismReadout}
+            onTermChange={(term) => {
+              setMechanismTerm(term);
+              onTermChange?.(term);
+            }}
+            onReadoutChange={(readout) => {
+              setMechanismReadout(readout);
+              onReadoutChange?.(readout);
+            }}
           />
         ) : null}
       </div>
       {separateMobileMechanism ? (
-        <div
-          className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken"
-          style={{ height: mobileMechanismHeight }}
-        >
+        <div className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken">
           <AllAtomMechanism
             key={activeSceneKey}
             sceneKey={activeSceneKey}
@@ -132,8 +95,14 @@ export function AllAtomHybridStage({
             reducedMotion={motionReduced}
             activeTerm={effectiveTerm}
             activeReadout={effectiveReadout}
-            onTermChange={setMechanismTerm}
-            onReadoutChange={setMechanismReadout}
+            onTermChange={(term) => {
+              setMechanismTerm(term);
+              onTermChange?.(term);
+            }}
+            onReadoutChange={(readout) => {
+              setMechanismReadout(readout);
+              onReadoutChange?.(readout);
+            }}
             isMobile
           />
         </div>

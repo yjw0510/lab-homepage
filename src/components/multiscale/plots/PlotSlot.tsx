@@ -1,10 +1,10 @@
 "use client";
 
-import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "../allatom/allAtomPagePolicy";
+import type { AllAtomForceFieldTerm } from "../allatom/allAtomPagePolicy";
 import type { PlotType } from "../levelData";
 import { SCFPlot } from "./SCFPlot";
 import { AllAtomForceFieldPlot } from "./AllAtomForceFieldPlot";
-import { AllAtomReadoutPlot } from "./AllAtomReadoutPlot";
+import { AllAtomCoordinationPlot } from "./AllAtomCoordinationPlot";
 
 export function PlotSlot({
   plotType,
@@ -17,11 +17,6 @@ export function PlotSlot({
   onTermHover,
   onTermLeave,
   onTermToggle,
-  activeReadout,
-  selectedReadout,
-  onReadoutHover,
-  onReadoutLeave,
-  onReadoutToggle,
 }: {
   plotType: PlotType;
   progress: number;
@@ -33,11 +28,6 @@ export function PlotSlot({
   onTermHover?: (term: AllAtomForceFieldTerm) => void;
   onTermLeave?: () => void;
   onTermToggle?: (term: AllAtomForceFieldTerm) => void;
-  activeReadout?: AllAtomReadoutId | null;
-  selectedReadout?: AllAtomReadoutId | null;
-  onReadoutHover?: (readout: AllAtomReadoutId) => void;
-  onReadoutLeave?: () => void;
-  onReadoutToggle?: (readout: AllAtomReadoutId) => void;
 }) {
   if (plotType === "scf") {
     return <SCFPlot progress={progress} accentColor={accentColor} activeIndexOverride={activeIndexOverride} />;
@@ -57,16 +47,5 @@ export function PlotSlot({
     );
   }
 
-  return (
-    <AllAtomReadoutPlot
-      progress={progress}
-      accentColor={accentColor}
-      lang={lang}
-      activeReadout={activeReadout}
-      selectedReadout={selectedReadout}
-      onReadoutHover={onReadoutHover}
-      onReadoutLeave={onReadoutLeave}
-      onReadoutToggle={onReadoutToggle}
-    />
-  );
+  return <AllAtomCoordinationPlot accentColor={accentColor} lang={lang} />;
 }

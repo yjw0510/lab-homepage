@@ -39,9 +39,6 @@ export default async function FundingPage({
           <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
             {dict.funding.title}
           </h1>
-          <p className="mt-3 max-w-[36rem] leading-relaxed text-muted-foreground">
-            {dict.funding.subtitle}
-          </p>
         </header>
         <div
           aria-hidden="true"
@@ -62,7 +59,7 @@ export default async function FundingPage({
         {activeGrants.length > 0 && (
           <section className="mt-10">
             <div className="border-t border-border-strong pt-6">
-              <h2 className="type-heading flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+              <h2 className="type-title flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
                 {dict.funding.active}
               </h2>
             </div>
@@ -82,7 +79,7 @@ export default async function FundingPage({
         {completedGrants.length > 0 && (
           <section className="mt-14 sm:mt-16">
             <div className="border-t border-border-strong pt-6">
-              <h2 className="type-heading flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
+              <h2 className="type-title flex items-baseline text-[28px] text-foreground"><span aria-hidden="true" className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary" />
                 {dict.funding.completed}
               </h2>
             </div>

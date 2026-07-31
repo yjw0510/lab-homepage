@@ -52,6 +52,7 @@ export default async function MultiscaleDetailPage({
   if (!area) notFound();
 
   const rawContent = (lang === "ko" && area.contentKo) ? area.contentKo : (area.content || "");
+  const scale = (lang === "ko" && area.scaleKo) ? area.scaleKo : area.scale;
   const sections = parseMarkdownSections(rawContent);
   const currentLevelIndex = LEVELS.findIndex((level) => level.id === area.slug);
   const previousLevel = currentLevelIndex > 0 ? LEVELS[currentLevelIndex - 1] : null;
@@ -65,7 +66,7 @@ export default async function MultiscaleDetailPage({
   const handoff = lang === "ko"
     ? {
         label: "멀티스케일 연결",
-        sequence: "제일원리 → MLFF → 전원자 → 메조스케일",
+        sequence: "DFT → MLFF → 전원자 → 메조스케일",
         returnTo: "인터랙티브로 돌아가기",
         previous: "이전 방법",
         next: "다음 방법",
@@ -91,9 +92,9 @@ export default async function MultiscaleDetailPage({
 
         {/* Title block */}
         <header className="mt-8">
-          {area.scale && (
+          {scale && (
             <p className="type-mono-meta text-[12px] text-muted-foreground">
-              {area.scale}
+              {scale}
             </p>
           )}
           <h1 className="type-display mt-3 max-w-3xl text-3xl text-foreground sm:text-4xl">
@@ -115,7 +116,7 @@ export default async function MultiscaleDetailPage({
             </div>
             <Link
               href={interactiveHref}
-              className="type-mono-meta inline-flex text-xs text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
+              className="type-mono-meta inline-flex min-h-6 items-center text-xs text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
             >
               {handoff.returnTo}: {localizedTitle}
             </Link>
@@ -125,7 +126,7 @@ export default async function MultiscaleDetailPage({
               {previousLevel ? (
                 <Link
                   href={`/${lang}/multiscale/${previousLevel.id}`}
-                  className="type-mono-meta min-w-0 truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  className="type-mono-meta inline-flex min-h-6 min-w-0 items-center truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
                 >
                   ← {handoff.previous}: {previousLevel.label[lang as "en" | "ko"] ?? previousLevel.label.en}
                 </Link>
@@ -133,7 +134,7 @@ export default async function MultiscaleDetailPage({
               {nextLevel ? (
                 <Link
                   href={`/${lang}/multiscale/${nextLevel.id}`}
-                  className="type-mono-meta min-w-0 truncate text-left text-xs text-muted-foreground transition-colors hover:text-foreground sm:text-right"
+                  className="type-mono-meta inline-flex min-h-6 min-w-0 items-center truncate text-left text-xs text-muted-foreground transition-colors hover:text-foreground sm:justify-end sm:text-right"
                 >
                   {handoff.next}: {nextLevel.label[lang as "en" | "ko"] ?? nextLevel.label.en} →
                 </Link>
@@ -154,9 +155,9 @@ export default async function MultiscaleDetailPage({
         {area.moleculeViewer && (
           <figure className="mt-12 border border-border">
             <MultiscaleMoleculeViewer />
-            {area.scale && (
+            {scale && (
               <figcaption className="type-mono-meta border-t border-border px-4 py-2.5 text-[11px] text-muted-foreground">
-                {area.scale}
+                {scale}
               </figcaption>
             )}
           </figure>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { formatDate } from "@/lib/utils";
-import type { NewsItem } from "@/types/news";
+import { newsCategoryLabel, type NewsItem } from "@/types/news";
 
 export function LabNews({
   news,
@@ -34,7 +34,7 @@ export function LabNews({
                   {formatDate(item.date, lang)}
                 </p>
                 <p className="type-mono-meta mt-0.5 text-[12px] text-muted-foreground">
-                  {item.category}
+                  {newsCategoryLabel(item.category, lang)}
                 </p>
               </div>
 
