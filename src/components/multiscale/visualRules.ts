@@ -51,7 +51,12 @@ export const DEFAULT_MOBILE_SCENE_HEIGHT = 460;
 export const MULTISCALE_MOTION = {
   stateCycleMs: 3000,
   outputCycleMs: 2400,
-  scfFrameMs: 900,
+  // Every SCF frame is shown, but not for equally long. The density moves a lot over the first
+  // few iterations and almost not at all over the last twenty, so a fixed hold spent most of the
+  // loop on frames that look identical. These are the first and last holds; the ones between
+  // decay geometrically, the same way the iteration-to-iteration change does.
+  scfFirstFrameMs: 330,
+  scfLastFrameMs: 45,
   finalStateHoldMs: 1800,
   stateTransition: "transition-opacity duration-300",
 } as const;

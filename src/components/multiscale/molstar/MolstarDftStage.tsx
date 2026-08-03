@@ -6,6 +6,7 @@ import { withBasePath } from "@/lib/basePath";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { ScrollState } from "../scrollState";
 import { CHOREOGRAPHY } from "../levelData";
+import { BASE_ZOOM_INDEX, MAX_ZOOM_INDEX } from "../multiscaleViewSchedule";
 import { applyMolstarPlacement, computeScheduledPlacement } from "../multiscaleViewRuntime";
 import { MULTISCALE_MOTION } from "../visualRules";
 import { useMultiscaleCanvasColor } from "../useMultiscaleCanvasColor";
@@ -16,31 +17,73 @@ import {
   type DftOutputMode,
   type DftSceneKey,
 } from "../overlays/DftMechanism";
+import { ballAndStick, shortestHeavyBond } from "../ballAndStick";
 import {
+  ATOM_MATERIAL,
   BLUE,
   CameraSnapshotLike,
   ELEMENT_COLORS,
-  ELEMENT_RADII,
-  ORANGE,
+  PALE,
   PluginLike,
   RED,
   ResearchCameraActions,
   ResearchLayerSpec,
   SLATE,
+  type ValueScale,
   applyResearchCanvasBackground,
   centerPoints,
   commitResearchLayers,
   layerBounds,
-  mixColor,
   mountResearchPlugin,
-  offsetMesh,
 } from "./shared";
 import { trimBondEndpoints } from "./geometry";
 
+/** One mesh's slices of the accompanying .bin, in the layout scripts/generate-dft-data.py writes. */
+interface MeshSlice {
+  vertexCount: number;
+  faceCount: number;
+  vertices: number;
+  faces: number;
+  normals?: number;
+  values?: number;
+}
+
 interface IsosurfaceMesh {
-  vertices: number[][];
-  faces: number[][];
-  normals?: number[][];
+  vertices: Float32Array;
+  faces: Uint32Array;
+  /** Exact surface normal from the interpolated field gradient. */
+  normals?: Float32Array;
+  /** Per-vertex departure from the converged surface; see scripts/generate-dft-data.py. */
+  values?: Float32Array;
+}
+
+/**
+ * Sub-triangles per edge when the isosurfaces are rebuilt as curved PN patches.
+ *
+ * 3 is 9 triangles per input triangle for nothing on the wire. The curve comes from normals the
+ * file already carries, so the alternative to this is shipping nine times the mesh.
+ */
+const SURFACE_SUBDIVISION = 3;
+
+/**
+ * Meshes arrive as one binary blob with byte offsets in the JSON beside it.
+ *
+ * As JSON these were 18.8 MB of decimal text for 175,575 vertices and 338,254 triangles, which
+ * the browser then had to turn into hundreds of thousands of small arrays. Normals are not in
+ * the file at all: this renderer has never read them, it zeroes the buffer and lets Mol* derive
+ * them from the shared-vertex topology.
+ */
+function sliceMesh(buffer: ArrayBuffer, slice: MeshSlice): IsosurfaceMesh {
+  return {
+    vertices: new Float32Array(buffer, slice.vertices, slice.vertexCount * 3),
+    faces: new Uint32Array(buffer, slice.faces, slice.faceCount * 3),
+    normals: slice.normals === undefined
+      ? undefined
+      : new Float32Array(buffer, slice.normals, slice.vertexCount * 3),
+    values: slice.values === undefined
+      ? undefined
+      : new Float32Array(buffer, slice.values, slice.vertexCount),
+  };
 }
 
 interface DftScaffoldData {
@@ -56,17 +99,95 @@ interface FrontierOrbitalData {
   orbitalEnergies: { homoEV: number; lumoEV: number };
 }
 
-async function fetchJsonOrThrow<T>(path: string, label: string): Promise<T> {
+async function fetchOrThrow(path: string, label: string): Promise<Response> {
   const response = await fetch(withBasePath(path), { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Failed to load ${label}: ${response.status} ${response.statusText}`);
   }
-  return response.json() as Promise<T>;
+  return response;
+}
+
+async function fetchJsonOrThrow<T>(path: string, label: string): Promise<T> {
+  return (await fetchOrThrow(path, label)).json() as Promise<T>;
+}
+
+async function fetchBufferOrThrow(path: string, label: string): Promise<ArrayBuffer> {
+  return (await fetchOrThrow(path, label)).arrayBuffer();
+}
+
+/** Move a mesh onto the molecule's centre, in place. Each view owns its own bytes. */
+function shiftMesh(mesh: IsosurfaceMesh, centre: number[]): IsosurfaceMesh {
+  for (let at = 0; at < mesh.vertices.length; at += 3) {
+    mesh.vertices[at] -= centre[0];
+    mesh.vertices[at + 1] -= centre[1];
+    mesh.vertices[at + 2] -= centre[2];
+  }
+  return mesh;
 }
 
 interface DensitySnapshot {
   colorT: number;
+  /** "Iter N", ORCA's own iteration number, written by scripts/generate-dft-data.py. */
+  label: string;
+  /** How this frame's departures map onto the ramp; see `frameScales`. */
+  valueScale: ValueScale;
   mesh: IsosurfaceMesh;
+}
+
+/** |values| at `q`, from a copy so the mesh's own buffer keeps its vertex order. */
+function percentileAbs(values: ArrayLike<number> | undefined, q: number) {
+  if (!values || values.length === 0) return 0;
+  const sorted = Float32Array.from(values, Math.abs).sort();
+  return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))];
+}
+
+// The colour transfer's tuning, all measured against the run's own vertex distributions
+// (scratchpad transfer-adaptive.mjs holds the measurement harness).
+//
+// Within a frame: knee = p95/SHAPE_SPREAD, saturating at p99. The departure spans 3 down to
+// 8e-5 across the run, and any transfer fixed for the whole run leaves the early frames as two
+// ramp-end colours with a thin seam between - at a knee low enough for the late frames, |v|=0.1
+// is already t = 0.75. Keyed to each frame's own p95 instead, frames 2-8 go from 2-3 occupied
+// colour bands to 6-10 with the mass in the interior.
+//
+// Across frames: only `amp` moves, on one run-wide signed-log envelope (knee ENVELOPE_KNEE with
+// a coarse second term at 0.3 for the top decades), so a frame's loudness still says how far
+// from convergence it is: 1.0 at iteration 2, 0.69 at 12, 0.32 at 30. AMP_FLOOR keeps the last
+// dozen frames two bands wide instead of collapsing onto the zero colour - their p95 is 8e-5
+// and on the raw envelope they'd paint at 0.10. Frames 2-3 keep a pile at the low end and 59 is
+// exactly zero; both are the data (40% of early vertices really sit in 0.15 decade of "far
+// below", and 59 is the reference itself).
+const SHAPE_SPREAD = 20;
+/** Decades below the run's largest departure where the envelope's fine knee sits. */
+const ENVELOPE_DECADES = 5;
+const AMP_FLOOR = 0.2;
+const ENVELOPE_COARSE_KNEE = 0.3;
+const ENVELOPE_COARSE_WEIGHT = 2;
+/** Departures are clipped here by scripts/isosurface_remesh.py; the envelope tops out at it. */
+const DEPARTURE_CLIP = 3;
+
+function frameScales(snapshots: { mesh: IsosurfaceMesh }[]): ValueScale[] {
+  const pooled = percentileAbs(
+    Float32Array.from(snapshots.flatMap((entry) => Array.from(entry.mesh.values ?? []))), 0.98);
+  const envelopeKnee = Math.max(pooled, 1e-6) * 10 ** -ENVELOPE_DECADES;
+  const envelope = (v: number) =>
+    Math.asinh(v / envelopeKnee) + ENVELOPE_COARSE_WEIGHT * Math.asinh(v / ENVELOPE_COARSE_KNEE);
+  return snapshots.map((entry) => {
+    const p95 = percentileAbs(entry.mesh.values, 0.95);
+    const p99 = percentileAbs(entry.mesh.values, 0.99);
+    if (p95 <= 0) return { knee: 0, norm: 1, amp: 0 };
+    const knee = p95 / SHAPE_SPREAD;
+    return {
+      knee,
+      norm: Math.asinh(p99 / knee),
+      amp: Math.max(AMP_FLOOR, Math.min(1, envelope(p95) / envelope(DEPARTURE_CLIP))),
+    };
+  });
+}
+
+function withScales(snapshots: Omit<DensitySnapshot, "valueScale">[]): DensitySnapshot[] {
+  const scales = frameScales(snapshots);
+  return snapshots.map((entry, index) => ({ ...entry, valueScale: scales[index] }));
 }
 
 interface DensityEvolutionData {
@@ -94,11 +215,27 @@ interface DftVisualState {
   bondOpacity: number;
 }
 
+/**
+ * How long iteration `index` of `count` stays on screen.
+ *
+ * Geometric between the two holds in MULTISCALE_MOTION, so the ratio between one frame's hold and
+ * the next is constant. That matches the sequence: the 98th-percentile density change falls by
+ * about a decade and a half from the first third of the run to the last, so a constant hold spent
+ * most of the loop on frames that differ from their neighbour by 1e-5.
+ */
+export function scfFrameMs(index: number, count: number) {
+  const { scfFirstFrameMs: first, scfLastFrameMs: last } = MULTISCALE_MOTION;
+  if (count < 2) return first;
+  const t = Math.max(0, Math.min(1, index / (count - 1)));
+  return Math.round(first * (last / first) ** t);
+}
+
 function resolveDftSceneKey(sceneKey: string | undefined, step: number): DftSceneKey {
   if (sceneKey === "D4_scf" || sceneKey === "D6_outputs") {
     return sceneKey;
   }
-  return step === 1 ? "D4_scf" : "D6_outputs";
+  // The SCF loop is the first DFT page and the outputs the second; see CHOREOGRAPHY.dft.
+  return step === 0 ? "D4_scf" : "D6_outputs";
 }
 
 function getDftVisuals(sceneKey: DftSceneKey, outputMode: DftOutputMode): DftVisualState {
@@ -112,7 +249,7 @@ function getDftVisuals(sceneKey: DftSceneKey, outputMode: DftOutputMode): DftVis
     showFinalDensity,
     finalDensityOpacity: showFinalDensity ? 0.46 : 0,
     showDensityEvolution,
-    densityEvolutionOpacity: showDensityEvolution ? 0.54 : 0,
+    densityEvolutionOpacity: showDensityEvolution ? 0.7 : 0,
     showHOMO,
     homoOpacity: showHOMO ? 0.96 : 0,
     showLUMO,
@@ -122,50 +259,25 @@ function getDftVisuals(sceneKey: DftSceneKey, outputMode: DftOutputMode): DftVis
   };
 }
 
-function centerFrontierData(frontier: FrontierOrbitalData, center: [number, number, number]): FrontierOrbitalData {
-  return {
-    homoIsosurface: {
-      positive: offsetMesh(frontier.homoIsosurface.positive, center),
-      negative: offsetMesh(frontier.homoIsosurface.negative, center),
-    },
-    lumoIsosurface: {
-      positive: offsetMesh(frontier.lumoIsosurface.positive, center),
-      negative: offsetMesh(frontier.lumoIsosurface.negative, center),
-    },
-    orbitalEnergies: {
-      homoEV: frontier.orbitalEnergies.homoEV,
-      lumoEV: frontier.orbitalEnergies.lumoEV,
-    },
-  };
-}
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function migrateDensityEvolution(raw: any): DensityEvolutionData {
-  const snapshots: DensitySnapshot[] = (raw.snapshots as any[]).map((s: any, i: number, arr: any[]) => {
-    const mesh = (s.positive ?? s.negative ?? { vertices: [], faces: [] }) as IsosurfaceMesh;
-    return {
-      colorT:
-        typeof s.colorT === "number"
-          ? s.colorT
-          : arr.length > 1
-            ? i / (arr.length - 1)
-            : 1,
-      mesh: (s.mesh ?? mesh) as IsosurfaceMesh,
-    };
-  });
+function centerFrontierData(raw: any, buffer: ArrayBuffer, center: number[]): FrontierOrbitalData {
+  const at = (slice: MeshSlice) => shiftMesh(sliceMesh(buffer, slice), center);
   return {
-    finalDensity: { mesh: raw.finalDensity.mesh as IsosurfaceMesh },
-    snapshots,
+    homoIsosurface: { positive: at(raw.homoIsosurface.positive),
+                      negative: at(raw.homoIsosurface.negative) },
+    lumoIsosurface: { positive: at(raw.lumoIsosurface.positive),
+                      negative: at(raw.lumoIsosurface.negative) },
+    orbitalEnergies: raw.orbitalEnergies ?? {},
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function centerDftData(
   molecule: DftScaffoldData,
-  densityEvolution: DensityEvolutionData,
+  evolution: any,
+  buffer: ArrayBuffer,
 ): DftStageData {
-  const migrated = migrateDensityEvolution(densityEvolution);
   const centered = centerPoints(molecule.atoms);
+  const at = (slice: MeshSlice) => shiftMesh(sliceMesh(buffer, slice), centered.center);
 
   return {
     molecule: {
@@ -175,18 +287,21 @@ function centerDftData(
       bondOrders: molecule.bondOrders,
     },
     densityEvolution: {
-      finalDensity: {
-        mesh: offsetMesh(migrated.finalDensity.mesh, centered.center),
-      },
-      snapshots: migrated.snapshots.map((snapshot) => ({
+      finalDensity: { mesh: at(evolution.finalDensity.mesh) },
+      // Every frame indexes the same triangle list: the surface is extracted once from the
+      // converged density and tracked back through the iterations, so only the vertices move.
+      // Shifting is per frame because each frame owns its own vertex bytes.
+      snapshots: withScales((evolution.snapshots as any[]).map((snapshot: any) => ({
         colorT: snapshot.colorT,
-        mesh: offsetMesh(snapshot.mesh, centered.center),
-      })),
+        label: snapshot.label,
+        mesh: at(snapshot.mesh),
+      }))),
     },
     frontier: null,
     center: centered.center as [number, number, number],
   };
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function buildDftLayers(
   data: DftStageData,
@@ -196,34 +311,44 @@ function buildDftLayers(
 ): ResearchLayerSpec[] {
   const visuals = getDftVisuals(sceneKey, outputMode);
   const activeMolecule = data.molecule;
+  // Sizes from the shared rule, measured on this molecule's own bonds. The radii used to come
+  // from a fixed table and the sticks from a fixed 0.05, which put the stick at 0.098 of a
+  // carbon against the 0.35 every other scene draws. That is what read as fat atoms: the balls
+  // are barely changed by this, the sticks are nearly four times thicker.
+  const geometry = ballAndStick(
+    shortestHeavyBond(activeMolecule.atoms.flat(), activeMolecule.bonds as [number, number][], activeMolecule.elements),
+    activeMolecule.elements,
+  );
   const layers: ResearchLayerSpec[] = [
     {
       label: "DFT Atoms",
       primitives: activeMolecule.atoms.map((atom, index) => ({
         kind: "sphere" as const,
         center: atom as [number, number, number],
-        radius: ELEMENT_RADII[activeMolecule.elements[index]] ?? 0.2,
+        radius: geometry.ball(activeMolecule.elements[index]),
         color: ELEMENT_COLORS[activeMolecule.elements[index]] ?? SLATE,
       })),
       params: {
         alpha: visuals.atomOpacity,
         quality: "high",
-        material: { metalness: 0.08, roughness: 0.44, bumpiness: 0.03 },
-        emissive: 0.02,
+        material: ATOM_MATERIAL,
       },
     },
     {
       label: "DFT Bonds",
-      primitives: activeMolecule.bonds.map(([i, j], index) => {
-        const ri = ELEMENT_RADII[activeMolecule.elements[i]] ?? 0.2;
-        const rj = ELEMENT_RADII[activeMolecule.elements[j]] ?? 0.2;
-        const shortened = trimBondEndpoints(activeMolecule.atoms[i], activeMolecule.atoms[j], ri, rj);
+      primitives: activeMolecule.bonds.map(([i, j]) => {
+        const shortened = trimBondEndpoints(
+          activeMolecule.atoms[i],
+          activeMolecule.atoms[j],
+          geometry.trim(activeMolecule.elements[i]),
+          geometry.trim(activeMolecule.elements[j]),
+        );
         return {
           kind: "cylinder" as const,
           start: shortened.start,
           end: shortened.end,
-          radiusTop: (activeMolecule.bondOrders[index] ?? 1) >= 2 ? 0.07 : 0.05,
-          radiusBottom: (activeMolecule.bondOrders[index] ?? 1) >= 2 ? 0.07 : 0.05,
+          radiusTop: geometry.stick,
+          radiusBottom: geometry.stick,
           radialSegments: 12,
           color: SLATE,
         };
@@ -231,8 +356,7 @@ function buildDftLayers(
       params: {
         alpha: visuals.bondOpacity,
         quality: "high",
-        material: { metalness: 0.08, roughness: 0.44, bumpiness: 0.03 },
-        emissive: 0.02,
+        material: ATOM_MATERIAL,
       },
     },
   ];
@@ -240,10 +364,30 @@ function buildDftLayers(
   if (visuals.showDensityEvolution) {
     const snapshot = data.densityEvolution.snapshots[activeSnapshotIndex] ?? data.densityEvolution.snapshots[0];
     if (snapshot?.mesh.vertices.length) {
-      const color = mixColor(ORANGE, BLUE, snapshot.colorT);
+      // A pale neutral rather than a per-frame hue. Measured on the first iteration, 35% of the
+      // vertices sit inside a quarter of the ramp and so are painted at or near this colour; a
+      // dark base there put a third of the surface below the black background and the frame read
+      // as density existing only where the departure was large. The frame is already named in
+      // the panel and shown by how much colour the surface carries, so the base does not have to
+      // carry it too.
+      const color = PALE;
+      // The surface is the total density and stays that. What is painted on it is how far this
+      // iteration sits from the converged density, because the surface alone overlaps the
+      // converged one closely enough that the frames read as the same picture. The mapping was
+      // settled once at load; see `frameScales`.
+      const valueScale = snapshot.valueScale;
       layers.push({
         label: "SCF Total Density",
-        primitives: [{ kind: "mesh" as const, vertices: snapshot.mesh.vertices, faces: snapshot.mesh.faces, color }],
+        primitives: [{
+          kind: "mesh" as const,
+          vertices: snapshot.mesh.vertices,
+          faces: snapshot.mesh.faces,
+          normals: snapshot.mesh.normals,
+          subdivide: SURFACE_SUBDIVISION,
+          color,
+          values: snapshot.mesh.values,
+          valueScale,
+        }],
         params: {
           alpha: visuals.densityEvolutionOpacity,
           quality: "high",
@@ -260,7 +404,9 @@ function buildDftLayers(
     layers.push(
       {
         label: "HOMO Positive",
-        primitives: [{ kind: "mesh" as const, vertices: data.frontier.homoIsosurface.positive.vertices, faces: data.frontier.homoIsosurface.positive.faces, color: RED }],
+        primitives: [{ kind: "mesh" as const, vertices: data.frontier.homoIsosurface.positive.vertices,
+                     faces: data.frontier.homoIsosurface.positive.faces, normals: data.frontier.homoIsosurface.positive.normals,
+                     subdivide: SURFACE_SUBDIVISION, color: RED }],
         params: {
           alpha: visuals.homoOpacity,
           quality: "high",
@@ -271,7 +417,9 @@ function buildDftLayers(
       },
       {
         label: "HOMO Negative",
-        primitives: [{ kind: "mesh" as const, vertices: data.frontier.homoIsosurface.negative.vertices, faces: data.frontier.homoIsosurface.negative.faces, color: BLUE }],
+        primitives: [{ kind: "mesh" as const, vertices: data.frontier.homoIsosurface.negative.vertices,
+                     faces: data.frontier.homoIsosurface.negative.faces, normals: data.frontier.homoIsosurface.negative.normals,
+                     subdivide: SURFACE_SUBDIVISION, color: BLUE }],
         params: {
           alpha: visuals.homoOpacity,
           quality: "high",
@@ -288,7 +436,9 @@ function buildDftLayers(
     layers.push(
       {
         label: "LUMO Positive",
-        primitives: [{ kind: "mesh" as const, vertices: data.frontier.lumoIsosurface.positive.vertices, faces: data.frontier.lumoIsosurface.positive.faces, color: RED }],
+        primitives: [{ kind: "mesh" as const, vertices: data.frontier.lumoIsosurface.positive.vertices,
+                     faces: data.frontier.lumoIsosurface.positive.faces, normals: data.frontier.lumoIsosurface.positive.normals,
+                     subdivide: SURFACE_SUBDIVISION, color: RED }],
         params: {
           alpha: visuals.lumoOpacity,
           quality: "high",
@@ -299,7 +449,9 @@ function buildDftLayers(
       },
       {
         label: "LUMO Negative",
-        primitives: [{ kind: "mesh" as const, vertices: data.frontier.lumoIsosurface.negative.vertices, faces: data.frontier.lumoIsosurface.negative.faces, color: BLUE }],
+        primitives: [{ kind: "mesh" as const, vertices: data.frontier.lumoIsosurface.negative.vertices,
+                     faces: data.frontier.lumoIsosurface.negative.faces, normals: data.frontier.lumoIsosurface.negative.normals,
+                     subdivide: SURFACE_SUBDIVISION, color: BLUE }],
         params: {
           alpha: visuals.lumoOpacity,
           quality: "high",
@@ -319,7 +471,12 @@ function buildDftLayers(
           kind: "mesh" as const,
           vertices: data.densityEvolution.finalDensity.mesh.vertices,
           faces: data.densityEvolution.finalDensity.mesh.faces,
-          color: BLUE,
+          normals: data.densityEvolution.finalDensity.mesh.normals,
+          subdivide: SURFACE_SUBDIVISION,
+          // The same colour the SCF surface one page earlier settles on. That surface is painted by
+          // departure from the converged density, so at convergence it reads the middle of the ramp;
+          // this is that density, and arriving on a different hue would read as a different quantity.
+          color: PALE,
         },
       ],
       params: {
@@ -335,11 +492,14 @@ function buildDftLayers(
   return layers;
 }
 
+/** Every mesh vertex as an xyz triple, thinned when there are more than the camera solve needs. */
 function sampleMeshVertices(mesh: IsosurfaceMesh, stride = 96) {
-  if (mesh.vertices.length <= 2000) return mesh.vertices;
+  const count = mesh.vertices.length / 3;
+  const step = count <= 2000 ? 1 : stride;
   const sampled: number[][] = [];
-  for (let index = 0; index < mesh.vertices.length; index += stride) {
-    sampled.push(mesh.vertices[index]);
+  for (let index = 0; index < count; index += step) {
+    sampled.push([mesh.vertices[index * 3], mesh.vertices[index * 3 + 1],
+                  mesh.vertices[index * 3 + 2]]);
   }
   return sampled;
 }
@@ -410,11 +570,23 @@ export function MolstarDftStage({
   lang = "en",
   hideMechanism = false,
   mobileSceneHeight,
+  onStatusChange,
+  onScfIndexChange,
+  cyclePaused = false,
+  scfPlaying = true,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   manualSnapshotIndex?: number | null;
+  /** What the scene is currently showing, for the caption under the camera controls. */
+  onStatusChange?: (status: string) => void;
+  /** Which SCF iteration is on screen, including the ones playback advanced to by itself. */
+  onScfIndexChange?: (index: number) => void;
+  /** Hold the outputs page on whichever surface is up instead of cycling through the three. */
+  cyclePaused?: boolean;
+  /** Run the SCF sequence. False holds it wherever it is, including where the reader dropped it. */
+  scfPlaying?: boolean;
   sceneKey?: string;
   reducedMotion?: boolean;
   lang?: string;
@@ -442,7 +614,7 @@ export function MolstarDftStage({
     DftMechanismData,
     "homoEV" | "lumoEV"
   >>({});
-  const [zoomIndex, setZoomIndex] = useState(2);
+  const [zoomIndex, setZoomIndex] = useState(BASE_ZOOM_INDEX);
   const [viewRevision, setViewRevision] = useState(0);
   const frontierRequestedRef = useRef(false);
   const rebuildSceneRef = useRef<(() => Promise<void>) | null>(null);
@@ -571,7 +743,7 @@ export function MolstarDftStage({
   }, [rebuildScene]);
 
   useEffect(() => {
-    setZoomIndex(2);
+    setZoomIndex(BASE_ZOOM_INDEX);
     setViewRevision((value) => value + 1);
   }, [scrollState.level]);
 
@@ -597,9 +769,10 @@ export function MolstarDftStage({
           return;
         }
         mountedPlugin = plugin;
-        const [molecule, densityEvolution] = await Promise.all([
+        const [molecule, densityEvolution, densityBuffer] = await Promise.all([
           fetchJsonOrThrow<DftScaffoldData>("/data/multiscale/dft/molecule.json", "DFT molecule.json"),
-          fetchJsonOrThrow<DensityEvolutionData>("/data/multiscale/dft/density-evolution.json", "DFT density-evolution.json"),
+          fetchJsonOrThrow<Record<string, unknown>>("/data/multiscale/dft/density-evolution.json", "DFT density-evolution.json"),
+          fetchBufferOrThrow("/data/multiscale/dft/density-evolution.bin", "DFT density-evolution.bin"),
         ]);
         if (cancelled) {
           plugin.dispose();
@@ -607,9 +780,15 @@ export function MolstarDftStage({
         }
 
         pluginRef.current = plugin;
-        dataRef.current = centerDftData(molecule, densityEvolution);
+        dataRef.current = centerDftData(molecule, densityEvolution, densityBuffer);
 
-        sceneKeyRef.current = initialBuild.renderKey;
+        // Deliberately left empty rather than set to initialBuild.renderKey. Marking the scene
+        // as already drawn makes the effect below return early, so `rebuildScene` never runs on
+        // mount and `paintedBoundsRef` stays null: the camera then frames the atom subset alone
+        // and the density surface, which reaches past it, runs off the canvas. Measured on the
+        // first DFT page the scene filled 0.93 x 1.00 of the frame against 0.45 x 0.69 on the
+        // second, which reaches this path because its SCF index changes the render key.
+        sceneKeyRef.current = "";
         await commitResearchLayers(
           plugin,
           buildDftLayers(
@@ -651,6 +830,8 @@ export function MolstarDftStage({
       return;
     }
 
+    // Where the reader last dropped the slider. Playback carries on from here rather than
+    // restarting, so this only has to fire when the number itself changes.
     if (manualSnapshotIndex !== null && manualSnapshotIndex !== undefined) {
       setActiveSnapshotIndex(
         Math.max(0, Math.min(manualSnapshotIndex, data.densityEvolution.snapshots.length - 1)),
@@ -667,8 +848,7 @@ export function MolstarDftStage({
     const snapshots = dataRef.current?.densityEvolution.snapshots ?? [];
     if (
       resolvedSceneKey !== "D4_scf" ||
-      manualSnapshotIndex !== null &&
-        manualSnapshotIndex !== undefined ||
+      !scfPlaying ||
       reducedMotion ||
       !isReady ||
       snapshots.length === 0
@@ -685,16 +865,22 @@ export function MolstarDftStage({
       },
       isFinalSnapshot
         ? MULTISCALE_MOTION.finalStateHoldMs
-        : MULTISCALE_MOTION.scfFrameMs,
+        : scfFrameMs(activeSnapshotIndex, snapshots.length),
     );
     return () => window.clearTimeout(timeout);
   }, [
     activeSnapshotIndex,
     isReady,
-    manualSnapshotIndex,
+    scfPlaying,
     reducedMotion,
     resolvedSceneKey,
   ]);
+
+  // The slider outside this component shows where the sequence is, so it has to hear every step
+  // the sequence takes on its own, not only the ones the reader asked for.
+  useEffect(() => {
+    if (resolvedSceneKey === "D4_scf") onScfIndexChange?.(activeSnapshotIndex);
+  }, [activeSnapshotIndex, onScfIndexChange, resolvedSceneKey]);
 
   useEffect(() => {
     setOutputMode("density");
@@ -702,7 +888,7 @@ export function MolstarDftStage({
 
   // Cycle output surfaces when the explanatory panel is hidden.
   useEffect(() => {
-    if (!hideMechanism || reducedMotion) return;
+    if (!hideMechanism || reducedMotion || cyclePaused) return;
     if (resolvedSceneKey !== "D6_outputs" || !isReady) return;
     const modes: DftOutputMode[] = ["density", "homo", "lumo"];
     let index = 0;
@@ -711,7 +897,7 @@ export function MolstarDftStage({
       setOutputMode(modes[index]);
     }, MULTISCALE_MOTION.outputCycleMs);
     return () => window.clearInterval(id);
-  }, [hideMechanism, reducedMotion, resolvedSceneKey, isReady]);
+  }, [cyclePaused, hideMechanism, reducedMotion, resolvedSceneKey, isReady]);
 
   useEffect(() => {
     const plugin = pluginRef.current;
@@ -736,13 +922,14 @@ export function MolstarDftStage({
     if (!isReady || !needsFrontierOrbitals || !data || data.frontier || frontierRequestedRef.current) return;
 
     frontierRequestedRef.current = true;
-    void fetchJsonOrThrow<FrontierOrbitalData>("/data/multiscale/dft/frontier-orbitals.json", "DFT frontier-orbitals.json")
-      .then((frontier) => {
+    void Promise.all([
+      fetchJsonOrThrow<Record<string, unknown>>("/data/multiscale/dft/frontier-orbitals.json", "DFT frontier-orbitals.json"),
+      fetchBufferOrThrow("/data/multiscale/dft/frontier-orbitals.bin", "DFT frontier-orbitals.bin"),
+    ])
+      .then(([raw, buffer]) => {
         if (!dataRef.current) return;
-        dataRef.current = {
-          ...dataRef.current,
-          frontier: centerFrontierData(frontier, dataRef.current.center),
-        };
+        const frontier = centerFrontierData(raw, buffer, dataRef.current.center);
+        dataRef.current = { ...dataRef.current, frontier };
         setOrbitalEnergies({
           homoEV: frontier.orbitalEnergies.homoEV,
           lumoEV: frontier.orbitalEnergies.lumoEV,
@@ -765,13 +952,13 @@ export function MolstarDftStage({
     if (!actionsRef) return;
     actionsRef.current = {
       zoomIn: () => setZoomIndex((current) => Math.max(0, current - 1)),
-      zoomOut: () => setZoomIndex((current) => Math.min(4, current + 1)),
+      zoomOut: () => setZoomIndex((current) => Math.min(MAX_ZOOM_INDEX, current + 1)),
       fit: () => {
-        setZoomIndex(2);
+        setZoomIndex(BASE_ZOOM_INDEX);
         setViewRevision((value) => value + 1);
       },
       reset: () => {
-        setZoomIndex(2);
+        setZoomIndex(BASE_ZOOM_INDEX);
         setViewRevision((value) => value + 1);
       },
     };
@@ -780,6 +967,24 @@ export function MolstarDftStage({
       actionsRef.current = null;
     };
   }, [actionsRef]);
+
+  // The SCF page names the iteration it is on; the outputs page names which field is drawn,
+  // because the surface alone does not say whether it is the density or a frontier orbital.
+  useEffect(() => {
+    if (resolvedSceneKey === "D4_scf") {
+      const snapshotLabel =
+        dataRef.current?.densityEvolution.snapshots[activeSnapshotIndex]?.label ?? "";
+      onStatusChange?.(
+        isKorean ? snapshotLabel.replace("Iter ", "반복 ") : snapshotLabel,
+      );
+      return;
+    }
+    onStatusChange?.(
+      outputMode === "homo" ? "HOMO"
+        : outputMode === "lumo" ? "LUMO"
+        : isKorean ? "전자밀도" : "Electron density",
+    );
+  }, [activeSnapshotIndex, isKorean, isReady, onStatusChange, outputMode, resolvedSceneKey]);
 
   const mechanismData = useMemo<DftMechanismData>(
     () => ({

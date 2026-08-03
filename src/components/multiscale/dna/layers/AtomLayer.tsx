@@ -2,25 +2,14 @@
 
 import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { ELEMENT_HEX, FALLBACK_HEX } from "../../ballAndStick";
 
 // RasMol CPK colors (standard structural biology)
-const ELEMENT_COLORS: Record<string, string> = {
-  C: "#C8C8C8",  // light gray
-  N: "#8F8FFF",  // blue-purple
-  O: "#F00000",  // red
-  P: "#FFA500",  // orange
-  H: "#FFFFFF",  // white
-  S: "#FFC832",  // yellow
-};
+// The palette and the radii both come from ballAndStick.ts. These scenes carried a third
+// set of element colours, so the same oxygen was one red here and another in the all-atom
+// tier two pages earlier.
 
-const ELEMENT_RADII: Record<string, number> = {
-  C: 0.050,
-  N: 0.048,
-  O: 0.046,
-  P: 0.058,
-  H: 0.025,
-  S: 0.054,
-};
+
 
 interface ElementGroup {
   element: string;
@@ -35,11 +24,21 @@ export function AtomLayer({
   positions,
   elements,
   opacity = 1,
+  scale = 1,
+  ball,
   center,
 }: {
   positions: Float32Array;
   elements: string[];
+  /** Drawn radius per element. Comes from `ballAndStick`, measured on this scene's own
+   *  bond lengths, so a ball can never be wider than the bond it sits on. */
+  ball: (element: string) => number;
   opacity?: number;
+  /** Multiplies every element radius. Opacity alone cannot make a dense scene faint: these
+   *  spheres do not write depth while transparent, so alpha accumulates along the view and
+   *  1,476 of them at 0.12 each still composite to nearly solid. Coverage goes as the square
+   *  of the radius, so shrinking is the knob that actually thins the scene out. */
+  scale?: number;
   center?: [number, number, number];
 }) {
   const cx = center?.[0] ?? 0;
@@ -71,6 +70,8 @@ export function AtomLayer({
           cy={cy}
           cz={cz}
           opacity={opacity}
+          scale={scale}
+          ball={ball}
         />
       ))}
     </group>
@@ -85,6 +86,8 @@ function ElementMesh({
   cy,
   cz,
   opacity,
+  scale: scaleFactor,
+  ball,
 }: {
   element: string;
   indices: number[];
@@ -93,10 +96,12 @@ function ElementMesh({
   cy: number;
   cz: number;
   opacity: number;
+  scale: number;
+  ball: (element: string) => number;
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
-  const radius = ELEMENT_RADII[element] ?? 0.045;
-  const color = ELEMENT_COLORS[element] ?? "#888888";
+  const radius = ball(element) * scaleFactor;
+  const color = ELEMENT_HEX[element] ?? FALLBACK_HEX;
 
   useLayoutEffect(() => {
     const mesh = ref.current;

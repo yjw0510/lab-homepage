@@ -16,6 +16,10 @@ export function VisualStage({
   isMobile,
   actionsRef,
   dftManualSnapshotIndex,
+  onDftStatusChange,
+  dftCyclePaused,
+  dftScfPlaying,
+  onDftScfIndexChange,
   allAtomActiveTerm,
   allAtomActiveReadout,
   lang = "en",
@@ -34,6 +38,10 @@ export function VisualStage({
   onAllAtomReadoutChange?: (readout: AllAtomReadoutId) => void;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   dftManualSnapshotIndex?: number | null;
+  onDftStatusChange?: (status: string) => void;
+  dftCyclePaused?: boolean;
+  dftScfPlaying?: boolean;
+  onDftScfIndexChange?: (index: number) => void;
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
   allAtomActiveReadout?: AllAtomReadoutId | null;
   lang?: string;
@@ -92,6 +100,10 @@ export function VisualStage({
           mobileSceneHeight={mobileSceneHeight}
           {...molstarProps}
           manualSnapshotIndex={dftManualSnapshotIndex}
+          onStatusChange={onDftStatusChange}
+          cyclePaused={dftCyclePaused}
+          scfPlaying={dftScfPlaying}
+          onScfIndexChange={onDftScfIndexChange}
           lang={lang}
           sceneKey={sceneKey}
           reducedMotion={reducedMotion}

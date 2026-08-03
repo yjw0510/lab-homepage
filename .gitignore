@@ -63,3 +63,4 @@ AGENTS.md
 
 # generated visual-validation output
 /artifacts/
+.dft-scf-cache.npz

@@ -22,6 +22,8 @@ import { Shape } from "molstar/lib/mol-model/shape.js";
 import { Color } from "molstar/lib/mol-util/color/color.js";
 import { Binding } from "molstar/lib/mol-util/binding.js";
 import { Vec3 } from "molstar/lib/mol-math/linear-algebra.js";
+import { ChunkedArray } from "molstar/lib/mol-data/util.js";
+import { pnSubdivide } from "../pnTriangles";
 
 export interface ResearchCameraActions {
   zoomIn: () => void;
@@ -40,6 +42,16 @@ export interface CameraSnapshotLike {
   // Mol* bails out of Camera.update() while this is 0, and only sets it itself when its
   // own automatic reset is enabled. It has to be written alongside the placement.
   radiusMax?: number;
+  /**
+   * Nearest the camera is allowed to get to its target.
+   *
+   * Mol* defaults it to 5, which suits the Angstrom-sized structures it was built for. These
+   * scenes are in nanometres and sit at a radius under one, so the default is several times the
+   * whole scene: measured on the electrolyte page, zooming in moved `radius` from 0.719 to 0.338
+   * while the camera distance stayed pinned at exactly 5. Nothing magnified, the clip planes just
+   * closed in and ate the surrounding molecules. Scenes that are not in Angstroms have to say so.
+   */
+  minNear?: number;
 }
 
 export interface SpherePrimitive {
@@ -83,11 +95,39 @@ export interface TrianglePrimitive {
 
 export interface MeshPrimitive {
   kind: "mesh";
-  vertices: number[][];
-  faces: number[][];
+  /** Flat xyz triples. Typed arrays because these come straight out of a .bin. */
+  vertices: Float32Array;
+  /** Flat vertex-index triples. */
+  faces: Uint32Array;
   color: ColorValue;
   doubleSided?: boolean;
   label?: string;
+  /**
+   * One scalar per vertex, painted onto the surface as a departure from `color`.
+   *
+   * The SCF scene uses it for how far this iteration's density is from the converged one. The
+   * surface itself stays the total density, which is what the page says it is; the colour is
+   * what shrinks as the field settles. Measured on chlorophyll a, the surface alone moves very
+   * little between the starting guess and convergence, so without this there is nothing to see.
+   */
+  values?: Float32Array;
+  /** How `values` map onto the ramp for this primitive; see `valueColor` and `ValueScale`. */
+  valueScale?: ValueScale;
+  /**
+   * Exact surface normal per vertex, flat xyz triples.
+   *
+   * Two things depend on it. Supplied normals are written straight through, so Mol* does not
+   * have to average the incident triangles for a normal we already know exactly. And with
+   * normals a triangle defines a curved patch, which `subdivide` then tessellates.
+   */
+  normals?: Float32Array;
+  /**
+   * Split each triangle into this many per edge along its PN patch. 1 leaves it flat.
+   *
+   * Requires `normals`. Costs the square in triangles and nothing in payload, which is the
+   * point: the file stays a coarse mesh and the curve is reconstructed here.
+   */
+  subdivide?: number;
 }
 
 export type ResearchPrimitive =
@@ -202,7 +242,9 @@ export function layerBounds(layers: ResearchLayer[]) {
           points.push({ point: primitive.a, pad: 0 }, { point: primitive.b, pad: 0 }, { point: primitive.c, pad: 0 });
           break;
         case "mesh":
-          for (const vertex of primitive.vertices) points.push({ point: vertex, pad: 0 });
+          for (let at = 0; at < primitive.vertices.length; at += 3) {
+            points.push({ point: primitive.vertices.subarray(at, at + 3), pad: 0 });
+          }
           break;
       }
     }
@@ -236,19 +278,42 @@ export const AMBER = Color.fromHexStyle("#fbbf24");
 export const ORANGE = Color.fromHexStyle("#f97316");
 export const BLUE = Color.fromHexStyle("#2f74ff");
 export const LIGHT_BLUE = Color.fromHexStyle("#60a5fa");
+/**
+ * The SCF density ramp: this iteration's density against the converged one, low to high.
+ *
+ * cmasher's `tropical`, sampled at nine stops. Directed and sequential, which is what the
+ * quantity is - one number running from below the converged density to above it, with no
+ * privileged middle. Two earlier attempts were diverging maps built around the converged value;
+ * the second walked teal to amber through violet and pink, which spans plenty of hue and none of
+ * it ordered. A reader cannot rank a rainbow.
+ *
+ * Nine stops rather than five because tropical turns through magenta, red, amber, green and cyan;
+ * straight-line interpolation across a quarter of that span cuts the corners off the hue path.
+ *
+ * Hex rather than Color because the legend beside the canvas paints the same ramp in CSS.
+ */
+export const DENSITY_RAMP = [
+  "#900ea5", "#b70681", "#d2264f", "#d95624", "#cf8203", "#b3ab23", "#7cd160", "#2cecb0", "#44fcfc",
+] as const;
+const RAMP = DENSITY_RAMP.map((hex) => Color.fromHexStyle(hex));
+export const PALE = RAMP[(RAMP.length - 1) / 2];
+
+/**
+ * The surface every scene draws atoms and bonds with.
+ *
+ * Matte and non-metallic, so a sphere reads by its silhouette and one soft highlight rather than
+ * by a reflection that moves when the camera does. It lives here because it was diverging: the
+ * electrolyte tier had these numbers and the DFT tier had its own metalness 0.08 / bumpiness 0.03
+ * / emissive 0.02, which is enough to make the same molecule look like a different material.
+ */
+export const ATOM_MATERIAL = { metalness: 0, roughness: 0.45, bumpiness: 0 };
 
 export const ELEMENT_COLORS: Record<string, ColorValue> = {
   C: CARBON,
   N: NITROGEN,
   O: OXYGEN,
   H: HYDROGEN,
-};
-
-export const ELEMENT_RADII: Record<string, number> = {
-  C: 0.51,
-  N: 0.47,
-  O: 0.46,
-  H: 0.36,
+  Mg: GREEN,
 };
 
 const molstarResearchGlobals = globalThis as typeof globalThis & {
@@ -428,10 +493,59 @@ function toMolstarVec3(point: [number, number, number] | number[]) {
   return Vec3.create(point[0], point[1], point[2]);
 }
 
+/**
+ * Where a vertex value lands between the layer's own colour and the two accents.
+ *
+ * Diverging rather than a single hue because the sign matters: an iteration can sit above or
+ * below the converged density and those are different statements. Zero is the layer colour, so
+ * a converged surface is simply the surface and the reader has nothing extra to decode.
+ */
+/**
+ * How one primitive's `values` land on DENSITY_RAMP: `t = amp * asinh(value / knee) / norm`.
+ *
+ * Shape and envelope are separate on purpose. `knee`/`norm` are fitted to this frame's own value
+ * distribution, so the surface grades smoothly instead of piling onto the ramp ends; `amp` is set
+ * on a scale shared by the whole run, so across frames only the envelope moves and convergence
+ * stays legible. The producer decides both - see `frameScales` in MolstarDftStage, which carries
+ * the measurements this replaces a fixed global transfer over.
+ */
+export interface ValueScale {
+  /** Signed-log knee for this frame's values. Non-positive means everything maps to zero. */
+  knee: number;
+  /** asinh units from the knee to where the shape saturates (this frame's p99). */
+  norm: number;
+  /** Fraction of the half-ramp this frame may use, 0..1, from the run-wide envelope. */
+  amp: number;
+}
+
+/**
+ * Position `value` on DENSITY_RAMP through `scale`.
+ *
+ * The layer's own colour does not enter it. On a sequential map every value including zero has
+ * a colour of its own, so mixing the layer colour back in would flatten the middle of the scale
+ * towards whatever that layer happened to be.
+ */
+function valueColor(value: number, scale: ValueScale | undefined): ColorValue {
+  const t = !scale || scale.knee <= 0
+    ? 0
+    : scale.amp * Math.max(-1, Math.min(1, Math.asinh(value / scale.knee) / scale.norm));
+  const at = ((t + 1) / 2) * (RAMP.length - 1);
+  const step = Math.min(RAMP.length - 2, Math.floor(at));
+  return mixColor(RAMP[step], RAMP[step + 1], at - step);
+}
+
 function createShapeFromLayer(spec: ResearchLayerSpec) {
   const builderState = MeshBuilder.createState(4096, 2048);
   const groupColors: ColorValue[] = [];
   const groupLabels: string[] = [];
+  // Set when any primitive brought its own normals, which is what decides whether Mol* has to
+  // derive them from the triangles below. The isosurfaces know their exact normal from the
+  // field gradient, and averaging incident faces would only blur it.
+  let suppliedNormals = false;
+  // Per-vertex colouring needs one group per vertex, and those ids have to live past the
+  // per-primitive ones. Cheap now: the isosurfaces are curvature-remeshed and run to a few
+  // thousand vertices rather than the quarter million a uniform extraction produced.
+  let nextGroup = spec.primitives.length;
 
   spec.primitives.forEach((primitive, groupIndex) => {
     builderState.currentGroup = groupIndex;
@@ -503,19 +617,104 @@ function createShapeFromLayer(spec: ResearchLayerSpec) {
       return;
     }
 
-    primitive.faces.forEach((face) => {
-      const a = primitive.vertices[face[0]];
-      const b = primitive.vertices[face[1]];
-      const c = primitive.vertices[face[2]];
-      MeshBuilder.addTriangle(builderState, toMolstarVec3(a), toMolstarVec3(b), toMolstarVec3(c));
-      if (primitive.doubleSided) {
-        MeshBuilder.addTriangle(builderState, toMolstarVec3(a), toMolstarVec3(c), toMolstarVec3(b));
+    // Push the vertex list once and index into it, rather than calling addTriangle per face.
+    // addTriangle appends three fresh vertices and writes the face normal to all three, so a
+    // triangle never shares a vertex with its neighbours and Mesh.computeNormals below can only
+    // hand back that same face normal. Every isosurface in the site was flat-shaded because of
+    // it, whatever its triangle count: the 79k-triangle SCF density read as facets. Shared
+    // vertices cost nothing and let computeNormals average across the incident faces, which is
+    // what the spheres already get from addSphere.
+    // Curve the triangles first, when the primitive brought the normals that define the patch.
+    // Values are carried across by repeating each corner's value over its lattice, which is
+    // exact at the corners and linear between, matching how the normals are interpolated.
+    let vertices = primitive.vertices;
+    let faces = primitive.faces;
+    let normals = primitive.normals;
+    let values = primitive.values;
+    const level = primitive.subdivide ?? 1;
+    if (normals && level > 1) {
+      const curved = pnSubdivide(vertices, normals, faces, level);
+      if (values) {
+        const perTriangle = ((level + 1) * (level + 2)) / 2;
+        const spread = new Float32Array(curved.vertices.length / 3);
+        let at = 0;
+        for (let triangle = 0; triangle < faces.length / 3; triangle++) {
+          const corner = [values[faces[triangle * 3]], values[faces[triangle * 3 + 1]],
+                          values[faces[triangle * 3 + 2]]];
+          for (let row = 0; row <= level; row++) {
+            for (let column = 0; column <= level - row; column++) {
+              const v = row / level;
+              const u = column / level;
+              spread[at++] = corner[0] * (1 - u - v) + corner[1] * u + corner[2] * v;
+            }
+          }
+        }
+        if (at !== curved.vertices.length / 3) {
+          throw new Error(`value lattice ${at} against ${curved.vertices.length / 3} vertices`);
+        }
+        values = spread;
+        void perTriangle;
       }
-    });
+      vertices = curved.vertices;
+      faces = curved.faces;
+      normals = curved.normals;
+    }
+    if (normals) suppliedNormals = true;
+
+    // One group id per vertex, resolved once so the back-face copy below paints the same
+    // colours. Without values every vertex shares the primitive's own group, as before.
+    const vertexCount = vertices.length / 3;
+    const vertexGroups = new Uint32Array(vertexCount);
+    for (let index = 0; index < vertexCount; index++) {
+      if (!values) {
+        vertexGroups[index] = groupIndex;
+        continue;
+      }
+      const group = nextGroup++;
+      groupColors[group] = valueColor(values[index] ?? 0, primitive.valueScale);
+      groupLabels[group] = primitive.label ?? spec.label;
+      vertexGroups[index] = group;
+    }
+
+    const base = builderState.vertices.elementCount;
+    for (let index = 0; index < vertexCount; index++) {
+      const at = index * 3;
+      ChunkedArray.add3(builderState.vertices, vertices[at], vertices[at + 1], vertices[at + 2]);
+      if (normals) {
+        ChunkedArray.add3(builderState.normals, normals[at], normals[at + 1], normals[at + 2]);
+      } else {
+        ChunkedArray.add3(builderState.normals, 0, 0, 0);
+      }
+      ChunkedArray.add(builderState.groups, vertexGroups[index]);
+    }
+    for (let at = 0; at < faces.length; at += 3) {
+      ChunkedArray.add3(builderState.indices, base + faces[at], base + faces[at + 1],
+                        base + faces[at + 2]);
+    }
+    if (primitive.doubleSided) {
+      // A second copy of the vertices with the winding reversed. Reusing the same vertices for
+      // both windings would give each one two opposed face normals to average and cancel it to
+      // zero.
+      const back = builderState.vertices.elementCount;
+      for (let index = 0; index < vertexCount; index++) {
+        const at = index * 3;
+        ChunkedArray.add3(builderState.vertices, vertices[at], vertices[at + 1], vertices[at + 2]);
+        if (normals) {
+          ChunkedArray.add3(builderState.normals, -normals[at], -normals[at + 1], -normals[at + 2]);
+        } else {
+          ChunkedArray.add3(builderState.normals, 0, 0, 0);
+        }
+        ChunkedArray.add(builderState.groups, vertexGroups[index]);
+      }
+      for (let at = 0; at < faces.length; at += 3) {
+        ChunkedArray.add3(builderState.indices, back + faces[at], back + faces[at + 2],
+                          back + faces[at + 1]);
+      }
+    }
   });
 
   const mesh = MeshBuilder.getMesh(builderState);
-  Mesh.computeNormals(mesh);
+  if (!suppliedNormals) Mesh.computeNormals(mesh);
 
   return Shape.create(
     spec.label,
@@ -644,6 +843,7 @@ interface CanvasSettingsProps {
     zoomSpeed: number;
     rotateSpeed: number;
     animate: { name: string; params: Record<string, unknown> };
+    autoAdjustMinMaxDistance: { name: string; params: Record<string, unknown> };
   };
 }
 
@@ -778,6 +978,17 @@ export async function applyResearchCanvasSettings(
         scrollFocus: Binding.Empty,
         scrollFocusZoom: Binding.Empty,
       };
+      // How close the controls let the camera get, as a share of the scene rather than an
+      // absolute. Mol* ships minDistanceFactor 0 and minDistancePadding 5, which is 5 of
+      // whatever unit the scene happens to use. The electrolyte tier is in nanometres at a
+      // radius of 0.72, so that floor is seven times the whole scene: zooming in shrank the clip
+      // radius from 0.719 to 0.338 while the camera distance stayed pinned at exactly 5, and the
+      // page zoomed out instead of in as the closing clip planes ate the surrounding molecules.
+      canvasProps.trackball.autoAdjustMinMaxDistance = {
+        name: "on",
+        params: { minDistanceFactor: 0.2, minDistancePadding: 0,
+                  maxDistanceFactor: 10, maxDistanceMin: 0 },
+      };
       canvasProps.trackball.zoomSpeed = 4;
       canvasProps.trackball.rotateSpeed = 3.5;
       canvasProps.trackball.animate = autoRotate
@@ -822,6 +1033,10 @@ export function bindResearchCameraActions(
   if (!actionsRef) return;
 
   actionsRef.current = {
+    // `radius` has to scale with the position, not just the position. These scenes render
+    // orthographic, where the frustum half-height is the radius and the camera's distance from
+    // the target changes nothing: moving the position alone was measured at exactly zero pixels
+    // of change over eight clicks.
     zoomIn: () => {
       const current = plugin.canvas3d?.camera.getSnapshot();
       if (!current) return;
@@ -836,6 +1051,17 @@ export function bindResearchCameraActions(
       void fitScene(plugin, 150).then((snapshot) => {
         defaultSnapshotRef.current = snapshot;
       });
+    },
+    // Already declared on the interface and reachable from window.__multiscaleDebug; the scenes
+    // animate, so pixel differences alone cannot tell a camera move from the trajectory playing.
+    getMetrics: () => {
+      const current = plugin.canvas3d?.camera.getSnapshot();
+      if (!current) return null;
+      return {
+        radius: current.radius,
+        radiusMax: current.radiusMax,
+        distance: Vec3.distance(current.position, current.target),
+      };
     },
     reset: () => {
       if (defaultSnapshotRef.current) {

@@ -51,10 +51,10 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
+                  // Dark unless the visitor has chosen otherwise here before. The OS preference
+                  // is deliberately not consulted: these pages are mostly dark 3D scenes.
                   var stored = localStorage.getItem('theme');
-                  var theme = stored === 'light' || stored === 'dark'
-                    ? stored
-                    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  var theme = stored === 'light' ? 'light' : 'dark';
                   var root = document.documentElement;
                   if (theme === 'dark') root.classList.add('dark');
                   else root.classList.remove('dark');

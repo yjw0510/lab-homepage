@@ -2,7 +2,9 @@
 
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Maximize2, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { Maximize2, Pause, Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { BANDS } from "./plots/AllAtomCoordinationPlot";
+import { DENSITY_RAMP } from "./molstar/shared";
 import { withBasePath } from "@/lib/basePath";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -88,7 +90,13 @@ export function MultiscalePinned({
 
   const cameraActionsRef = useRef<ResearchCameraActions | null>(null);
   const [dftSnapshots, setDftSnapshots] = useState<Array<{ index: number; iteration: number; label: string }>>([]);
+  const [dftStatus, setDftStatus] = useState<string>("");
+  const [dftCyclePaused, setDftCyclePaused] = useState(false);
   const [manualScfIndex, setManualScfIndex] = useState<number | null>(null);
+  // Where the SCF sequence actually is. The stage owns the sequence, so the slider has to be told
+  // rather than derive it; before this it sat on the first tick through the whole animation.
+  const [scfIndex, setScfIndex] = useState(0);
+  const [scfPlaying, setScfPlaying] = useState(true);
   const [allAtomHoveredTerm, setAllAtomHoveredTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomLockedTerm, setAllAtomLockedTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomHoveredReadout, setAllAtomHoveredReadout] = useState<AllAtomReadoutId | null>(null);
@@ -115,6 +123,7 @@ export function MultiscalePinned({
     setCurrentStep(clamped);
     setAnimatedProgress(Math.max(0, Math.min(0.999, stepProgress)));
     setManualScfIndex(null);
+    setScfPlaying(true);
     setAllAtomHoveredTerm(null);
     setAllAtomLockedTerm(null);
     setAllAtomHoveredReadout(null);
@@ -165,9 +174,11 @@ export function MultiscalePinned({
         const levelIndex = LEVELS.findIndex((entry) => entry.id === levelId);
         goToStep(globalStepFromLevel(levelIndex, clampedStep), stepProgress);
         setManualScfIndex(manualSnapshotIndex);
+        setScfPlaying(manualSnapshotIndex === null);
       },
       clearOverride: () => {
         setManualScfIndex(null);
+        setScfPlaying(true);
       },
       fit: () => cameraActionsRef.current?.fit(),
       reset: () => cameraActionsRef.current?.reset(),
@@ -219,8 +230,25 @@ export function MultiscalePinned({
   const manualScfIndexActive =
     manualScfIndex !== null && isDftScfStep ? manualScfIndex : null;
 
-  const effectiveScfIndex = manualScfIndexActive ?? defaultScfIndex;
+  const effectiveScfIndex = isDftScfStep ? scfIndex : defaultScfIndex;
   const showDftScfSlider = isDftScfStep && dftSnapshots.length > 1;
+  // Each DFT page runs on its own timer, so which one the caption's play/pause reaches depends on
+  // the page: the SCF sequence here, the density -> HOMO -> LUMO walk on the outputs page.
+  const dftPlayback = isDftScfStep
+    ? {
+        paused: !scfPlaying,
+        toggle: () => setScfPlaying((playing) => !playing),
+        title: scfPlaying
+          ? (lang === "ko" ? "이 반복에서 멈춤" : "Hold this iteration")
+          : (lang === "ko" ? "이어서 재생" : "Resume iterating"),
+      }
+    : {
+        paused: dftCyclePaused,
+        toggle: () => setDftCyclePaused((paused) => !paused),
+        title: dftCyclePaused
+          ? (lang === "ko" ? "자동 전환 재개" : "Resume cycling")
+          : (lang === "ko" ? "이 표면에서 멈춤" : "Hold this surface"),
+      };
   const activeAllAtomTerm = isAllAtomForceFieldStep ? (allAtomLockedTerm ?? allAtomHoveredTerm) : null;
   const activeAllAtomReadout = isAllAtomReadoutStep ? (allAtomLockedReadout ?? allAtomHoveredReadout) : null;
 
@@ -312,14 +340,11 @@ export function MultiscalePinned({
   );
 
   if (isMobile) {
-    // Until the reader takes the slider, the scene runs its own iteration sequence, so a
-    // chip printing a specific iteration would name a frame that is not on screen. It
-    // names the control instead, and only reports a number once it is reporting the truth.
+    // The scene reports every iteration it moves to, including the ones it advanced to on its
+    // own, so this always names the frame on screen.
     const scfLabel = !showDftScfSlider
       ? null
-      : manualScfIndexActive === null
-        ? lang === "ko" ? "SCF 조절기" : "SCF control"
-        : `${lang === "ko" ? "SCF 반복" : "SCF iteration"} ${dftSnapshots[effectiveScfIndex]?.iteration ?? effectiveScfIndex + 1}`;
+      : `${lang === "ko" ? "SCF 반복" : "SCF iteration"} ${dftSnapshots[effectiveScfIndex]?.iteration ?? effectiveScfIndex + 1}`;
     // The panel no longer carries a height. Its scene gets a definite one from
     // MOBILE_SCENE_HEIGHT and the mechanism band under it sizes to its content, so the
     // panel is the sum of the two rather than a number someone has to keep re-tuning
@@ -374,6 +399,10 @@ export function MultiscalePinned({
             onAllAtomReadoutChange={setAllAtomLockedReadout}
             actionsRef={cameraActionsRef}
             dftManualSnapshotIndex={manualScfIndexActive}
+            onDftStatusChange={setDftStatus}
+            dftCyclePaused={dftCyclePaused}
+            dftScfPlaying={scfPlaying}
+            onDftScfIndexChange={setScfIndex}
             allAtomActiveTerm={activeAllAtomTerm}
             allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
@@ -400,7 +429,7 @@ export function MultiscalePinned({
             showDftScfSlider={showDftScfSlider}
             dftSnapshots={dftSnapshots}
             scfValue={effectiveScfIndex}
-            onScfChange={(nextIndex) => setManualScfIndex(nextIndex)}
+            onScfChange={(nextIndex) => { setManualScfIndex(nextIndex); setScfPlaying(false); }}
           />
         </section>
       </div>
@@ -425,6 +454,10 @@ export function MultiscalePinned({
             isMobile={false}
             actionsRef={cameraActionsRef}
             dftManualSnapshotIndex={manualScfIndexActive}
+            onDftStatusChange={setDftStatus}
+            dftCyclePaused={dftCyclePaused}
+            dftScfPlaying={scfPlaying}
+            onDftScfIndexChange={setScfIndex}
             allAtomActiveTerm={activeAllAtomTerm}
             allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
@@ -487,6 +520,65 @@ export function MultiscalePinned({
                 </button>
               );
             })}
+            {effectiveScrollState.level === "allatom" && effectiveScrollState.step === 1 ? (
+              // The cell page colours 68 ions by how many carbonyl oxygens each is holding, and
+              // the panel that says so is off to the side. Same bands, same source, next to the
+              // thing they describe.
+              <div
+                className="col-span-2 flex flex-col gap-1 border border-border-strong
+                           bg-surface-raised px-3 py-2 text-xs text-foreground"
+                data-testid="coordination-legend"
+              >
+                <span className="text-muted-foreground">
+                  {lang === "ko" ? "리튬 배위수" : "Li⁺ coordination"}
+                </span>
+                {BANDS.map((band) => (
+                  <span key={band.label} className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 shrink-0" style={{ backgroundColor: band.color }} />
+                    {band.name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {effectiveScrollState.level === "dft" && effectiveScrollState.step === 0 ? (
+              // The SCF surface is the total density; the colour on it is this iteration
+              // against the converged one. Continuous, so a strip rather than swatches.
+              <div
+                className="col-span-2 flex flex-col gap-1 border border-border-strong
+                           bg-surface-raised px-3 py-2 text-xs text-foreground"
+                data-testid="density-legend"
+              >
+                <span className="text-muted-foreground">
+                  {lang === "ko" ? "수렴 대비 밀도" : "vs converged"}
+                </span>
+                <span
+                  className="h-2 w-full"
+                  style={{ background: `linear-gradient(to right, ${DENSITY_RAMP.join(", ")})` }}
+                />
+                <span className="flex justify-between tabular-nums text-muted-foreground">
+                  <span>{lang === "ko" ? "낮음" : "lower"}</span>
+                  <span>{lang === "ko" ? "높음" : "higher"}</span>
+                </span>
+              </div>
+            ) : null}
+            {/* Both DFT pages run on their own: one walks the SCF iterations, the other walks
+                density -> HOMO -> LUMO. So on both, the caption naming what is on screen is also
+                the control that holds it there and starts it again. */}
+            {effectiveScrollState.level === "dft" && dftStatus ? (
+              <button
+                type="button"
+                onClick={() => dftPlayback.toggle()}
+                className="col-span-2 flex h-11 items-center justify-center gap-2 border
+                           border-border-strong bg-surface-raised px-3 text-sm font-semibold
+                           tabular-nums text-foreground transition-colors hover:bg-muted"
+                data-testid="dft-scene-status"
+                title={dftPlayback.title}
+              >
+                {dftPlayback.paused ? <Play className="h-4 w-4 shrink-0" />
+                                    : <Pause className="h-4 w-4 shrink-0" />}
+                {dftStatus}
+              </button>
+            ) : null}
           </div>
             ) : null}
           </div>
@@ -502,7 +594,7 @@ export function MultiscalePinned({
             showDftScfSlider={showDftScfSlider}
             dftSnapshots={dftSnapshots}
             scfValue={effectiveScfIndex}
-            onScfChange={(nextIndex) => setManualScfIndex(nextIndex)}
+            onScfChange={(nextIndex) => { setManualScfIndex(nextIndex); setScfPlaying(false); }}
           />
         </div>
       </div>

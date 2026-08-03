@@ -7,6 +7,7 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import { Vec3, Vec4 } from "molstar/lib/mol-math/linear-algebra.js";
 import { Color } from "molstar/lib/mol-util/color/color.js";
+import { ELEMENT_HEX, ballAndStick, shortestHeavyBond } from "../ballAndStick";
 import { withBasePath } from "@/lib/basePath";
 import type { ResearchCameraActions } from "../molstar/shared";
 import { MULTISCALE_TYPE } from "../visualRules";
@@ -83,14 +84,11 @@ interface MlffSchematicStageProps {
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
 }
 
-const COLORS: Record<string, Color> = {
-  H: Color.fromHexStyle("#f8fafc"),
-  C: Color.fromHexStyle("#64748b"),
-  N: Color.fromHexStyle("#3b82f6"),
-  O: Color.fromHexStyle("#f43f5e"),
-  Na: Color.fromHexStyle("#8b5cf6"),
-  S: Color.fromHexStyle("#fbbf24"),
-};
+// One palette for every scene that draws atoms; see ballAndStick.ts. This glyph carried its
+// own set, so the same water sat next to the all-atom tier in a different red.
+const COLORS: Record<string, Color> = Object.fromEntries(
+  Object.entries(ELEMENT_HEX).map(([element, hex]) => [element, Color.fromHexStyle(hex)]),
+);
 
 // Atom and bond radii scale with the molecule, so a configuration drawn at any `scale` keeps
 // its proportions. The multiplier restores the on-screen thickness the old
@@ -98,19 +96,15 @@ const COLORS: Record<string, Color> = {
 // a square root the radius fell more slowly than the positions, so every smaller
 // configuration came out fatter than the last. Correcting that alone drew the dataset rows —
 // solved down to scale 0.26 so they fit their frames — as specks joined by hairlines.
-const GLYPH_THICKNESS = 1.8;
+/**
+ * Sizes come from `ballAndStick`, which caps a ball against the bond it sits on. This glyph
+ * used to multiply its radii by 1.8 without touching the positions, so every ball was drawn
+ * 1.8 times wider than its own spacing allowed and the atoms swallowed each other; the stick
+ * beside them sat at 0.155 of a ball against the all-atom tier's 0.35. Both are derived now.
+ */
 
 // How much room to leave around a fitted scene.
 const FIT_MARGIN = 1.05;
-
-const RADII: Record<string, number> = {
-  H: 0.24,
-  C: 0.38,
-  N: 0.4,
-  O: 0.4,
-  Na: 0.58,
-  S: 0.48,
-};
 
 function MathLabel({
   latex,
@@ -206,6 +200,16 @@ function moleculePrimitives(
 ): ResearchPrimitive[] {
   const selected = indices?.length ? indices : data.atoms.map((_, index) => index);
   const selectedSet = new Set(selected);
+  // Measured on this molecule's own untransformed coordinates, so the cap holds whatever
+  // `transform.scale` the layout solved for.
+  const geometry = ballAndStick(
+    shortestHeavyBond(
+      data.atoms.flat(),
+      data.bonds as [number, number][],
+      data.elements,
+    ),
+    data.elements,
+  );
   const coordinates = new Map<number, Vec3Tuple>();
   selected.forEach((index) => {
     coordinates.set(index, transformAtom(data.atoms[index], index, transform));
@@ -223,7 +227,7 @@ function moleculePrimitives(
       (start[1] + end[1]) / 2,
       (start[2] + end[2]) / 2,
     ];
-    const radius = 0.062 * transform.scale * GLYPH_THICKNESS;
+    const radius = geometry.stick * transform.scale;
     primitives.push(
       {
         kind: "cylinder",
@@ -252,7 +256,7 @@ function moleculePrimitives(
     primitives.push({
       kind: "sphere",
       center,
-      radius: (RADII[element] ?? 0.36) * transform.scale * GLYPH_THICKNESS,
+      radius: geometry.ball(element) * transform.scale,
       color: COLORS[element] ?? SLATE,
       label: `${element} ${index + 1}`,
     });
@@ -479,7 +483,9 @@ function buildSurfaceLayers(): ResearchLayerSpec[] {
   return [
     {
       label: "Learned potential energy surface",
-      primitives: [{ kind: "mesh", vertices, faces, color: Color.fromHexStyle("#111a3e"), doubleSided: true }],
+      primitives: [{ kind: "mesh", vertices: new Float32Array(vertices.flat()),
+                     faces: new Uint32Array(faces.flat()),
+                     color: Color.fromHexStyle("#111a3e"), doubleSided: true }],
       params: { alpha: 0.46, xrayShaded: true, emissive: 0.05 },
     },
     {

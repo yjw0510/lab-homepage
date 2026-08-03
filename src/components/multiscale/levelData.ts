@@ -44,6 +44,34 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
     equationKey: "frontier",
     steps: [
       {
+        activeTerms: ["rhoIn", "veff", "orbitals", "rhoOut"],
+        equationKey: "scf",
+        equationDetailMode: "grouped",
+        title: { en: "How the Density Is Actually Solved", ko: "밀도를 실제로 푸는 방법" },
+        question: {
+          en: "Electrons repel one another, so where any one of them sits depends on where all the others are. You would need the answer in order to work the answer out.",
+          ko: "전자는 서로 밀어내니, 한 전자가 어디 놓일지는 나머지 전자가 모두 어디 있느냐에 달려 있다. 답을 알아야 답을 구하는 셈이다.",
+        },
+        concept: {
+          en: "The force on any one electron is set by the nuclei and by all the other electrons together, and where those others are is the electron density, the very thing being solved for. So a plausible density is put in, and where the electrons settle under the force it makes is worked out again. A new density comes out, and feeding that straight back overshoots, so it is blended with the previous one before the next pass. Move the control and the real iterations go by one at a time. The density surface shifts less and less, and the energy change, after one large early excursion, drops by orders of magnitude. One isovalue is held across the whole run, so the surface growing is the density filling in rather than the contour being redrawn. The density and the orbital energies on the next page become that molecule's own only once they are through this loop. When it will not come through, suspect the starting guess or the mixing scheme first.",
+          ko: "전자 하나가 받는 힘은 원자핵과 다른 전자들이 함께 만든다. 그 다른 전자들이 어디 있는지가 전자 밀도이고, 그게 지금 구하려는 값이다. 그래서 그럴듯한 밀도를 하나 놓고, 그 밀도가 만드는 힘 아래에서 전자가 어디 놓일지 다시 푼다. 새로 나온 밀도를 그대로 되먹이면 값이 튀므로, 앞 밀도와 섞어 다음 입력으로 쓴다. 조절기를 움직이면 반복이 하나씩 지나간다. 밀도 표면은 갈수록 덜 움직이고, 에너지 변화는 초반에 크게 튄 뒤로 자릿수를 떨어뜨린다. 등치값은 전 구간 하나로 고정하니, 표면이 커지면 밀도가 그만큼 차오른 것이다. 다음 장의 밀도와 오비탈 에너지도 이 고리를 빠져나와야 그 분자의 값이 된다. 좀처럼 못 빠져나오면 초기 추정과 섞는 방식을 먼저 의심한다.",
+        },
+        takeaway: {
+          en: "Only once the density stops moving do the energy and orbitals read here belong to that molecule.",
+          ko: "밀도가 더 움직이지 않을 때까지 돌리고 나서야, 여기서 읽은 에너지와 오비탈이 그 분자의 값이 된다.",
+        },
+        systemCaption: {
+          en: "All 59 SCF iterations from the HCore guess · synchronized energy-change trace",
+          ko: "HCore 추정에서 시작한 SCF 반복 59회 전체 · 동기화된 에너지 변화 곡선",
+        },
+        visualLayers: [
+          { kind: "CALCULATED", label: { en: "SCF total-density snapshots", ko: "SCF 총밀도 스냅샷" } },
+          { kind: "MECHANISM SCHEMATIC", label: { en: "SCF loop", ko: "SCF 반복 고리" } },
+        ],
+        plotType: "scf",
+        sceneKey: "D4_scf",
+      },
+      {
         activeTerms: ["rho"],
         equationKey: "frontier",
         equationDetailMode: "grouped",
@@ -61,42 +89,14 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           ko: "다음 계층으로는 출처가 붙은 레코드가 넘어간다. 원자 번호와 좌표에 총에너지, 힘, 계산 프로토콜을 붙인 것이다. 전자구조 계산 자체는 참조 계층에 남는다.",
         },
         systemCaption: {
-          en: "Calculated density / HOMO / LUMO · one B3LYP/6-31G* calculation on metal-free phthalocyanine",
-          ko: "계산된 밀도 / HOMO / LUMO · 금속 없는 프탈로시아닌 B3LYP/6-31G* 계산 하나",
+          en: "Calculated density / HOMO / LUMO · ORCA wB97M-V/def2-TZVP on PO-T2T, 108 atoms",
+          ko: "계산된 밀도 / HOMO / LUMO · PO-T2T 108원자 ORCA wB97M-V/def2-TZVP",
         },
         visualLayers: [
           { kind: "CALCULATED", label: { en: "Density and frontier orbitals", ko: "전자 밀도와 프런티어 오비탈" } },
         ],
         plotType: null,
         sceneKey: "D6_outputs",
-      },
-      {
-        activeTerms: ["rhoIn", "veff", "orbitals", "rhoOut"],
-        equationKey: "scf",
-        equationDetailMode: "grouped",
-        title: { en: "How the Density Is Actually Solved", ko: "밀도를 실제로 푸는 방법" },
-        question: {
-          en: "A DFT result enters the reference record only once its density is self-consistent, so this loop is the gate every electronic answer clears.",
-          ko: "DFT 결과는 그 밀도가 자기일관에 이른 뒤에야 참조 레코드에 들어갈 자격을 얻으므로, 이 수렴 고리는 모든 전자구조 답이 통과해야 하는 관문이다.",
-        },
-        concept: {
-          en: "Building the Hamiltonian takes the electron density, and the density is what the calculation is trying to find. So it starts from a plausible one, builds a potential, and solves the orbitals. A new density comes out, and feeding that straight back overshoots, so it is blended with the previous one before the next pass. Move the control and the real iterations go by one at a time. The density surface shifts less and less, and the energy change, after one large early excursion, drops by orders of magnitude. Isovalues differ from surface to surface, so they are not there to have their areas compared. The density and the orbital energies on the previous page become that molecule's own only once they are through this loop. When they will not come through, suspect the starting guess or the mixing scheme first; when neither is at fault, the electronic structure is. Molecules with frontier orbitals crowded together, or with an unpaired electron, are the usual case.",
-          ko: "해밀토니안을 세우려면 전자 밀도를 알아야 하는데, 그 밀도가 지금 구하려는 값이다. 그래서 그럴듯한 밀도를 하나 놓고 퍼텐셜을 세운 뒤 오비탈을 푼다. 그러면 새 밀도가 나오는데, 그대로 되먹이면 값이 튀므로 앞 밀도와 섞어 다음 입력으로 쓴다. 조절기를 움직이면 실제 반복이 하나씩 지나간다. 밀도 표면은 갈수록 덜 움직이고, 에너지 변화는 초반에 한 번 크게 튄 뒤로 자릿수를 떨어뜨린다. 표면마다 표시 등치값이 달라 면적을 견주는 용도는 아니다. 앞 장의 수치도 이 고리를 빠져나온 뒤에야 그 분자의 값이 된다. 좀처럼 못 빠져나오면 초기 추정이나 섞는 방식을 먼저 의심하고, 그래도 여전하면 전자구조 쪽이다. 프런티어 오비탈이 촘촘히 몰렸거나 홀전자를 가진 분자가 그렇다.",
-        },
-        takeaway: {
-          en: "SCF convergence is the numerical gate applied before an electronic result enters our reference record.",
-          ko: "SCF 수렴은 전자구조 결과를 참조 레코드에 넣기 전에 통과해야 하는 수치적 관문이다.",
-        },
-        systemCaption: {
-          en: "Calculated SCF density snapshots · synchronized energy-change trace",
-          ko: "계산된 SCF 총밀도 스냅샷 · 동기화된 에너지 변화 곡선",
-        },
-        visualLayers: [
-          { kind: "CALCULATED", label: { en: "SCF total-density snapshots", ko: "SCF 총밀도 스냅샷" } },
-          { kind: "MECHANISM SCHEMATIC", label: { en: "SCF loop", ko: "SCF 반복 고리" } },
-        ],
-        plotType: "scf",
-        sceneKey: "D4_scf",
       },
     ],
   },
@@ -229,40 +229,14 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
       {
         activeTerms: [],
         showEquation: false,
-        title: { en: "Where Collective Behavior Emerges", ko: "집단 거동이 창발하는 계층" },
-        question: {
-          en: "When the behavior emerges only at sizes and times no atomistic run reaches, coarse-graining is the only route to the scale it lives on.",
-          ko: "그 거동이 어떤 원자 계산으로도 닿지 못하는 크기와 시간에서만 나타난다면 모든 원자를 유지하는 선택지는 없고, 그 거동이 사는 규모에 이르는 길은 조대화뿐이다.",
-        },
-        concept: {
-          en: "One polymer chain is a long piece of thread and little else. Put a few thousand of them in the same box and, threading past one another, they acquire properties no single strand has. A melt that stops flowing and holds like rubber comes out of that entanglement. A block copolymer sorting itself into periodic layers takes the same crowd to happen at all. Counting atoms one at a time runs out of time long before it reaches this scale, so several atoms are folded into one bead and the system grows on what is left, the chain's contour and its connectivity. What moves on screen is a hundred chains obtained that way, and a scattering experiment hands back the same arrangement they make together.",
-          ko: "고분자 사슬 하나는 긴 실에 지나지 않는다. 그런 실을 수천 가닥 같은 통에 넣으면 서로를 꿰고 지나가면서 한 가닥에는 없던 성질이 생긴다. 용융체가 흐르다 말고 고무처럼 버티는 것이 그 얽힘에서 나온다. 블록 공중합체가 저절로 주기적인 층으로 갈라서는 것도 여럿이 모여야 일어나는 일이다. 원자를 하나씩 세는 계산은 이 규모에 닿기 전에 시간이 먼저 바닥난다. 그래서 원자 몇 개를 비드 하나로 묶고 사슬의 윤곽과 연결성만 남긴 채 계를 키운다. 움직이는 것은 그렇게 얻은 사슬 100가닥이고, 산란 실험이 되돌려 주는 것도 이 사슬들이 함께 이룬 배열이다.",
-        },
-        takeaway: {
-          en: "This tier reaches sizes and collective motion the atomistic tiers cannot, while keeping its system size and nominal duration stated explicitly.",
-          ko: "이 계층은 계 크기와 명목 시간을 명시한 채, 원자 해상도 계층이 닿지 못하는 크기와 집단 운동에 도달한다.",
-        },
-        systemCaption: {
-          en: "Trajectory · generic linear-polymer melt · 100×80 beads · 500 frames · nominal 1 ns",
-          ko: "궤적 · 일반 선형 고분자 용융체 · 100×80비드 · 500프레임 · 명목상 1 ns",
-        },
-        visualLayers: [
-          { kind: "TRAJECTORY", label: { en: "8,000-bead collective trajectory", ko: "8,000비드 집단 궤적" } },
-        ],
-        plotType: null,
-        sceneKey: "M5_collective",
-      },
-      {
-        activeTerms: [],
-        showEquation: false,
-        title: { en: "How Coarse-Graining Buys That Reach", ko: "조대화가 그 도달 범위를 얻는 방식" },
+        title: { en: "The Tier That Folds Atoms Into Beads", ko: "여러 원자를 한 비드로 접는 계층" },
         question: {
           en: "Folding several atoms into one bead buys the longer timestep and the larger system, and that same choice fixes what atomic detail is given up.",
           ko: "여러 원자를 비드 하나로 접는 매핑이 더 긴 적분 스텝과 더 큰 계를 가능하게 하고, 그 도달 범위의 값으로 내주는 원자 수준 충실도까지 같은 선택이 정한다.",
         },
         concept: {
-          en: "How many atoms a single bead may hold has to be settled before any of this runs. Group them by centre of mass and the fast rattling inside each group leaves the model; with fewer particles and softer forces the timestep can be stretched. That is how the reach on the previous page was bought. What it costs is settled in the same place. The chain's contour and connectivity survive, so how a melt entangles is still answerable, while which hydrogen bond formed and when is no longer a question the model can take. The clock stretches too. Smoothing the fast motion makes simulated time run ahead of real time by a factor the mapping fixes, so a relaxation time from here is read as a trend. On screen, one chain dissolving into its beads is that decision made visible.",
-          ko: "비드 하나에 원자를 몇 개까지 담을지는 계산을 시작하기 전에 정해야 한다. 질량 중심으로 묶고 나면 그 안에서 떨리던 빠른 운동이 모형에서 빠져나가고, 입자 수가 줄고 힘이 부드러워지면서 적분 스텝을 길게 잡을 수 있다. 앞 장의 도달 범위는 이 대가로 얻은 것이다. 내주는 것도 이 결정에서 함께 정해진다. 사슬의 윤곽과 연결성을 남겼으니 용융체가 어떻게 얽히는지는 여전히 답하지만, 어느 수소결합이 언제 생겼는지는 더 물을 수 없다. 빠른 운동을 뭉갠 만큼 시뮬레이션 시간이 실제보다 앞서 흐르고 그 배수도 매핑이 정하므로, 여기서 나온 완화 시간은 경향으로 읽는다. 화면에서 사슬 하나가 비드로 풀어지는 장면이 그 결정을 그대로 보여 준다.",
+          en: "How many atoms a single bead may hold has to be settled before any of this runs. Group them by centre of mass and the fast rattling inside each group leaves the model; with fewer particles and softer forces the timestep can be stretched. That is how the reach on the next page is bought. What it costs is settled in the same place. The chain's contour and connectivity survive, so how a melt entangles is still answerable, while which hydrogen bond formed and when is no longer a question the model can take. The clock stretches too. Smoothing the fast motion makes simulated time run ahead of real time by a factor the mapping fixes, so a relaxation time from here is read as a trend. On screen, one chain dissolving into its beads is that decision made visible.",
+          ko: "비드 하나에 원자를 몇 개까지 담을지는 계산을 시작하기 전에 정해야 한다. 질량 중심으로 묶고 나면 그 안에서 떨리던 빠른 운동이 모형에서 빠져나가고, 입자 수가 줄고 힘이 부드러워지면서 적분 스텝을 길게 잡을 수 있다. 다음 장의 도달 범위는 이 대가로 얻는다. 내주는 것도 이 결정에서 함께 정해진다. 사슬의 윤곽과 연결성을 남겼으니 용융체가 어떻게 얽히는지는 여전히 답하지만, 어느 수소결합이 언제 생겼는지는 더 물을 수 없다. 빠른 운동을 뭉갠 만큼 시뮬레이션 시간이 실제보다 앞서 흐르고 그 배수도 매핑이 정하므로, 여기서 나온 완화 시간은 경향으로 읽는다. 화면에서 사슬 하나가 비드로 풀어지는 장면이 그 결정을 그대로 보여 준다.",
         },
         takeaway: {
           en: "The mapping is a modeling choice, so a coarse-grained model is only as trustworthy as the atomistic or experimental targets its effective interactions were tuned to reproduce.",
@@ -278,6 +252,32 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
         ],
         plotType: null,
         sceneKey: "M2_mapping",
+      },
+      {
+        activeTerms: [],
+        showEquation: false,
+        title: { en: "How That Reach Yields Collective Behavior", ko: "그 도달 범위에서 집단 거동이 나오는 방식" },
+        question: {
+          en: "When the behavior emerges only at sizes and times no atomistic run reaches, coarse-graining is the only route to the scale it lives on.",
+          ko: "그 거동이 어떤 원자 계산으로도 닿지 못하는 크기와 시간에서만 나타난다면 모든 원자를 유지하는 선택지는 없고, 그 거동이 사는 규모에 이르는 길은 조대화뿐이다.",
+        },
+        concept: {
+          en: "One polymer chain is a long piece of thread and little else. Put a few thousand of them in the same box and, threading past one another, they acquire properties no single strand has. A melt that stops flowing and holds like rubber comes out of that entanglement. A block copolymer sorting itself into periodic layers takes the same crowd to happen at all. Counting atoms one at a time runs out of time long before it reaches this scale, so the mapping on the previous page is applied and the system grows on what it keeps, the chain's contour and its connectivity. What moves on screen is a hundred chains obtained that way, and a scattering experiment hands back the same arrangement they make together.",
+          ko: "고분자 사슬 하나는 긴 실에 지나지 않는다. 그런 실을 수천 가닥 같은 통에 넣으면 서로를 꿰고 지나가면서 한 가닥에는 없던 성질이 생긴다. 용융체가 흐르다 말고 고무처럼 버티는 것이 그 얽힘에서 나온다. 블록 공중합체가 저절로 주기적인 층으로 갈라서는 것도 여럿이 모여야 일어나는 일이다. 원자를 하나씩 세는 계산은 이 규모에 닿기 전에 시간이 먼저 바닥난다. 그래서 앞 장의 매핑을 적용해 사슬의 윤곽과 연결성만 남긴 채 계를 키운다. 움직이는 것은 그렇게 얻은 사슬 100가닥이고, 산란 실험이 되돌려 주는 것도 이 사슬들이 함께 이룬 배열이다.",
+        },
+        takeaway: {
+          en: "This tier reaches sizes and collective motion the atomistic tiers cannot, while keeping its system size and nominal duration stated explicitly.",
+          ko: "이 계층은 계 크기와 명목 시간을 명시한 채, 원자 해상도 계층이 닿지 못하는 크기와 집단 운동에 도달한다.",
+        },
+        systemCaption: {
+          en: "Trajectory · generic linear-polymer melt · 100×80 beads · 500 frames · nominal 1 ns",
+          ko: "궤적 · 일반 선형 고분자 용융체 · 100×80비드 · 500프레임 · 명목상 1 ns",
+        },
+        visualLayers: [
+          { kind: "TRAJECTORY", label: { en: "8,000-bead collective trajectory", ko: "8,000비드 집단 궤적" } },
+        ],
+        plotType: null,
+        sceneKey: "M5_collective",
       },
     ],
   },

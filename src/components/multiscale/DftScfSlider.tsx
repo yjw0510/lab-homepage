@@ -31,6 +31,12 @@ export function DftScfSlider({
   const currentT = max > min ? (value - min) / (max - min) : 0;
   const currentX = THUMB_R + currentT * railWidth;
 
+  // Every snapshot gets a tick and a hit target; only some get a number. The run is 59
+  // iterations long and a two-digit label needs about this much room, so at full width they
+  // otherwise print on top of each other into an unreadable smear.
+  const LABEL_WIDTH = 26;
+  const labelStride = Math.max(1, Math.ceil(snapshots.length / Math.max(1, Math.floor(railWidth / LABEL_WIDTH))));
+
   const ticks = useMemo(() => {
     if (max <= 0) return [];
     return snapshots.map((snapshot, index) => ({
@@ -42,19 +48,15 @@ export function DftScfSlider({
 
   if (snapshots.length <= 1) return null;
 
-  // scf.json carries English labels ("Initial guess", "Iter 4") because it is computed
-  // output, so the readout has to be built from the iteration number the way the ticks
-  // below already are. Printing snapshot.label put English on the Korean page.
+  // scf.json carries English labels ("Iter 4") because it is computed output, so the readout has
+  // to be built from the iteration number the way the ticks below already are. Printing
+  // snapshot.label put English on the Korean page.
   const activeSnapshot = snapshots[value];
   const activeLabel = !activeSnapshot
     ? String(value)
-    : activeSnapshot.iteration === 0
-      ? lang === "ko"
-        ? "초기 추정"
-        : "Initial guess"
-      : lang === "ko"
-        ? `반복 ${activeSnapshot.iteration}`
-        : `Iteration ${activeSnapshot.iteration}`;
+    : lang === "ko"
+      ? `반복 ${activeSnapshot.iteration}`
+      : `Iteration ${activeSnapshot.iteration}`;
 
   return (
     <div>
@@ -96,25 +98,35 @@ export function DftScfSlider({
         <div className="type-mono-meta relative mt-3 h-10 text-xs">
           {ticks.map(({ snapshot, index, x }) => {
             const active = index === value;
+            // Both ends are named, and then every `labelStride`-th tick, except where that would
+            // land within one stride of the end and print on top of it. The selected iteration is
+            // not forced into the row: it is already named above the track, and forcing it printed
+            // its number over whichever strided label it happened to sit beside.
+            const labelled =
+              index === 0 ||
+              index === max ||
+              (index % labelStride === 0 && max - index >= labelStride);
             return (
               <button
                 key={`${snapshot.index}-${snapshot.iteration}`}
                 type="button"
                 onClick={() => onChange(index)}
-                className="absolute top-0 flex min-h-9 min-w-6 -translate-x-1/2 items-start justify-center"
+                className="absolute top-0 flex min-h-9 w-4 -translate-x-1/2 items-start justify-center"
                 style={{ left: `${x}px` }}
               >
                 <div className="flex flex-col items-center gap-1">
                   <span className={`h-2 w-[2px] ${active ? "bg-primary" : "bg-border-strong"}`} />
-                  <span
-                    className={
-                      active
-                        ? "bg-muted px-1.5 py-0.5 text-foreground"
-                        : "px-1.5 py-0.5 text-muted-foreground"
-                    }
-                  >
-                    {snapshot.iteration === 0 ? (lang === "ko" ? "초기" : "Init") : snapshot.iteration}
-                  </span>
+                  {labelled ? (
+                    <span
+                      className={
+                        active
+                          ? "whitespace-nowrap bg-muted px-1.5 py-0.5 text-foreground"
+                          : "whitespace-nowrap px-1.5 py-0.5 text-muted-foreground"
+                      }
+                    >
+                      {snapshot.iteration}
+                    </span>
+                  ) : null}
                 </div>
               </button>
             );

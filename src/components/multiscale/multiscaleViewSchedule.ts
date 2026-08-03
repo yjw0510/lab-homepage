@@ -42,19 +42,38 @@ export interface MultiscaleAnchorSpec {
   point: [number, number, number];
 }
 
-const DEFAULT_ZOOM_LADDER = [0.5, 0.65, 0.8, 1, 1.25, 1.6, 2.0];
+// Rungs a quarter apart, six in and five out from rest. The seven-rung ladder this replaces
+// reached 2x in and stopped, which on a molecule that already fills the frame at rest is one
+// or two useful clicks before the button does nothing.
+const DEFAULT_ZOOM_LADDER = [0.26, 0.33, 0.41, 0.51, 0.64, 0.8, 1, 1.25, 1.56, 1.95, 2.44, 3.05];
+
+/**
+ * Where the ladder sits at rest, and its last rung. Exported because the stages own the buttons
+ * and had been carrying their own numbers: the DFT stage clamped to 0..4 around a neutral of 2
+ * against a seven-rung ladder whose neutral is 3, so zooming in ran out after two clicks and
+ * every click after that changed nothing.
+ */
+export const BASE_ZOOM_INDEX = DEFAULT_ZOOM_LADDER.indexOf(1);
+export const MAX_ZOOM_INDEX = DEFAULT_ZOOM_LADDER.length - 1;
 
 const DFT_VIEW_SPEC: MultiscaleViewSpec = {
   cameraSubsetId: "molecule",
   anchorId: "molecule_center",
-  azimuthDeg: 10,
-  elevationDeg: 14,
+  // Face-on to the molecule's own plane rather than a generic three-quarter view. Fitting a
+  // plane to the 21 heavy atoms within 5.5 A of the ring-nitrogen centroid gives singular values
+  // 11.5 / 11.46 / 0.26 and 0.057 A of out-of-plane scatter, so the core really is flat, and its
+  // normal points along these two angles. Seen from anywhere else the rings foreshorten into
+  // each other.
+  azimuthDeg: -33,
+  elevationDeg: -26,
   rollDeg: 0,
   targetOffset: [0, 0, 0],
-  // The SCF density isosurface extends well past the atoms, and the schedule frames
-  // `molecule`, so at 1.22 the surface reached all four canvas edges on every desktop
-  // viewport. Measured clear at 1.55 by probe-canvas-fit.mjs.
-  padding: 1.55,
+  // The SCF density isosurface extends well past the atoms, and the schedule frames `molecule`,
+  // so this is set against the converged surface, the largest thing either DFT page draws.
+  // Measured by scripts/probe-canvas-fit.mjs: height is the binding dimension on every desktop
+  // viewport and width never comes close, so the number is chosen to put the surface at about
+  // 78% of canvas height, leaving room for the control panel and colour bar it sits under.
+  padding: 1.09,
   nearFactor: 0.05,
   farFactor: 6,
   zoomLadder: DEFAULT_ZOOM_LADDER,
@@ -66,6 +85,20 @@ type LevelSchedule = Record<number, MultiscaleViewSpec>;
 export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> = {
   meso: {
     0: {
+      cameraSubsetId: "bundle_overview",
+      renderSubsetId: "all_beads",
+      anchorId: "bundle_center",
+      azimuthDeg: 28,
+      elevationDeg: 12,
+      rollDeg: 0,
+      targetOffset: [0, 0, 0],
+      padding: 1.15,
+      nearFactor: 0.05,
+      farFactor: 12,
+      zoomLadder: DEFAULT_ZOOM_LADDER,
+      transitionMode: "snap",
+    },
+    1: {
       // The melt renders `all_beads`; framing the smaller `bundle_overview` subset
       // cut the scene on all four canvas edges at every viewport and theme, measured
       // by probe-canvas-fit.mjs. Frame what is drawn.
@@ -88,20 +121,6 @@ export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> =
         atomOpacity: [0, 0.2],
         beadOpacity: [0.85, 1],
       },
-    },
-    1: {
-      cameraSubsetId: "bundle_overview",
-      renderSubsetId: "all_beads",
-      anchorId: "bundle_center",
-      azimuthDeg: 28,
-      elevationDeg: 12,
-      rollDeg: 0,
-      targetOffset: [0, 0, 0],
-      padding: 1.15,
-      nearFactor: 0.05,
-      farFactor: 12,
-      zoomLadder: DEFAULT_ZOOM_LADDER,
-      transitionMode: "snap",
     },
   },
   allatom: {

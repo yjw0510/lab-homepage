@@ -20,6 +20,7 @@ import {
   applyResearchCanvasBackground,
   commitResearchLayers,
   mountResearchPlugin,
+  ATOM_MATERIAL,
 } from "./shared";
 import { Color } from "molstar/lib/mol-util/color/color.js";
 
@@ -399,8 +400,6 @@ function prepare(topology: ElectrolyteTopology, frames: Float32Array[]) {
 
 type Prepared = ReturnType<typeof prepare>;
 
-const MATERIAL = { metalness: 0, roughness: 0.45, bumpiness: 0 };
-
 /** Gather the given atoms' positions into a contiguous buffer for one impostor layer. */
 function gather(frame: Float32Array, indices: ArrayLike<number>) {
   const out = new Float32Array(indices.length * 3);
@@ -451,7 +450,7 @@ function bondLayer(
     kept++;
   }
   return { label, starts: starts.subarray(0, kept * 3), ends: ends.subarray(0, kept * 3),
-           radius, color, params: { alpha, quality: "high", material: MATERIAL } };
+           radius, color, params: { alpha, quality: "high", material: ATOM_MATERIAL } };
 }
 
 /**
@@ -467,7 +466,7 @@ function wideLayers(
 
   return [
     { label: "Simulation Cell", primitives: prepared.cellEdges,
-      params: { alpha: 1, quality: "medium", material: MATERIAL } },
+      params: { alpha: 1, quality: "medium", material: ATOM_MATERIAL } },
     bondLayer("Electrolyte Bonds", frame, prepared.cellBonds, prepared.bulkRadius,
               prepared.bulkStickRadius, SLATE, 1),
     ...prepared.bulkGroups.map((group) => ({
@@ -475,14 +474,14 @@ function wideLayers(
       centers: gather(frame, group.indices),
       radius: group.radius,
       color: group.color,
-      params: { alpha: 1, quality: "high", material: MATERIAL },
+      params: { alpha: 1, quality: "high", material: ATOM_MATERIAL },
     })),
     ...byBucket.map((indices, bucket) => ({
       label: `Lithium ${bucket}`,
       centers: gather(frame, indices),
       radius: ION_RADIUS_NM,
       color: COUNT_COLOR[bucket],
-      params: { alpha: 1, quality: "high", material: MATERIAL, emissive: 0.1 },
+      params: { alpha: 1, quality: "high", material: ATOM_MATERIAL, emissive: 0.1 },
     })),
   ];
 }
@@ -557,14 +556,14 @@ function closeLayers(
       // and the liquid reads as loose dots rather than molecules.
       radius: prepared.ball(indices[0]),
       color: ELEMENT_COLOR[element] ?? SLATE,
-      params: { alpha: contextAlpha, quality: "high", material: MATERIAL },
+      params: { alpha: contextAlpha, quality: "high", material: ATOM_MATERIAL },
     })),
     { label: "Solvation Shell", primitives: subjectSpheres,
-      params: { alpha: 1, quality: "high", material: MATERIAL, emissive: 0.08 } },
+      params: { alpha: 1, quality: "high", material: ATOM_MATERIAL, emissive: 0.08 } },
     { label: "Shell Bonds", primitives: subjectSticks,
-      params: { alpha: 0.95, quality: "high", material: MATERIAL } },
+      params: { alpha: 0.95, quality: "high", material: ATOM_MATERIAL } },
     { label: "Coordinating Oxygens", primitives: marked,
-      params: { alpha: 1, quality: "high", material: MATERIAL, emissive: 0.45 } },
+      params: { alpha: 1, quality: "high", material: ATOM_MATERIAL, emissive: 0.45 } },
   ];
 }
 
@@ -661,6 +660,7 @@ export function MolstarElectrolyteStage({
       up: WORLD_UP,
       radius: solved.reach,
       radiusMax: solved.reach * 4,
+      minNear: solved.reach * 0.05,
     };
     defaultSnapshotRef.current = snapshot as CameraSnapshotLike;
     // Only when the framing itself changed. Writing the camera on every animation frame is what

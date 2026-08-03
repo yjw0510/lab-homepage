@@ -29,12 +29,13 @@ import { PlotContainer, PLOT_COLORS } from "./PlotContainer";
 
 /**
  * Same thresholds and the same three colours the scene paints the ions with. `label` marks the
- * row each band's name is written on, which is the row carrying nearly all of that band.
+ * row each band's name is written on, which is the row carrying nearly all of that band. The
+ * names are the intervals themselves, so they need no translating and read as the axis does.
  */
-const BANDS = [
-  { max: 3, color: "#2dd4bf", label: 3, en: "3 or fewer", ko: "셋 이하" },
-  { max: 4, color: "#facc15", label: 4, en: "exactly 4", ko: "정확히 넷" },
-  { max: Infinity, color: "#f472d0", label: 5, en: "5 or more", ko: "다섯 이상" },
+export const BANDS = [
+  { max: 3, color: "#2dd4bf", label: 3, name: "≤ 3" },
+  { max: 4, color: "#facc15", label: 4, name: "4" },
+  { max: Infinity, color: "#f472d0", label: 5, name: "≥ 5" },
 ] as const;
 
 const bandOf = (count: number) => BANDS.findIndex((band) => count <= band.max);
@@ -103,7 +104,7 @@ export function AllAtomCoordinationPlot({
         const labelFor = (count: number) => {
           const value = share(count);
           const band = BANDS[bandOf(count)];
-          const name = band.label === count ? (ko ? band.ko : band.en) : null;
+          const name = band.label === count ? band.name : null;
           return [value >= 0.01 ? `${Math.round(value * 100)}%` : null, name].filter(Boolean).join("  ");
         };
         // Hangul occupies a full em, latin and digits roughly half of one.

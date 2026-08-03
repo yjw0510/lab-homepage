@@ -3,11 +3,11 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+/** Bare `/` lands on English. The Korean pages are reached from the language switch. */
 export default function RootPage() {
   const router = useRouter();
   useEffect(() => {
-    const lang = navigator.language.startsWith("ko") ? "ko" : "en";
-    router.replace(`/${lang}`);
+    router.replace("/en");
   }, [router]);
 
   return (

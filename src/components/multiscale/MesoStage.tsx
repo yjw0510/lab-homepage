@@ -12,6 +12,7 @@ import { DNAPageRouter } from "./dna/DNAPageRouter";
 import type { ScrollState } from "./scrollState";
 import type { ResearchCameraActions } from "./molstar/shared";
 import { CHOREOGRAPHY } from "./levelData";
+import { BASE_ZOOM_INDEX, MAX_ZOOM_INDEX } from "./multiscaleViewSchedule";
 import { MesoMechanism } from "./overlays/MesoMechanism";
 import { useMultiscaleCanvasColor } from "./useMultiscaleCanvasColor";
 import {
@@ -30,8 +31,7 @@ interface MesoScheduleSource {
   subsets?: Record<string, { indices: number[] }>;
 }
 
-const BASE_ZOOM_INDEX = 3;
-const MAX_ZOOM_INDEX = 6;
+
 
 // M2 uses an origin-centered teaching chain rather than the manifest's melt coordinates.
 // The mapping motif is one chain and its beads. At 6.5 the camera framed a sphere the
