@@ -44,6 +44,21 @@ interface MesoScheduleSource {
 // while the left and right margins are 0-1px. The fix is the override's center, which
 // needs the motif's real bounds rather than another radius guess.
 const MESO_MORPH_RADIUS = 5.2;
+// Measured, not guessed, which is what the note above asked for. Screenshotting the canvas with
+// every chrome overlay hidden and taking the bbox of what is actually painted put the motif's
+// centre 98-117px above the canvas centre at 1024x768 and 1440x900, leaving 228-266px of dead
+// canvas below it, and 102px above centre on a phone. Converted through the framed extent
+// (2 x radius x padding over canvas height) that is about 1.7 world units of +y.
+// Measured, which the note above asked for and which the earlier attempts got wrong.
+//
+// The "187-198px of empty canvas below the content" that motivated this was chrome, not the
+// motif: the bbox included the scene-title card and the camera-control cluster painted over the
+// canvas. Screenshotting with every element except the canvas hidden puts the motif's centre
+// 6px off centre on a phone and 13-16px off on a 703-835px desktop canvas, i.e. 1-2%. There was
+// no centring defect; there is a small residual, and this is it. Converted through the framed
+// extent (2 x radius x padding over canvas height) it is a fifth of a world unit, and the same
+// number lands on all three viewports.
+const MESO_MORPH_CENTER: [number, number, number] = [0, 0.2, 0];
 
 const jsonFetchCache = new Map<string, Promise<unknown>>();
 function cachedJsonFetch<T>(url: string): Promise<T> {
@@ -110,7 +125,7 @@ function MesoStageCamera({
       const stepScene = CHOREOGRAPHY.meso.steps[scrollState.step]?.sceneKey;
       const boundsOverride =
         stepScene === "M2_mapping"
-          ? { center: [0, 0, 0] as [number, number, number], radius: MESO_MORPH_RADIUS }
+          ? { center: MESO_MORPH_CENTER, radius: MESO_MORPH_RADIUS }
           : undefined;
       const placement = computeScheduledPlacement({
         level: "meso",
