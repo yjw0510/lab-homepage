@@ -277,7 +277,6 @@ export const GREEN = Color.fromHexStyle("#22c55e");
 export const AMBER = Color.fromHexStyle("#fbbf24");
 export const ORANGE = Color.fromHexStyle("#f97316");
 export const BLUE = Color.fromHexStyle("#2f74ff");
-export const LIGHT_BLUE = Color.fromHexStyle("#60a5fa");
 /**
  * The SCF density ramp: this iteration's density against the converged one, low to high.
  *
@@ -790,36 +789,6 @@ export async function commitResearchLayers(plugin: PluginLike, layers: ResearchL
   }
 }
 
-export interface LayerParamUpdate {
-  label: string;
-  alpha: number;
-  emissive: number;
-}
-
-/** Update alpha/emissive on existing representations without rebuilding geometry. */
-export async function updateResearchLayerParams(plugin: PluginLike, updates: LayerParamUpdate[]) {
-  if (updates.length === 0) return;
-  const build = plugin.build();
-  let touched = false;
-
-  for (const cell of plugin.state.data.cells.values()) {
-    if (!cell.obj) continue;
-    const label = cell.obj.label;
-    const update = updates.find((u) => u.label === label);
-    if (!update) continue;
-
-    const children = plugin.state.data.tree.children.get(cell.transform.ref);
-    if (!children) continue;
-    for (const childRef of children.toArray()) {
-      const child = plugin.state.data.cells.get(childRef);
-      if (!child?.obj) continue;
-      build.to(childRef).update({ alpha: update.alpha, emissive: update.emissive } as never);
-      touched = true;
-    }
-  }
-
-  if (touched) await build.commit();
-}
 
 interface CanvasSettingsProps {
   renderer: {
@@ -1136,13 +1105,6 @@ export function centerPoints(points: number[][]) {
   return {
     center,
     points: points.map(([x, y, z]) => [x - center[0], y - center[1], z - center[2]]),
-  };
-}
-
-export function offsetMesh<T extends { vertices: number[][] }>(mesh: T, offset: number[]) {
-  return {
-    ...mesh,
-    vertices: mesh.vertices.map(([x, y, z]) => [x - offset[0], y - offset[1], z - offset[2]]),
   };
 }
 

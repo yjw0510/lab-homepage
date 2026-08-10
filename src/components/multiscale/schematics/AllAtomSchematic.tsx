@@ -234,8 +234,15 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
   const dblS = { x: Cp.cx + Cp.r * cpO.ux, y: Cp.cy + Cp.r * cpO.uy };
   const dblE = { x: Ox.cx - Ox.r * cpO.ux, y: Ox.cy - Ox.r * cpO.uy };
 
+  // Left edge at -78, not -50. The LJ/Coulomb block starts at ljLx = u(-25) = -30 and the content
+  // group is translated -40, so its left edge lands at -70 in viewBox units and the viewport
+  // cropped the leading U of U_LJ and U_Coul. Widening the box moves nothing relative to anything
+  // else; it only stops the crop.
   return (
-    <svg viewBox="-50 0 850 480" className="w-full h-52 sm:h-64" style={{ shapeRendering: "geometricPrecision" }}>
+    <svg viewBox="-78 0 878 480" className="w-full h-52 sm:h-64" style={{ shapeRendering: "geometricPrecision" }}
+      role="img" aria-label={ko
+        ? "고전 전원자 역장: 결합·각도·비틀림·반 데르 발스·정전기 항이 하나의 퍼텐셜을 이루는 구성"
+        : "Classical all-atom force field: bond, angle, torsion, van der Waals and electrostatic terms composing one potential"}>
       <AtomPaintProvider>
       <defs>
         <AtomDefs />

@@ -120,13 +120,13 @@ function M2Mapping({ ko, isMobile }: { ko: boolean; isMobile: boolean }) {
             <Formula value="\mathbf R_I=\frac{\sum_{i\in I}m_i\mathbf r_i}{\sum_{i\in I}m_i}" display />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="border-l-2 border-lv-meso-line pl-4">
+            <div className="border-t border-lv-meso-line pt-4">
               <p className={MULTISCALE_TYPE.semititle}>{ko ? "보존" : "Retained"}</p>
               <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
                 {ko ? "사슬 윤곽, 연결성, 선택한 구조 통계" : "chain contour, connectivity, selected structural statistics"}
               </p>
             </div>
-            <div className="border-l-2 border-lv-aa-line pl-4">
+            <div className="border-t border-lv-aa-line pt-4">
               <p className={MULTISCALE_TYPE.semititle}>{ko ? "제거" : "Eliminated"}</p>
               <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
                 {ko ? "원자별 배치와 빠른 내부 진동" : "atom-specific geometry and fast internal vibrations"}
@@ -177,7 +177,7 @@ function M5Collective({ ko }: { ko: boolean }) {
           </div>
         ))}
       </div>
-      <div className="border-l-2 border-lv-meso-line pl-4">
+      <div className="border-t border-lv-meso-line pt-4">
         <p className={MULTISCALE_TYPE.semititle}>{ko ? "여러 가닥이 만드는 배열" : "The arrangement many chains make"}</p>
         <p className={`mt-2 ${MULTISCALE_TYPE.body}`}>
           {ko

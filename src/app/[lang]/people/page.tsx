@@ -50,20 +50,25 @@ export default async function PeoplePage({
   const loc = lang as Locale;
 
   return (
-    <div className="px-6 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+    <div className="py-20 sm:py-28">
+      {/* Gutter on the clamped element, not outside it. Applied to the outer div, `mx-auto`
+          absorbs it and the column measures 1152px instead of the declared 1088, so body
+          content on these four routes ruled 32px wider than the navbar above and the footer
+          below it on the same screen. */}
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
         {/* Masthead */}
         <header>
           <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
             {dict.people.title}
           </h1>
+          <p className="mt-4 max-w-[36rem] leading-relaxed text-muted-foreground">
+            {dict.people.subtitle}
+          </p>
         </header>
         <div
           aria-hidden="true"
-          className="mt-8 border-t border-border-strong pt-[3px]"
-        >
-          <div className="border-t border-border" />
-        </div>
+          className="mt-8 h-[3px] border-y border-border-strong"
+        />
 
         {/* Principal Investigator */}
         <section className="mt-14 sm:mt-16">
@@ -186,7 +191,7 @@ export default async function PeoplePage({
             </h2>
           </div>
           <div className="mt-8">
-            <MemberGrid members={members} noMembersText={dict.people.noMembers} />
+            <MemberGrid members={members} noMembersText={dict.people.noMembers} lang={lang} />
           </div>
         </section>
       </div>

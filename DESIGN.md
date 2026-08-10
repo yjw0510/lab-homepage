@@ -369,7 +369,7 @@ to element geometry, so each rule below names the measurement that does see it.
 
 ## 4. Components
 
-- **Nav (masthead)**: hairline bottom rule; wordmark left = `Yu Lab` display-650
+- **Nav (masthead)**: hairline bottom rule; wordmark left = `Yu Lab` at `type-heading` 700
   + mono `MMCC` tag; links right, `text-[13.5px]` weight 500; active item =
   `text-foreground` + 2px signal-red underline (offset 6px); inactive
   `text-muted-foreground`. No pill backgrounds, no backdrop-blur glass. Height
@@ -426,7 +426,7 @@ to element geometry, so each rule below names the measurement that does see it.
   swap by the `dark:` variant (so the right one paints before hydration) and stay
   painted underneath; the loop mounts over them only after hydration, only while on
   screen, and fades in on `playing`. The loop's outer **2% on each axis is masked to
-  a fade** so H.264's residual backdrop drift never draws a rectangle. Reduced
+  a fade** so the codec's residual backdrop drift never draws a rectangle. Reduced
   motion, Save-Data and 2G hold the poster.
   Its caption is a **printed plate label**, not a title, in one of two shapes:
   - *stacked* (tier page figcaption, hero left field at `lg` on a tall viewport):
@@ -543,8 +543,9 @@ hard rectangle. Measured in Chrome across element sizes; the shipped pages sampl
 encodes. A 2% edge fade on the loop (see §4) covers the residual.
 
 The single video format is a repo-size and simplicity decision, not a quality
-one: at the shipped operating point a matched VP9 encode measures ~7% smaller and
-~0.4 dB better, so H.264-only costs a little efficiency to avoid a second ladder.
+one: the loops ship a two-rung ladder: AV1 (`av01.0.12M.10`) at width 2048 over an
+H.264 floor (`avc1.640020`), gated at `(min-width: 1024px)`. The rationale is in
+scripts/encode-specimen-loops.py.
 
 Schematic accent tokens (`--sch-*` in globals.css): every chromatic accent a
 schematic animates (SCF ring, packets, force-field term colors, electron

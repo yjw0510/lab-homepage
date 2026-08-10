@@ -21,7 +21,7 @@ const schematicMap: Record<
 
 const levelTextMap: Record<string, string> = {
   dft: "text-lv-dft",
-  mlff: "text-lv-mlff",
+  mlff: "text-lv-mlff-text",
   allatom: "text-lv-aa",
   meso: "text-lv-meso",
 };

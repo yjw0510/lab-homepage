@@ -11,15 +11,19 @@ const scaleIndex = [
 
 const levelTextMap: Record<string, string> = {
   dft: "text-lv-dft",
-  mlff: "text-lv-mlff",
+  mlff: "text-lv-mlff-text",
   allatom: "text-lv-aa",
   meso: "text-lv-meso",
 };
 
 export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
   return (
-    <footer className="border-t border-border-strong pt-[3px]">
-      <div className="border-t border-border">
+    <footer>
+      {/* The declared double rule: a 1px pair 3px apart, both --border-strong. It used to draw
+          a strong line over a weak one, which is a different mark from the one the tier pages
+          and the publication detail page ship under the same name. */}
+      <div className="h-[3px] border-y border-border-strong" aria-hidden="true" />
+      <div>
         <div className="mx-auto max-w-6xl px-6 py-12 sm:px-8 sm:py-16">
           {/* Colophon band */}
           <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
@@ -30,7 +34,7 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
                   aria-hidden="true"
                   className="inline-block h-2.5 w-2.5 self-center bg-primary"
                 />
-                <span className="text-[15px] font-[700] tracking-[-0.015em] text-foreground">
+                <span className="type-heading text-[15px] leading-[1.7] text-foreground">
                   {dict.site.name}
                 </span>
               </div>

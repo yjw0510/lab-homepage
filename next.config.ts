@@ -1,6 +1,5 @@
 import { execSync } from "child_process";
 import type { NextConfig } from "next";
-import createMDX from "@next/mdx";
 import { normalizeBasePath } from "./src/lib/basePath";
 
 let localIp = "localhost";
@@ -36,8 +35,13 @@ const nextConfig: NextConfig = {
     nextImageExportOptimizer_storePicturesInWEBP: "true",
     nextImageExportOptimizer_generateAndUseBlurImages: "true",
   },
-  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  pageExtensions: ["js", "jsx", "ts", "tsx"],
+  experimental: {
+    // Two root layouts (one per route group) leave no single layout to build a global 404 from,
+    // so without this Next emits its own stock English page as out/404.html — the file GitHub
+    // Pages serves for every unmatched URL. See src/app/global-not-found.tsx.
+    globalNotFound: true,
+  },
 };
 
-const withMDX = createMDX({});
-export default withMDX(nextConfig);
+export default nextConfig;

@@ -39,9 +39,7 @@ export default async function PublicationsPage({
             {dict.publications.subtitle}
           </p>
         </header>
-        <div className="border-t border-border-strong pt-[3px]" aria-hidden="true">
-          <div className="border-t border-border" />
-        </div>
+        <div className="h-[3px] border-y border-border-strong" aria-hidden="true" />
 
         <PublicationList
           publications={publications}

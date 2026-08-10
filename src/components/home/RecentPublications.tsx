@@ -37,7 +37,7 @@ export function RecentPublications({
               </div>
 
               <div className="col-span-12 min-w-0 sm:col-span-10">
-                <h3 className="font-[600] leading-snug text-foreground">
+                <h3 className="type-heading py-0.5 leading-snug text-foreground">
                   <Link
                     href={`/${lang}/publications/${pub.slug}`}
                     className="transition-colors hover:text-accent-ink"
@@ -47,6 +47,7 @@ export function RecentPublications({
                 </h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                   <AuthorList
+                    lang={lang}
                     authors={pub.authors}
                     firstAuthors={pub.firstAuthors}
                     correspondingAuthors={pub.correspondingAuthors}

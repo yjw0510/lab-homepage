@@ -11,7 +11,7 @@ import {
 /** Full literal class strings: Tailwind cannot compile names built at runtime. */
 const TIER_INK: Record<SpecimenTier, string> = {
   dft: "text-lv-dft",
-  mlff: "text-lv-mlff",
+  mlff: "text-lv-mlff-text",
   allatom: "text-lv-aa",
   meso: "text-lv-meso",
 };

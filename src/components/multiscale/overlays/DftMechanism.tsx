@@ -78,16 +78,34 @@ interface ScfConvergenceData {
   threshold: number;
 }
 
+/** Decade exponent as a superscript, so the axis rows can be generated rather than listed. */
+function supers(exponent: number) {
+  const digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  const body = String(Math.abs(exponent)).split("").map((d) => digits[Number(d)]).join("");
+  return exponent < 0 ? `⁻${body}` : body;
+}
+
+/**
+ * Shown for the frame or two before scf.json arrives, and permanently if that fetch fails.
+ *
+ * Sampled from the real run rather than an older one. The previous constant ran 0..14 with a
+ * largest delta of 0.588, so on a fetch failure the panel drew a converged-looking curve under
+ * a heading reading "Actual energy convergence", and every window and denominator derived from
+ * it was wrong by two orders of magnitude.
+ */
 const SCF_FALLBACK: ScfConvergenceData = {
   trajectory: [
-    { iteration: 0, deltaE: 0.4051611456 },
-    { iteration: 2, deltaE: 0.4051611456 },
-    { iteration: 4, deltaE: 0.5879381436 },
-    { iteration: 6, deltaE: 0.0520257738 },
-    { iteration: 8, deltaE: 0.0114490248 },
-    { iteration: 10, deltaE: 0.0025831412 },
-    { iteration: 12, deltaE: 0.0001684432 },
-    { iteration: 14, deltaE: 3e-10 },
+    { iteration: 1, deltaE: 1275.8398222322 },
+    { iteration: 2, deltaE: 1275.8398222322 },
+    { iteration: 4, deltaE: 380.8553959527 },
+    { iteration: 6, deltaE: 151.0666257163 },
+    { iteration: 8, deltaE: 77.1386560472 },
+    { iteration: 10, deltaE: 54.5315939654 },
+    { iteration: 14, deltaE: 26.8227314605 },
+    { iteration: 20, deltaE: 8.817025638 },
+    { iteration: 30, deltaE: 1.3175500041 },
+    { iteration: 45, deltaE: 2.262e-7 },
+    { iteration: 59, deltaE: 1.6e-9 },
   ],
   threshold: 1e-5,
 };
@@ -126,6 +144,9 @@ function D4Scf({
     Math.min(snapshot?.index ?? 0, scf.trajectory.length - 1),
   );
   const activePoint = scf.trajectory[activeIndex] ?? scf.trajectory[0];
+  // The denominator comes from the same array as the numerator. Hardcoded at 14 it read
+  // "22 / 14" and ended the run at "59 / 14".
+  const totalIterations = scf.trajectory.at(-1)?.iteration ?? scf.trajectory.length;
   // The chart draws in its own pixel box, so fontSize="12" reaches the reader as twelve
   // real pixels whatever the host width is. Under the old fixed 520x180 viewBox the
   // mobile host measured 184x136, scaled the whole drawing to 0.354, and painted the
@@ -136,8 +157,16 @@ function D4Scf({
   const chartRight = Math.max(chartLeft + 60, chartBox.width - 18);
   const chartTop = 16;
   const chartBottom = Math.max(chartTop + 60, chartBox.height - 30);
-  const logMax = 0;
+  // The window is read off the run, not fixed at 10^0. Held there, 32 of the 59 iterations sat
+  // at or above 1 Ha and drew as one flat line along the top gridline, while the readout beside
+  // it printed 1275.840 Ha for a dot on the 1 Ha row. The 0/-10 window fitted SCF_FALLBACK,
+  // whose largest delta is 0.588.
+  const logMax = Math.max(0, Math.ceil(Math.log10(
+    Math.max(...scf.trajectory.map((point) => point.deltaE), 1))));
   const logMin = -10;
+  // One label every two decades, as before, but generated so the rows follow the window.
+  const decades = [];
+  for (let exponent = logMax; exponent >= logMin; exponent -= 2) decades.push(exponent);
   const pointCoordinates = scf.trajectory.map((point, index) => {
     const x =
       chartLeft +
@@ -174,14 +203,8 @@ function D4Scf({
           : "Actual energy change across SCF iterations"
       }
     >
-      {[
-        { exponent: 0, label: "10⁰" },
-        { exponent: -2, label: "10⁻²" },
-        { exponent: -4, label: "10⁻⁴" },
-        { exponent: -6, label: "10⁻⁶" },
-        { exponent: -8, label: "10⁻⁸" },
-        { exponent: -10, label: "10⁻¹⁰" },
-      ].map(({ exponent, label }) => {
+      {decades.map((exponent) => {
+        const label = `10${supers(exponent)}`;
         const y =
           chartTop +
           ((logMax - exponent) / (logMax - logMin)) *
@@ -217,10 +240,13 @@ function D4Scf({
         strokeWidth="1.5"
         strokeDasharray="7 6"
       />
+      {/* Left-anchored. Right-anchored it sat exactly where the trace plunges, so the amber
+          polyline ran through the label and a data marker landed on the glyphs — in Korean it
+          erased 수 from 수렴 기준. The left half of the threshold row is empty. */}
       <text
-        x={chartRight}
+        x={chartLeft + 8}
         y={thresholdY - 7}
-        textAnchor="end"
+        textAnchor="start"
         fill="var(--sch-amber-label)"
         fontSize="12"
       >
@@ -270,9 +296,9 @@ function D4Scf({
   if (isMobile) {
     return (
       <MechanismPanel className={`dft-enter ${MULTISCALE_PANEL.mobileBand}`}>
-        <div className="flex items-start justify-between gap-4 border-b border-lv-aa-line bg-lv-aa-wash px-4 py-3">
+        <div className="flex items-start justify-between gap-4 border-b border-lv-dft-line bg-lv-dft-wash px-4 py-3">
           <div>
-            <p className="text-base font-semibold text-lv-aa">
+            <p className="text-base font-semibold text-lv-dft-text">
               {ko ? "같은 전자 밀도가 나올 때까지 다시 계산한다" : "Recalculate until the density stops changing"}
             </p>
             <p className="mt-1 text-sm leading-5 text-muted-foreground">
@@ -283,23 +309,23 @@ function D4Scf({
           </div>
           <p className="type-quiet shrink-0 text-2xl text-foreground">
             {activePoint.iteration}
-            <span className="ml-1 text-sm font-normal text-muted-foreground">/ 14</span>
+            <span className="ml-1 text-sm font-normal text-muted-foreground">/ {totalIterations}</span>
           </p>
         </div>
 
         {/* The readout sits above the chart rather than beside it. Sharing the row left
-            the plot 184px for a 14-point log curve, which is both too tight to read the
+            the plot 184px for the run's 59-point log curve, which is both too tight to read the
             curve and the reason its labels were painting at 4.25px. */}
         <div className="border-b border-border px-4 py-3">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               |ΔE|
-              <span className="ml-2 text-xl font-semibold tabular-nums text-lv-aa">
+              <span className="ml-2 text-xl font-semibold tabular-nums text-lv-dft-text">
                 {deltaLabel}
               </span>
               <span className="ml-1">Ha</span>
             </p>
-            <p className={`text-sm font-semibold ${converged ? "text-lv-aa" : "text-muted-foreground"}`}>
+            <p className={`text-sm font-semibold ${converged ? "text-lv-dft-text" : "text-muted-foreground"}`}>
               {converged
                 ? ko
                   ? "수렴"
@@ -330,7 +356,7 @@ function D4Scf({
   return (
     <MechanismPanel className={`dft-enter ${MULTISCALE_PANEL.desktopOverlay}`}>
       <MechanismHeader
-        tone="amber"
+        tone="sky"
         title={
           ko
             ? "같은 전자 밀도가 나올 때까지 다시 계산한다"
@@ -349,7 +375,7 @@ function D4Scf({
             <span className={MULTISCALE_TYPE.metric}>
               {String(activePoint.iteration).padStart(2, "0")}
             </span>
-            <span className="text-base text-muted-foreground">/ 14</span>
+            <span className="text-base text-muted-foreground">/ {totalIterations}</span>
           </div>
         }
       />
@@ -367,7 +393,7 @@ function D4Scf({
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">|ΔE|</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums text-lv-aa">
+              <p className="mt-1 text-xl font-semibold tabular-nums text-lv-dft-text">
                 {deltaLabel} <span className="text-sm font-normal text-muted-foreground">Ha</span>
               </p>
             </div>
@@ -384,10 +410,10 @@ function D4Scf({
               latex={String.raw`\rho_{\mathrm{in}}^{(n)}\rightarrow\hat H_{\mathrm{KS}}[\rho_{\mathrm{in}}^{(n)}]\rightarrow\{\phi_i^{(n)}\}\rightarrow\rho_{\mathrm{out}}^{(n)}`}
               className="mt-5 block text-center text-[1.3rem] text-foreground"
             />
-            <div className="mt-5 border-l-2 border-lv-aa-line pl-4">
+            <div className="mt-5 border-t border-lv-dft-line pt-4">
               <MathNotation
                 latex={String.raw`\rho_{\mathrm{in}}^{(n+1)}\leftarrow\operatorname{mix}\!\left(\rho_{\mathrm{in}}^{(n)},\rho_{\mathrm{out}}^{(n)}\right)`}
-                className="text-[1.15rem] text-lv-aa"
+                className="text-[1.15rem] text-lv-dft-text"
               />
               <p className="mt-2 text-sm leading-5 text-muted-foreground">
                 {ko
@@ -406,7 +432,7 @@ function D4Scf({
                   ? "|ΔE|가 아직 기준보다 크므로 다시 계산한다."
                   : "|ΔE| remains above the threshold, so the loop continues."}
             </p>
-            <span className={`ml-4 shrink-0 text-sm font-semibold ${converged ? "text-lv-aa" : "text-muted-foreground"}`}>
+            <span className={`ml-4 shrink-0 text-sm font-semibold ${converged ? "text-lv-dft-text" : "text-muted-foreground"}`}>
               {converged ? (ko ? "수렴" : "CONVERGED") : ko ? "반복 중" : "ITERATING"}
             </span>
           </div>
@@ -518,7 +544,7 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             <button
               type="button"
               key={row.id}
-              className={`pointer-events-auto bg-surface-sunken px-3 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "opacity-100" : "opacity-40"}`}
+              className={`pointer-events-auto px-3 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "bg-lv-dft-wash opacity-100" : "bg-surface-sunken opacity-40"}`}
               onMouseEnter={() => data.onOutputModeChange?.(row.id)}
               onFocus={() => data.onOutputModeChange?.(row.id)}
               onClick={() => data.onOutputModeChange?.(row.id)}
@@ -601,7 +627,7 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
               <button
                 type="button"
                 key={row.id}
-                className={`pointer-events-auto bg-surface-sunken px-4 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "opacity-100" : "opacity-38"}`}
+                className={`pointer-events-auto px-4 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "bg-lv-dft-wash opacity-100" : "bg-surface-sunken opacity-38"}`}
                 onMouseEnter={() => data.onOutputModeChange?.(row.id)}
                 onFocus={() => data.onOutputModeChange?.(row.id)}
                 onClick={() => data.onOutputModeChange?.(row.id)}

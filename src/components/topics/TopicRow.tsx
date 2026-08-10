@@ -30,7 +30,7 @@ export function TopicRow({ topic, paperCount, lang, isOpen, onClick }: Props) {
       <span
         className={cn(
           "type-mono-meta col-span-2 text-[13px] sm:col-span-1",
-          isOpen ? "text-accent-foreground" : "text-muted-foreground",
+          isOpen ? "text-accent-foreground" : "text-accent-ink",
         )}
       >
         {topic.kind === "future" ? "" : paperCount}
@@ -38,7 +38,7 @@ export function TopicRow({ topic, paperCount, lang, isOpen, onClick }: Props) {
       <span className="col-span-10 sm:col-span-11">
         <span
           className={cn(
-            "block font-[600]",
+            "block type-lead",
             isOpen ? "text-accent-foreground" : "text-foreground",
           )}
         >

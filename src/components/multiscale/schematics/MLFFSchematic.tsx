@@ -133,7 +133,9 @@ export function MLFFSchematic({ active, ko = false }: { active: boolean; ko?: bo
 
   return (
     <svg viewBox="6 14 540 244" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
-      role="img" aria-label="Machine-learned force field: atoms to a symmetry-preserving local representation to per-atom energies and forces">
+      role="img" aria-label={ko
+        ? "머신러닝 역장: 원자 배치에서 대칭 보존 국소 표현을 거쳐 원자별 에너지와 힘까지"
+        : "Machine-learned force field: atoms to a symmetry-preserving local representation to per-atom energies and forces"}>
       <AtomPaintProvider>
       <defs>
         <AtomDefs />

@@ -57,7 +57,7 @@ export function TopicDrawerContent({
           <button
             onClick={onClose}
             className="flex h-11 w-11 flex-shrink-0 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Close"
+            aria-label={lang === "ko" ? "닫기" : "Close"}
           >
             <X className="h-5 w-5" strokeWidth={1.75} />
           </button>
@@ -138,7 +138,7 @@ export function TopicDrawerContent({
                                   type="button"
                                   onClick={() => onTopicSwitch(t.id)}
                                   className="type-mono-meta cursor-pointer py-1 text-[11.5px] text-accent-ink underline decoration-[1px] underline-offset-[3px] transition-colors hover:text-primary"
-                                  aria-label={`View ${t.title} details`}
+                                  aria-label={label}
                                 >
                                   [{label}]
                                 </button>

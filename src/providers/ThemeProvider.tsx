@@ -20,11 +20,6 @@ interface ThemeContextValue {
 const STORAGE_KEY = "theme";
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function getSystemTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 function readStoredTheme(): Theme | null {
   if (typeof window === "undefined") return null;
   try {
@@ -43,24 +38,15 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => readStoredTheme() ?? getSystemTheme());
+  // Dark unless the visitor chose otherwise, matching the blocking script in app/shell.tsx.
+  // Consulting the OS here instead put the two out of step: the script painted .dark, then this
+  // stripped it at hydration, so a first-time visitor on a light-mode OS watched the whole page
+  // flip from Flexoki black to 오방색 white on every route.
+  const [theme, setThemeState] = useState<Theme>(() => readStoredTheme() ?? "dark");
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      if (readStoredTheme()) return;
-      const nextTheme = mediaQuery.matches ? "dark" : "light";
-      setThemeState(nextTheme);
-      applyTheme(nextTheme);
-    };
-
-    mediaQuery.addEventListener?.("change", handleChange);
-    return () => mediaQuery.removeEventListener?.("change", handleChange);
-  }, []);
 
   const setTheme = useCallback((nextTheme: Theme) => {
     setThemeState(nextTheme);

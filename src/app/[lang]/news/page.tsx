@@ -28,10 +28,11 @@ export default async function NewsPage({
           <h1 className="type-display text-4xl text-foreground">
             {dict.news.title}
           </h1>
+          <p className="mt-4 max-w-[36rem] leading-relaxed text-muted-foreground">
+            {dict.news.subtitle}
+          </p>
         </header>
-        <div className="border-t border-border-strong pt-[3px]" aria-hidden="true">
-          <div className="border-t border-border" />
-        </div>
+        <div className="h-[3px] border-y border-border-strong" aria-hidden="true" />
 
         {news.length > 0 ? (
           <div className="mt-10 border-b border-border">

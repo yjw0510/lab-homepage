@@ -24,7 +24,7 @@ export function FundingCard({
         {plainDashes(grant.period)}
       </div>
       <div className="md:col-span-9">
-        <h3 className="font-[600] leading-relaxed text-foreground">{title}</h3>
+        <h3 className="type-heading leading-relaxed text-foreground">{title}</h3>
         <p className="mt-1 text-sm text-muted-foreground">{agency}</p>
         <p className="type-mono-meta mt-2 text-[12px] text-muted-foreground">
           {grant.role} · {statusLabels[grant.status]}

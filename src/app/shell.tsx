@@ -1,8 +1,5 @@
-import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
-import "./globals.css";
-import "molstar/build/viewer/molstar.css";
 
 // One text family for both scripts. The second face was Latin-only, so every Korean string
 // in the metadata register fell back mid-line to a system Hangul face at a monospace-ish
@@ -16,30 +13,20 @@ const pretendard = localFont({
   weight: "45 920",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Yu Lab | Multiscale Molecular Computational Chemistry",
-    template: "%s | Yu Lab",
-  },
-  description:
-    "Multiscale Molecular Computational Chemistry Lab at Ajou University. We study molecular phenomena across scales using computational methods including molecular dynamics, machine learning force fields, and first-principles calculations.",
-  keywords: [
-    "computational chemistry",
-    "molecular dynamics",
-    "machine learning force fields",
-    "Ajou University",
-    "Yu Lab",
-  ],
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+/**
+ * The `<html>`/`<body>` shell, shared by the two root layouts.
+ *
+ * There are two because `lang` has to be in the static HTML. With a single root layout above
+ * `[lang]` the only place that knows the locale is a client effect, so every one of the ~20
+ * Korean pages shipped `<html lang="en">` over Hangul and only corrected after hydration —
+ * which crawlers, translation tools and reader modes never see. Next's answer is to drop the
+ * top-level layout and give each route group its own root
+ * (docs/01-app/01-getting-started/02-project-structure.md, "Creating multiple root layouts").
+ */
+export function AppShell({ lang, children }: { lang: string; children: React.ReactNode }) {
   return (
     <html
-      lang="en"
+      lang={lang}
       className={`${pretendard.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -52,7 +39,9 @@ export default function RootLayout({
               (function() {
                 try {
                   // Dark unless the visitor has chosen otherwise here before. The OS preference
-                  // is deliberately not consulted: these pages are mostly dark 3D scenes.
+                  // is deliberately not consulted: these pages are mostly dark 3D scenes, and
+                  // ThemeProvider's initial state matches this exactly so the two cannot
+                  // disagree across hydration.
                   var stored = localStorage.getItem('theme');
                   var theme = stored === 'light' ? 'light' : 'dark';
                   var root = document.documentElement;

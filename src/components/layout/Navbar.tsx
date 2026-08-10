@@ -88,7 +88,7 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
               aria-hidden="true"
               className="inline-block h-2.5 w-2.5 self-center bg-primary"
             />
-            <span className="text-[15px] font-[700] tracking-[-0.015em]">
+            <span className="type-heading text-[15px] leading-[1.7]">
               Yu Lab
             </span>
             <span className="type-mono-meta text-[11px] text-muted-foreground">
@@ -117,7 +117,7 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex h-11 w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label={lang === "ko" ? "메뉴 열기" : "Toggle menu"}
+              aria-label={lang === "ko" ? "메뉴 전환" : "Toggle menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav-sheet"
             >

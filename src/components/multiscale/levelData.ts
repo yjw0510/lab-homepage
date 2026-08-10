@@ -12,6 +12,14 @@ export type ProvenanceKind =
   | "MECHANISM SCHEMATIC"
   | "TARGET NOT AVAILABLE";
 
+/** The chip text per locale. The kind itself stays an English union; it is a key, not copy. */
+export const PROVENANCE_KIND_LABEL: Record<ProvenanceKind, Record<"en" | "ko", string>> = {
+  CALCULATED: { en: "CALCULATED", ko: "계산값" },
+  TRAJECTORY: { en: "TRAJECTORY", ko: "궤적" },
+  "MECHANISM SCHEMATIC": { en: "MECHANISM SCHEMATIC", ko: "원리 도식" },
+  "TARGET NOT AVAILABLE": { en: "TARGET NOT AVAILABLE", ko: "목표값 없음" },
+};
+
 export interface VisualLayerProvenance {
   kind: ProvenanceKind;
   label: Record<"en" | "ko", string>;
@@ -165,8 +173,13 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
     equationKey: "observable",
     steps: [
       {
-        activeTerms: ["observable"],
-        equationKey: "observable",
+        // The step's own copy is the classical potential term by term ("A bond is one spring,
+        // an angle is another, and the rest is charge pulling on charge"), and the rail offers
+        // "select a force-field term in the equation" as its interaction. Both were pointed at
+        // the observable equation, whose only termIds are `observable` and `average`, so no
+        // segment was ever interactive and the hint named something that could not be clicked.
+        activeTerms: ["Ubond", "Uangle", "Udihedral", "UvdW", "UCoul"],
+        equationKey: "classical",
         equationDetailMode: "grouped",
         title: { en: "Fixing the Chemistry to Buy Steps", ko: "화학을 고정해 스텝을 버는 계층" },
         question: {
@@ -190,7 +203,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "CALCULATED", label: { en: "Per-frame 2.8 A contact test, minimum image", ko: "프레임마다 2.8 A 접촉 판정, 최소 이미지" } },
         ],
         plotType: null,
-        sceneKey: "A6_observables",
+        sceneKey: "A3_forcefield",
       },
       {
         activeTerms: ["observable", "average"],
@@ -218,7 +231,7 @@ export const CHOREOGRAPHY: Record<LevelId, LevelChoreography> = {
           { kind: "CALCULATED", label: { en: "Run histogram and block-averaged mean", ko: "전체 궤적 분포와 블록 평균" } },
         ],
         plotType: "allatomCoordination",
-        sceneKey: "A3_forcefield",
+        sceneKey: "A6_observables",
       },
     ],
   },

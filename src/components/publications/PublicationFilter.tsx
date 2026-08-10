@@ -12,9 +12,11 @@ export interface PublicationFilterLabels {
 function toggleClass(active: boolean): string {
   return cn(
     "type-mono-meta inline-flex min-h-11 items-center text-[12.5px] transition-colors",
+    // 황 wash, per DESIGN.md: "selection and active-toggle background tint". The red underline
+    // this replaces is the masthead's active-nav mark and reads as navigation, not as a filter.
     active
-      ? "text-foreground underline decoration-primary decoration-2 underline-offset-[4px]"
-      : "text-muted-foreground hover:text-foreground"
+      ? "bg-accent px-2 text-accent-foreground"
+      : "px-2 text-muted-foreground hover:text-foreground"
   );
 }
 
@@ -36,7 +38,7 @@ export function PublicationFilter({
   labels: PublicationFilterLabels;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-3">
       {/* Year filter */}
       <div
         role="group"
@@ -68,7 +70,7 @@ export function PublicationFilter({
       <div
         role="group"
         aria-label={labels.filterByTag}
-        className="flex flex-wrap items-baseline gap-x-5"
+        className="flex flex-wrap items-baseline gap-x-5 border-t border-border pt-3"
       >
         <button
           type="button"

@@ -38,7 +38,9 @@ describe("visible copy", () => {
   // Geist Mono was retired because it carried no Hangul, so Korean metadata broke into two
   // typefaces inside one line. Reintroducing a second text family brings the bug back.
   it("declares exactly one text family", () => {
-    const layout = readFileSync(join(SRC, "app/layout.tsx"), "utf8");
+    // The font lives in the shared shell now that there are two root layouts, one per
+    // route group, so that `lang` can reach the static HTML.
+    const layout = readFileSync(join(SRC, "app/shell.tsx"), "utf8");
     expect(layout).not.toMatch(/next\/font\/google/);
     const css = readFileSync(join(SRC, "app/globals.css"), "utf8");
     expect(css).toMatch(/--font-sans:\s*var\(--font-pretendard\)/);

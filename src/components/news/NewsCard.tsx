@@ -19,7 +19,7 @@ export function NewsCard({ item, lang }: { item: NewsItem; lang?: string }) {
         </p>
       </div>
       <div className="col-span-12 md:col-span-9">
-        <h2 className="break-keep text-[16.5px] font-[600] leading-snug text-foreground">
+        <h2 className="type-heading break-keep text-[16.5px] leading-snug text-foreground">
           {title}
         </h2>
         <p className="mt-2 break-keep text-sm leading-relaxed text-muted-foreground">

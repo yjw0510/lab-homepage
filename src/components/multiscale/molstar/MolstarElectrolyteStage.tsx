@@ -23,6 +23,7 @@ import {
   ATOM_MATERIAL,
 } from "./shared";
 import { Color } from "molstar/lib/mol-util/color/color.js";
+import { BALL_CLEARANCE, STICK_TO_BALL, VDW_NM } from "../ballAndStick";
 
 /**
  * 1 M LiPF6 in EC:EMC, from the ByteFF-Pol run: 10,094 atoms, 853 molecules, NPT at 298 K.
@@ -46,8 +47,10 @@ const ELEMENT_COLOR: Record<string, ColorValue> = {
   Li: PURPLE,
 };
 
-const RADIUS: Record<string, number> = { C: 0.17, H: 0.10, O: 0.16, F: 0.15, P: 0.20, Li: 0.13 };
-
+// Radii, clearance and stick ratio all come from ballAndStick.ts, which says it owns "one
+// ball-and-stick rule for every scene that draws atoms". This file kept a private copy whose
+// six entries were byte-identical to VDW_NM's, so nothing rendered differently — it was a second
+// source of truth waiting to drift.
 /**
  * How big each thing is drawn. Every number here is derived from a distance in the system
  * rather than picked, because picking is what produced spheres that overlapped into a solid
@@ -60,8 +63,6 @@ const RADIUS: Record<string, number> = { C: 0.17, H: 0.10, O: 0.16, F: 0.15, P: 
  * neighbours were buried inside it.
  */
 const BULK_SCALE = 0.42;
-const BALL_CLEARANCE = 0.8;
-const STICK_TO_BALL = 0.35;
 const MARK_TO_BALL = 1.3;
 // The lithiums are redrawn over the bulk at this radius, three times a solvent ball, so the
 // camera solve has to know about it: solved against the bulk radius alone, an ion sitting on
@@ -274,25 +275,25 @@ function prepare(topology: ElectrolyteTopology, frames: Float32Array[]) {
     }
   }
   const ballScale = (BALL_CLEARANCE * shortestBond) /
-    (2 * Math.max(...[...shell].map((i) => RADIUS[topology.elements[i]] ?? 0.15)));
-  const ball = (index: number) => (RADIUS[topology.elements[index]] ?? 0.15) * ballScale;
-  const markRadius = (RADIUS.O ?? 0.16) * ballScale * MARK_TO_BALL;
-  const stickRadius = (RADIUS.C ?? 0.17) * ballScale * STICK_TO_BALL;
+    (2 * Math.max(...[...shell].map((i) => VDW_NM[topology.elements[i]] ?? 0.15)));
+  const ball = (index: number) => (VDW_NM[topology.elements[index]] ?? 0.15) * ballScale;
+  const markRadius = (VDW_NM.O ?? 0.16) * ballScale * MARK_TO_BALL;
+  const stickRadius = (VDW_NM.C ?? 0.17) * ballScale * STICK_TO_BALL;
   // The focus ion at its own van der Waals radius: three times a ball, so it reads as the
   // subject, and still clearing the 1.98 A Li-O contact once a marked oxygen is added to it.
-  const focusRadius = RADIUS.Li ?? 0.13;
+  const focusRadius = VDW_NM.Li ?? 0.13;
 
   // Atoms grouped by element, so every impostor layer carries one colour and one radius and
   // Mol* never runs a per-atom theme callback.
   const bulkGroups = [...new Set(topology.elements)].filter((e) => e !== "Li").map((element) => ({
     element,
-    radius: (RADIUS[element] ?? 0.15) * BULK_SCALE,
+    radius: (VDW_NM[element] ?? 0.15) * BULK_SCALE,
     color: ELEMENT_COLOR[element] ?? SLATE,
     indices: Int32Array.from(topology.elements.flatMap((e, i) => (e === element ? [i] : []))),
   }));
-  const bulkRadius = (index: number) => (RADIUS[topology.elements[index]] ?? 0.15) * BULK_SCALE;
+  const bulkRadius = (index: number) => (VDW_NM[topology.elements[index]] ?? 0.15) * BULK_SCALE;
 
-  const bulkStickRadius = (RADIUS.C ?? 0.17) * BULK_SCALE * STICK_TO_BALL;
+  const bulkStickRadius = (VDW_NM.C ?? 0.17) * BULK_SCALE * STICK_TO_BALL;
 
   const cellBonds = Int32Array.from(topology.bonds.flat());
 
@@ -593,6 +594,7 @@ export function MolstarElectrolyteStage({
   const solveRef = useRef<
     ({ key: string; cutoffNm: number } & ReturnType<typeof solveCamera>) | null>(null);
   const canvasColorRef = useRef(canvasColor);
+  const drawRef = useRef<((elapsed: number) => Promise<void>) | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const wide = step === 1;
@@ -669,6 +671,10 @@ export function MolstarElectrolyteStage({
     if (reframed) plugin.managers.camera.setSnapshot(snapshot, 0);
   }, [wide]);
 
+  // Declared before the mount effect below so the ref is populated by the time that effect's
+  // async body reaches it.
+  useEffect(() => { drawRef.current = draw; }, [draw]);
+
   useEffect(() => {
     let cancelled = false;
     let mounted: PluginLike | null = null;
@@ -711,14 +717,21 @@ export function MolstarElectrolyteStage({
         mounted = result.plugin;
         pluginRef.current = result.plugin;
         if (cancelled) return;
-        await draw(0);
+        await drawRef.current?.(0);
         setReady(true);
       } catch (cause) {
         if (!cancelled) setError(cause instanceof Error ? cause.message : "electrolyte scene failed to load");
       }
     })();
     return () => { cancelled = true; mounted?.dispose(); pluginRef.current = null; setReady(false); };
-  }, [draw]);
+    // Mount once. With `draw` in the deps a step change tore the whole scene down and rebuilt
+    // it: the cleanup nulls pluginRef, so the `pluginRef.current` guard above no longer
+    // short-circuits, and a step that only moves the camera re-created the WebGL context,
+    // re-fetched electrolyte.json and the 200-frame binary, and re-ran prepare(). `drawRef`
+    // below carries the current closure instead — the same shape the DFT stage already uses.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   useEffect(() => { if (ready) void draw(0); }, [draw, ready, step]);
 

@@ -218,7 +218,39 @@ function moleculePrimitives(
   const primitives: ResearchPrimitive[] = [];
   data.bonds.forEach((bond) => {
     const [a, b] = bond;
-    if (!selectedSet.has(a) || !selectedSet.has(b)) return;
+    const aIn = selectedSet.has(a);
+    const bIn = selectedSet.has(b);
+    if (!aIn && !bIn) return;
+
+    // A bond with one end outside the selection is drawn as a stub toward the atom that is not
+    // there. A cutoff sphere cuts molecules — that is what a cutoff does, and the descriptor
+    // really does read these atoms and not their partners — but with nothing drawn at all, a
+    // water straddling the boundary contributed two bare hydrogens that read as free H atoms
+    // floating in water. The stub says the molecule continues outside the sphere without adding
+    // an atom the model does not see.
+    if (aIn !== bIn) {
+      const innerIndex = aIn ? a : b;
+      const outerIndex = aIn ? b : a;
+      const from = coordinates.get(innerIndex);
+      if (!from) return;
+      const to = transformAtom(data.atoms[outerIndex], outerIndex, transform);
+      const stub: Vec3Tuple = [
+        from[0] + (to[0] - from[0]) * 0.42,
+        from[1] + (to[1] - from[1]) * 0.42,
+        from[2] + (to[2] - from[2]) * 0.42,
+      ];
+      const stubRadius = geometry.stick * transform.scale;
+      primitives.push({
+        kind: "cylinder",
+        start: from,
+        end: stub,
+        radiusTop: stubRadius,
+        radiusBottom: stubRadius * 0.55,
+        color: COLORS[data.elements[innerIndex]] ?? SLATE,
+      });
+      return;
+    }
+
     const start = coordinates.get(a);
     const end = coordinates.get(b);
     if (!start || !end) return;
@@ -1041,10 +1073,12 @@ function MlffMolstarViewport({
   );
 }
 
+// 14px is not WCAG "large text" (that starts at 18.66px bold), so these need the 4.5:1 floor.
+// The MLFF mark measures 4.42:1 on the dark ground, which is why the text-grade sibling exists.
 const PANEL_TITLE_TONE = {
-  dft: "text-sm font-semibold leading-5 text-lv-dft",
-  mlff: "text-sm font-semibold leading-5 text-lv-mlff",
-  aa: "text-sm font-semibold leading-5 text-lv-aa",
+  dft: "type-heading text-sm leading-5 text-lv-dft-text",
+  mlff: "type-heading text-sm leading-5 text-lv-mlff-text",
+  aa: "type-heading text-sm leading-5 text-lv-aa",
 } as const;
 
 function PanelHeader({
@@ -1186,15 +1220,25 @@ function ExactNeighborMessageOverlay({
     x: (center.x + cutoffEnd.x) / 2,
     y: (center.y + cutoffEnd.y) / 2,
   };
+  // The offset has to clear the label's own half-extent along the normal, or the radius line
+  // it names runs inside the box by construction: at a -20 degree radius angle a 62x36 label
+  // reaches 31*sin20 + 18*cos20 = 27.4px along the normal, against the fixed 26 this used to
+  // use, so the leader entered one corner and left by the other. Plus a small gap.
+  const cutoffOffset = (angle: number) =>
+    Math.abs(Math.cos(angle)) * (CUTOFF_LABEL.w / 2) +
+    Math.abs(Math.sin(angle)) * (CUTOFF_LABEL.h / 2) + 8;
   const cutoffSpot = [radiusAngle - Math.PI / 2, radiusAngle + Math.PI / 2]
     .map((angle) => ({
-      x: radiusMid.x + Math.cos(angle) * 26,
-      y: radiusMid.y + Math.sin(angle) * 26,
+      x: radiusMid.x + Math.cos(angle) * cutoffOffset(radiusAngle),
+      y: radiusMid.y + Math.sin(angle) * cutoffOffset(radiusAngle),
     }))
     .map((spot) => ({
       ...spot,
       score:
         (insideLayout(spot.x, spot.y, CUTOFF_LABEL) ? 0 : -1000) +
+        // Same term the i chip scores on, so the box also stops landing on the oxygens the
+        // caption counts. Without it two of the six highlighted O rings sat under this label.
+        nearestNeighborDistance(spot.x, spot.y) +
         Math.hypot(spot.x - centerSpot.x, spot.y - centerSpot.y),
     }))
     .sort((a, b) => b.score - a.score)[0];
@@ -1310,14 +1354,14 @@ function ExactNeighborMessageOverlay({
       </svg>
       <span
         data-mlff-center-atom-label
-        className="absolute border border-violet-700/45 bg-surface-raised/95 px-2 py-1 text-2xl font-semibold leading-none text-violet-900 shadow-[0_0_22px_rgba(167,139,250,.32)] backdrop-blur-sm dark:border-violet-300/45 dark:bg-violet-950/94 dark:text-violet-50"
+        className="absolute border border-violet-700/45 bg-surface-raised/95 px-2 py-1 text-2xl font-semibold leading-none text-violet-900 dark:border-violet-300/45 dark:bg-violet-950/94 dark:text-violet-50"
         style={{ left: centerLabelLeft, top: centerLabelTop }}
       >
         <MathLabel latex={String.raw`i`} />
       </span>
       <span
         data-mlff-cutoff-label
-        className="absolute border border-cyan-700/40 bg-surface-raised/95 px-2 py-1 text-lg font-semibold leading-none text-cyan-900 shadow-[0_0_16px_rgba(34,211,238,.22)] backdrop-blur-sm dark:border-cyan-300/38 dark:text-cyan-50"
+        className="absolute border border-cyan-700/40 bg-surface-raised/95 px-2 py-1 text-lg font-semibold leading-none text-cyan-900 dark:border-cyan-300/38 dark:text-cyan-50"
         style={{ left: cutoffLabelLeft, top: cutoffLabelTop }}
       >
         <MathLabel latex={String.raw`r_{\mathrm{cut}}`} />
@@ -1430,11 +1474,17 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
               {ko ? "이동·회전·동일 원자 치환에 불변" : "invariant to translation, rotation, permutation"}
             </p>
           </div>
+          {/* Two descriptor families, told apart by colour alone. On the retired
+              `cyan-800 dark:cyan-100` / `violet-800 dark:violet-100` pair the dark values were
+              both near-white: dE between the families fell from 85.1 in light to 18.4 in dark,
+              closer to each other than either was to plain body text at 21.0 and 19.5. The
+              declared --sch-* pairs hold hue across modes, which is the rule the ramp classes
+              broke (DESIGN.md: "dark raises lightness one step"; 800 to 100 is seven). */}
           <div className="mt-2.5 grid gap-1 border-t border-border pt-2.5 text-left">
-            <p className={`${MULTISCALE_TYPE.schematicMeta} text-cyan-800 dark:text-cyan-100`}>
+            <p className={`${MULTISCALE_TYPE.schematicMeta} text-[var(--sch-descriptor-invariant)]`}>
               {ko ? "불변 descriptor · SOAP · ACSF · DeePMD" : "invariant descriptors · SOAP · ACSF · DeePMD"}
             </p>
-            <p className={`${MULTISCALE_TYPE.schematicMeta} text-violet-800 dark:text-violet-100`}>
+            <p className={`${MULTISCALE_TYPE.schematicMeta} text-[var(--sch-descriptor-equivariant)]`}>
               {ko ? "등변 특징 · NequIP · MACE" : "equivariant features · NequIP · MACE"}
             </p>
           </div>
@@ -1473,10 +1523,10 @@ function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | nul
           // these boxes and fails if scene content crosses a frame edge, which is a
           // defect no DOM geometry check can see.
           <div key={index} data-frame="dataset-row" data-frame-index={index} className="relative border border-border">
-            <span className="absolute left-1.5 top-1 bg-surface-raised/80 px-1.5 py-0.5 text-xs text-muted-foreground backdrop-blur-sm">
+            <span className="absolute left-1.5 top-1 bg-surface-raised/80 px-1.5 py-0.5 text-xs text-muted-foreground">
               <MathLabel latex={`k=${index + 1}`} />
             </span>
-            <span className="absolute bottom-1 right-1.5 bg-surface-raised/85 px-1.5 py-0.5 text-xs text-muted-foreground backdrop-blur-sm">
+            <span className="absolute bottom-1 right-1.5 bg-surface-raised/85 px-1.5 py-0.5 text-xs text-muted-foreground">
               <MathLabel latex={`(\\mathbf R^{(${index + 1})},E_{\\mathrm{DFT}}^{(${index + 1})},\\mathbf F_{i,\\mathrm{DFT}}^{(${index + 1})})`} />
             </span>
             </div>
@@ -1581,7 +1631,7 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
     >
       <defs>
         <clipPath id="mlff-val-clip">
-          <rect x="184" y="104" width="138" height="30" rx="4" />
+          <rect x="184" y="104" width="138" height="30" />
         </clipPath>
       </defs>
 
@@ -1598,20 +1648,20 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
       <text x="185" y="247" fill="var(--plot-label)" fontSize={META} fontWeight="600" textAnchor="middle">{ko ? "시간 · 규모 →" : "time · scale →"}</text>
 
       <g>
-        <rect x="56" y="54" width="112" height="52" rx="7" fill="var(--lv-dft-wash)" stroke="var(--lv-dft-line)" strokeWidth="1.2" />
+        <rect x="56" y="54" width="112" height="52" fill="var(--lv-dft-wash)" stroke="var(--lv-dft-line)" strokeWidth="1.2" />
         <text x="112" y="78" fill="var(--lv-dft)" fontSize={TITLE} fontWeight="700" textAnchor="middle">DFT · AIMD</text>
         <text x="112" y="96" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "10² 원자 · ps" : "10² atoms · ps"}</text>
       </g>
 
       <g>
-        <rect x="184" y="150" width="138" height="58" rx="7" fill="var(--lv-meso-wash)" stroke="var(--lv-meso-line)" strokeWidth="1.2" />
+        <rect x="184" y="150" width="138" height="58" fill="var(--lv-aa-wash)" stroke="var(--lv-aa-line)" strokeWidth="1.2" />
         <text x="253" y="170" fill="var(--muted-foreground)" fontSize={TITLE} fontWeight="700" textAnchor="middle">{ko ? "고전 역장" : "classical"}</text>
         <text x="253" y="188" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "대규모 · 장시간" : "large and long"}</text>
         <text x="253" y="203" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "정확도 낮음" : "low accuracy"}</text>
       </g>
 
       <g style={{ filter: "drop-shadow(0 0 9px var(--lv-mlff-line))" }}>
-        <rect x="184" y="32" width="138" height="102" rx="9" fill="var(--lv-mlff-wash)" stroke="var(--lv-mlff-line)" strokeWidth="1.6" />
+        <rect x="184" y="32" width="138" height="102" fill="var(--lv-mlff-wash)" stroke="var(--lv-mlff-line)" strokeWidth="1.6" />
         <text x="253" y="52" fill="var(--lv-mlff)" fontSize={LEAD} fontWeight="800" textAnchor="middle">MLFF</text>
         <text x="253" y="70" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "ab-initio 정확도" : "ab-initio accuracy"}</text>
         <text x="253" y="86" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "10³-10⁴ 원자" : "10³-10⁴ atoms"}</text>
@@ -1640,7 +1690,7 @@ function PesPanel({ ko, className = "" }: { ko: boolean; className?: string }) {
       <PanelHeader
         title={ko ? "정확도와 규모를 한 번에" : "accuracy and scale, together"}
         detail={ko ? "DFT의 정확도와 고전 역장의 규모·시간을 한 모델에서" : "DFT accuracy with the scale and time of a classical force field"}
-        tone="aa"
+        tone="mlff"
       />
       <div className="relative mx-3 min-h-0 flex-1">
         <MlffValueSchematic ko={ko} />
@@ -1708,6 +1758,7 @@ function LocalGraphPanel({
     <section data-mlff-panel="local-graph" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "차단 반경 안의 국소 원자 그래프" : "local atomic graph inside the cutoff"}>
       <PanelHeader
         title={ko ? "국소 원자 그래프" : "local atomic graph"}
+        tone="mlff"
         detail={ko ? "실제 원자 좌표로 투영한 이웃 → 중심 메시지" : "neighbor-to-center messages projected from the actual atom coordinates"}
       />
       <div className="relative min-h-0 flex-1">
@@ -1754,7 +1805,7 @@ function LocalGraphPanel({
 function InteractionPanel({ ko, reducedMotion, className = "" }: { ko: boolean; reducedMotion: boolean; className?: string }) {
   return (
     <section data-mlff-panel="interaction" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "대칭 보존 표현과 원자별 에너지" : "symmetry-preserving representation and atomic energies"}>
-      <PanelHeader title={ko ? "대칭 보존 표현" : "symmetry-preserving representation"} detail={ko ? "국소 이웃을 대칭 보존 표현으로 인코딩" : "encode the local neighborhood into a symmetry-preserving representation"} />
+      <PanelHeader title={ko ? "대칭 보존 표현" : "symmetry-preserving representation"} detail={ko ? "국소 이웃을 대칭 보존 표현으로 인코딩" : "encode the local neighborhood into a symmetry-preserving representation"} tone="mlff" />
       <div className="relative mx-1 mb-2 min-h-0 flex-1">
         <EquivariantInteractionCore ko={ko} reducedMotion={reducedMotion} />
       </div>
@@ -1777,12 +1828,13 @@ function EnergyForcePanel({
     <section data-mlff-panel="energy-force" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자별 에너지 합과 에너지 기울기에서 얻는 힘" : "atomic energy sum and forces from the energy gradient"}>
       <PanelHeader
         title={ko ? "총에너지와 힘" : "total energy and forces"}
+        tone="mlff"
         detail={ko ? "원자별 기여의 합과 같은 에너지의 기울기" : "sum atomic contributions, then differentiate the same energy"}
       />
       <div className="relative min-h-0 flex-1">
         <MlffMolstarViewport ko={ko} variant="forces" data={data} label={ko ? "Mol*로 렌더한 분자와 예측 힘" : "Mol* render of a molecule and predicted forces"} actionsRef={actionsRef} />
       </div>
-      <div className="mx-1 mb-2 mt-2 shrink-0 border-t border-border bg-surface-sunken/90 pt-2.5 text-center backdrop-blur-sm">
+      <div className="mx-1 mb-2 mt-2 shrink-0 border-t border-border bg-surface-sunken/90 pt-2.5 text-center">
         <div className="border border-lv-mlff-line bg-lv-mlff-wash px-1 py-2.5 text-foreground">
           <MathLabel
             display

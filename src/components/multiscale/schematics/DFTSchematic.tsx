@@ -210,7 +210,9 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
 
   return (
     <svg viewBox="0 96 760 344" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
-      role="img" aria-label="DFT self-consistency cycle: electron density around fixed nuclei converging to total energy and orbital levels">
+      role="img" aria-label={ko
+        ? "DFT 자기일관 반복: 고정된 원자핵 주위의 전자 밀도가 총에너지와 오비탈 준위로 수렴하는 과정"
+        : "DFT self-consistency cycle: electron density around fixed nuclei converging to total energy and orbital levels"}>
       <defs>
         <marker id="dft-a" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
           <path d="M0,0 L9,4.5 L0,9 z" fill={MUTED} />

@@ -26,8 +26,12 @@ export default async function ContactPage({
   const dict = await getDictionary(lang);
 
   return (
-    <div className="px-6 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+    <div className="py-20 sm:py-28">
+      {/* Gutter on the clamped element, not outside it. Applied to the outer div, `mx-auto`
+          absorbs it and the column measures 1152px instead of the declared 1088, so body
+          content on these four routes ruled 32px wider than the navbar above and the footer
+          below it on the same screen. */}
+      <div className="mx-auto max-w-6xl px-6 sm:px-8">
         {/* Masthead */}
         <header>
           <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
@@ -36,10 +40,8 @@ export default async function ContactPage({
         </header>
         <div
           aria-hidden="true"
-          className="mt-8 border-t border-border-strong pt-[3px]"
-        >
-          <div className="border-t border-border" />
-        </div>
+          className="mt-8 h-[3px] border-y border-border-strong"
+        />
 
         <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:mt-16 md:grid-cols-12">
           <div className="md:col-span-5">

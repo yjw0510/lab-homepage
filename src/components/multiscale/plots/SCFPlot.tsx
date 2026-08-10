@@ -19,22 +19,27 @@ interface ScfData {
   threshold: number;
 }
 
+/**
+ * Shown for the frame or two before scf.json arrives, and permanently if that fetch fails.
+ *
+ * Sampled from the real run. The previous constant was an older 13-point curve numbered from 0
+ * with a largest delta of 2.417, so on a fetch failure this drew a converged-looking trace that
+ * contradicted the comment forty lines below asserting the run reaches 1275.84 Ha.
+ */
 const FALLBACK: ScfData = {
-  deltaE: [2.081, 2.417, 0.01147, 0.01095, 9.907e-4, 1.011e-4, 9.04e-6, 9.02e-7, 5.96e-8, 9.8e-9, 1.4e-9, 2e-10],
+  deltaE: [1275.8398222322, 1275.8398222322, 380.8553959527, 151.0666257163, 77.1386560472, 54.5315939654, 26.8227314605, 8.817025638, 1.3175500041, 2.262e-07, 1.6e-09],
   trajectory: [
-    { iteration: 0, deltaE: 2.081 },
-    { iteration: 1, deltaE: 2.081 },
-    { iteration: 2, deltaE: 2.417 },
-    { iteration: 3, deltaE: 0.01147 },
-    { iteration: 4, deltaE: 0.01095 },
-    { iteration: 5, deltaE: 9.907e-4 },
-    { iteration: 6, deltaE: 1.011e-4 },
-    { iteration: 7, deltaE: 9.04e-6 },
-    { iteration: 8, deltaE: 9.02e-7 },
-    { iteration: 9, deltaE: 5.96e-8 },
-    { iteration: 10, deltaE: 9.8e-9 },
-    { iteration: 11, deltaE: 1.4e-9 },
-    { iteration: 12, deltaE: 2e-10 },
+    { iteration: 1, deltaE: 1275.8398222322 },
+    { iteration: 2, deltaE: 1275.8398222322 },
+    { iteration: 4, deltaE: 380.8553959527 },
+    { iteration: 6, deltaE: 151.0666257163 },
+    { iteration: 8, deltaE: 77.1386560472 },
+    { iteration: 10, deltaE: 54.5315939654 },
+    { iteration: 14, deltaE: 26.8227314605 },
+    { iteration: 20, deltaE: 8.817025638 },
+    { iteration: 30, deltaE: 1.3175500041 },
+    { iteration: 45, deltaE: 2.262e-07 },
+    { iteration: 59, deltaE: 1.6e-09 },
   ],
   threshold: 1e-5,
 };
@@ -81,7 +86,14 @@ export function SCFPlot({
           deltaE: Math.max(1e-12, point.deltaE),
         }));
         const xScale = scaleLinear().domain([1, chart.length]).range([0, innerWidth]);
-        const yScale = scaleLog().domain([1e-10, 10]).range([innerHeight, 0]);
+        // The top of the axis comes from the data, not a constant. Held at 10 it cut the run's
+        // first decades off the chart: scf.json reaches 1275.84 Ha and 19 of its 59 points are
+        // above 10, so scaleLog mapped them to negative y and the viewBox clipped them away —
+        // exactly the "one large early excursion" the step's own prose points at. The floor
+        // stays fixed because the low end is already clamped at 1e-12 above.
+        const yScale = scaleLog()
+          .domain([1e-10, Math.max(10, ...chart.map((point) => point.deltaE))])
+          .range([innerHeight, 0]);
         const path = line<{ iteration: number; deltaE: number }>()
           .x((_, index) => xScale(index + 1))
           .y((d) => yScale(d.deltaE))(chart) || "";
@@ -95,7 +107,7 @@ export function SCFPlot({
               <line x1={0} y1={innerHeight} x2={innerWidth} y2={innerHeight} stroke={PLOT_COLORS.axis} strokeWidth={1.3} />
               <line x1={0} y1={0} x2={0} y2={innerHeight} stroke={PLOT_COLORS.axis} strokeWidth={1.3} />
               <line x1={0} y1={thresholdY} x2={innerWidth} y2={thresholdY} stroke="#ef4444" strokeWidth={1.1} strokeDasharray="5,4" opacity={0.55} />
-              <line x1={activeX} y1={0} x2={activeX} y2={innerHeight} stroke={`${accentColor}55`} strokeWidth={1.1} strokeDasharray="4,4" />
+              <line x1={activeX} y1={0} x2={activeX} y2={innerHeight} stroke={accentColor} strokeOpacity={0.33} strokeWidth={1.1} strokeDasharray="4,4" />
               <path d={path} fill="none" stroke={accentColor} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
               {chart.map((point, index) => {
                 const x = xScale(index + 1);

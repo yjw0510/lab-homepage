@@ -39,7 +39,7 @@ export function LabNews({
               </div>
 
               <div className="col-span-12 min-w-0 sm:col-span-9">
-                <h3 className="font-[600] text-foreground">
+                <h3 className="type-heading text-foreground">
                   {lang === "ko" && item.titleKo ? item.titleKo : item.title}
                 </h3>
                 <p className="mt-1 max-w-[34rem] break-keep text-sm leading-relaxed text-muted-foreground">

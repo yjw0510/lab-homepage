@@ -149,10 +149,10 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
         </div>
 
         <div className="relative z-10 order-1 mx-auto w-full max-w-6xl px-6 pt-8 pb-6 sm:px-8 lg:order-none lg:py-8 [@media(max-height:700px)]:py-3">
-          <div className="max-w-[34rem]">
+          <div className="max-w-[34rem] lg:max-w-[42rem]">
             <p className="type-mono-meta text-[13px] text-muted-foreground">
               {dict.site.university}{" "}
-              {dict.site.departments.replace(" · ", " · ")}
+              {dict.site.departments}
             </p>
             {/* On a short viewport the type steps down as well as the margins. The English
                 name is 48 characters against the Korean's 17, so at 360x640 it took three
@@ -194,6 +194,9 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
                   {" · "}
                   {TIER_SCALE[active.tier]}
                 </span>
+              </p>
+              <p className="type-heading mt-2 break-keep text-[17px] text-foreground">
+                {t(active.name)}
               </p>
               <p className="type-mono-meta mt-2.5 break-keep border-t border-border pt-2 text-[12px] leading-relaxed text-muted-foreground">
                 {t(active.method)}

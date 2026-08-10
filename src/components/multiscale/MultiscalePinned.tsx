@@ -3,8 +3,6 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Maximize2, Pause, Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
-import { BANDS } from "./plots/AllAtomCoordinationPlot";
-import { DENSITY_RAMP } from "./molstar/shared";
 import { withBasePath } from "@/lib/basePath";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -13,6 +11,7 @@ import { VisualStage, type ResearchCameraActions } from "./VisualStage";
 import { RightRail, LEVEL_CHROME } from "./RightRail";
 import { MobileStatusRow } from "./MobileStatusRow";
 import { MobileViewerToolbar } from "./MobileViewerToolbar";
+import { SceneLegend } from "./SceneLegend";
 import { getScrollState, globalStepFromLevel, LEVELS, type ScrollState } from "./scrollState";
 import { CHOREOGRAPHY } from "./levelData";
 import {
@@ -29,8 +28,8 @@ function getInteractionHint(sceneKey: string | undefined, lang: string) {
   const isKorean = lang === "ko";
   const hints: Record<string, { en: string; ko: string }> = {
     M2_mapping: {
-      en: "A single teaching chain fading into its beads. The 8,000-bead melt on the previous page is a separate, larger system.",
-      ko: "사슬 하나가 비드로 바뀌는 학습용 모티프입니다. 앞 장의 8,000비드 용융계는 별도의 더 큰 계입니다.",
+      en: "A single teaching chain fading into its beads. The 8,000-bead melt on the next page is a separate, larger system.",
+      ko: "사슬 하나가 비드로 바뀌는 학습용 모티프입니다. 다음 장의 8,000비드 용융계는 별도의 더 큰 계입니다.",
     },
     A3_forcefield: {
       en: "Select a force-field term in the equation or diagram to isolate its contribution.",
@@ -97,6 +96,14 @@ export function MultiscalePinned({
   // rather than derive it; before this it sat on the first tick through the whole animation.
   const [scfIndex, setScfIndex] = useState(0);
   const [scfPlaying, setScfPlaying] = useState(true);
+  // Keep the scrub target following playback while it runs. Left behind at the last scrubbed
+  // value, re-picking that same index was a no-op — setState with an unchanged number does not
+  // re-run the stage's effect — so the slider snapped back to wherever playback had reached and
+  // the control looked dead for exactly the index the reader chose last.
+  const reportScfIndex = useCallback((index: number) => {
+    setScfIndex(index);
+    setManualScfIndex((current) => (current === null ? null : index));
+  }, []);
   const [allAtomHoveredTerm, setAllAtomHoveredTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomLockedTerm, setAllAtomLockedTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomHoveredReadout, setAllAtomHoveredReadout] = useState<AllAtomReadoutId | null>(null);
@@ -319,12 +326,17 @@ export function MultiscalePinned({
   // Desktop only; the mobile branch passes the title through as a string prop instead.
   const sceneTitleCard = (
     <div
-      className="multiscale-scene-title pointer-events-none min-w-0 max-w-[28rem]"
+      className="multiscale-scene-title pointer-events-none min-w-0 max-w-[20rem]"
       data-testid="multiscale-scene-title"
     >
       <div
         key={sceneTitleKey}
-        className={`multiscale-scene-title-inner border ${LEVEL_CHROME[level.id].line} bg-surface-sunken/90 px-3.5 py-2.5`}
+        // Opaque, not a 90% wash. At /90 the card was a scrim over the live canvas: measured on
+        // the DFT orbital step the HOMO lobe read (18,16,21) one pixel inside the card border
+        // and (87,96,172) one pixel outside it, so the subject was sliced by a hard rectangle
+        // and the step counter printed over a dimmed orbital. The level hairline already
+        // separates the card from the scene.
+        className={`multiscale-scene-title-inner border ${LEVEL_CHROME[level.id].line} bg-surface-sunken px-3.5 py-2.5`}
       >
         <div className="type-mono-meta mb-1.5 flex items-center justify-between gap-4 text-[0.78125rem] text-muted-foreground">
           <span className={LEVEL_CHROME[level.id].text}>{level.label[lang as "en" | "ko"] ?? level.label.en}</span>
@@ -402,7 +414,7 @@ export function MultiscalePinned({
             onDftStatusChange={setDftStatus}
             dftCyclePaused={dftCyclePaused}
             dftScfPlaying={scfPlaying}
-            onDftScfIndexChange={setScfIndex}
+            onDftScfIndexChange={reportScfIndex}
             allAtomActiveTerm={activeAllAtomTerm}
             allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
@@ -410,14 +422,30 @@ export function MultiscalePinned({
             reducedMotion={reducedMotion}
           />
 
-          {effectiveScrollState.level !== "mlff" ? (
-            <MobileViewerToolbar
-              cameraActionsRef={cameraActionsRef}
+          {/* Overlays are anchored to the scene box, not to the panel. The panel also contains
+              the mobile mechanism band, so `absolute bottom-3` put the camera trigger at
+              top 999px in an 844px viewport — rendered, opacity 1, and below the fold on the
+              one composition where a bad framing cannot be recovered by dragging. */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0"
+            style={{ height: mobileSceneHeight }}
+          >
+            <SceneLegend
+              scrollState={effectiveScrollState}
               lang={lang}
-              isOpen={cameraMenuOpen}
-              onToggle={() => setCameraMenuOpen((v) => !v)}
+              className="pointer-events-auto absolute bottom-3 left-3 w-[9.5rem]"
             />
-          ) : null}
+            {effectiveScrollState.level !== "mlff" ? (
+              <div className="pointer-events-auto">
+                <MobileViewerToolbar
+                  cameraActionsRef={cameraActionsRef}
+                  lang={lang}
+                  isOpen={cameraMenuOpen}
+                  onToggle={() => setCameraMenuOpen((v) => !v)}
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
 
 
@@ -457,7 +485,7 @@ export function MultiscalePinned({
             onDftStatusChange={setDftStatus}
             dftCyclePaused={dftCyclePaused}
             dftScfPlaying={scfPlaying}
-            onDftScfIndexChange={setScfIndex}
+            onDftScfIndexChange={reportScfIndex}
             allAtomActiveTerm={activeAllAtomTerm}
             allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
@@ -520,47 +548,7 @@ export function MultiscalePinned({
                 </button>
               );
             })}
-            {effectiveScrollState.level === "allatom" && effectiveScrollState.step === 1 ? (
-              // The cell page colours 68 ions by how many carbonyl oxygens each is holding, and
-              // the panel that says so is off to the side. Same bands, same source, next to the
-              // thing they describe.
-              <div
-                className="col-span-2 flex flex-col gap-1 border border-border-strong
-                           bg-surface-raised px-3 py-2 text-xs text-foreground"
-                data-testid="coordination-legend"
-              >
-                <span className="text-muted-foreground">
-                  {lang === "ko" ? "리튬 배위수" : "Li⁺ coordination"}
-                </span>
-                {BANDS.map((band) => (
-                  <span key={band.label} className="flex items-center gap-2 whitespace-nowrap">
-                    <span className="h-2.5 w-2.5 shrink-0" style={{ backgroundColor: band.color }} />
-                    {band.name}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-            {effectiveScrollState.level === "dft" && effectiveScrollState.step === 0 ? (
-              // The SCF surface is the total density; the colour on it is this iteration
-              // against the converged one. Continuous, so a strip rather than swatches.
-              <div
-                className="col-span-2 flex flex-col gap-1 border border-border-strong
-                           bg-surface-raised px-3 py-2 text-xs text-foreground"
-                data-testid="density-legend"
-              >
-                <span className="text-muted-foreground">
-                  {lang === "ko" ? "수렴 대비 밀도" : "vs converged"}
-                </span>
-                <span
-                  className="h-2 w-full"
-                  style={{ background: `linear-gradient(to right, ${DENSITY_RAMP.join(", ")})` }}
-                />
-                <span className="flex justify-between tabular-nums text-muted-foreground">
-                  <span>{lang === "ko" ? "낮음" : "lower"}</span>
-                  <span>{lang === "ko" ? "높음" : "higher"}</span>
-                </span>
-              </div>
-            ) : null}
+            <SceneLegend scrollState={effectiveScrollState} lang={lang} className="col-span-2" />
             {/* Both DFT pages run on their own: one walks the SCF iterations, the other walks
                 density -> HOMO -> LUMO. So on both, the caption naming what is on screen is also
                 the control that holds it there and starts it again. */}

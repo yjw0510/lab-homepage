@@ -36,7 +36,6 @@ function renderSegments(
         className={`inline-block transition-[color,opacity,transform,filter] duration-300 ${isInteractive ? "cursor-pointer" : ""}`}
         style={{
           color: isActive ? accentColor : undefined,
-          textShadow: isActive || isHovered || isSelected ? `0 0 12px ${accentColor}60` : undefined,
           transform: isActive || isHovered || isSelected ? "scale(1.05)" : undefined,
           filter: seg.termId && !isActive ? "opacity(0.5)" : undefined,
         }}

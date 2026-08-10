@@ -28,6 +28,15 @@ describe("useMultiscaleCanvasColor", () => {
         removeEventListener: vi.fn(),
       })),
     );
+    // The provider no longer consults prefers-color-scheme; a stored preference is the only
+    // thing that overrides the dark default, so the light starting point has to be stored.
+    // This environment has no real localStorage, so stub the two calls the provider makes.
+    const store: Record<string, string> = { theme: "light" };
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => store[k] ?? null,
+      setItem: (k: string, v: string) => { store[k] = v; },
+      removeItem: (k: string) => { delete store[k]; },
+    });
     document.documentElement.classList.remove("dark");
     container = document.createElement("div");
     document.body.appendChild(container);

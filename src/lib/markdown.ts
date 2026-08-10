@@ -84,7 +84,7 @@ export function renderInlineMarkdown(
       parts.push(
         React.createElement(
           "strong",
-          { key: `${key}-b-${partKey++}`, className: "text-foreground" },
+          { key: `${key}-b-${partKey++}`, className: "type-lead text-foreground" },
           boldMatch[2]
         )
       );
@@ -143,7 +143,7 @@ export function renderInlineMarkdown(
           {
             key: `${key}-c-${partKey++}`,
             className:
-              "px-1.5 py-0.5 text-sm rounded bg-muted text-foreground font-mono",
+              "px-1.5 py-0.5 text-sm bg-muted text-foreground font-mono",
           },
           codeMatch[2]
         )

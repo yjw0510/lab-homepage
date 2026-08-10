@@ -186,33 +186,3 @@ export function lerpNumber(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-export function getTimedValue(
-  timing: MultiscaleTimingSpec | undefined,
-  key: string,
-  stepProgress: number,
-  fallback = 0,
-) {
-  const value = timing?.[key];
-  if (typeof value === "number") return value;
-  if (!value) return fallback;
-  if (!Array.isArray(value)) {
-    const enter = value.enter;
-    const exit = value.exit;
-    if (enter) {
-      const [start, end] = enter;
-      if (stepProgress <= start) return 0;
-      if (stepProgress < end) return (stepProgress - start) / Math.max(1e-6, end - start);
-    }
-    if (exit) {
-      const [start, end] = exit;
-      if (stepProgress <= start) return 1;
-      if (stepProgress < end) return 1 - (stepProgress - start) / Math.max(1e-6, end - start);
-      return 0;
-    }
-    return 1;
-  }
-  const [start, end] = value;
-  if (stepProgress <= start) return 0;
-  if (stepProgress >= end) return 1;
-  return (stepProgress - start) / Math.max(1e-6, end - start);
-}

@@ -9,7 +9,6 @@ export interface MultiscaleArea {
   order?: number;
   scale?: string;
   scaleKo?: string;
-  moleculeViewer?: boolean;
   content?: string;
   contentKo?: string;
 }

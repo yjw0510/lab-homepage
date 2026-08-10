@@ -35,7 +35,7 @@ export function PublicationCard({
   // locale, so the untranslated-English gate skips this subtree.
   return (
     <article data-bibliographic className="border-t border-border py-5 transition-colors hover:bg-muted/50">
-      <h3 className="break-keep text-[16.5px] font-[600] leading-snug">
+      <h3 className="type-heading break-keep text-[16.5px] leading-snug">
         <Link
           href={`/${resolvedLang}/publications/${slug}`}
           className="inline py-1 text-foreground transition-colors hover:text-accent-ink"
@@ -46,6 +46,7 @@ export function PublicationCard({
 
       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
         <AuthorList
+          lang={lang}
           authors={authors}
           firstAuthors={firstAuthors}
           correspondingAuthors={correspondingAuthors}

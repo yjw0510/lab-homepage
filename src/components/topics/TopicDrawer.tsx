@@ -131,7 +131,7 @@ export function TopicDrawer({
             ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-label={topic.title}
+            aria-label={lang === "ko" && topic.titleKo ? topic.titleKo : topic.title}
             {...panelVariants}
             transition={
               dur !== undefined

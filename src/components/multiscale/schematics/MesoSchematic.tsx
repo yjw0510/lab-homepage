@@ -78,8 +78,10 @@ export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: bo
   const scaleIn = active ? "animate-scale-in" : "opacity-0";
 
   return (
-    <svg viewBox="35 14 520 232" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
-      role="img" aria-label="Mesoscale coarse-graining: an all-atom polymer mapped to connected coarse-grained beads">
+    <svg viewBox="24 4 531 248" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
+      role="img" aria-label={ko
+        ? "메조 조립화: 전원자 고분자를 연결된 조립 비드로 사상하는 과정"
+        : "Mesoscale coarse-graining: an all-atom polymer mapped to connected coarse-grained beads"}>
       <AtomPaintProvider>
       <defs>
         <AtomDefs />

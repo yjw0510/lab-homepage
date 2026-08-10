@@ -66,7 +66,7 @@ export function PaperOverview({
                   </p>
                   <p className="mt-1 text-[13px] text-muted-foreground">
                     {pub.authors[0] === "Ji Woong Yu" ? (
-                      <span className="font-[600] text-accent-ink">
+                      <span className="type-lead text-lv-mlff-text">
                         {pub.authors[0]}
                       </span>
                     ) : (

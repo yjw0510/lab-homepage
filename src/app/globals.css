@@ -68,6 +68,12 @@
   --sch-delta-minus: #c026d3;
   --sch-packet: #c41e3a;
   --sch-peripheral: #475569;
+  /* The two MLFF descriptor families, which are told apart by colour alone. Label-grade, like
+     --sch-amber-label: measured 6.67:1 and 8.24:1 on paper, 13.20:1 and 7.24:1 on the dark
+     ground, and 85 dE apart from each other in both modes. Their own keys rather than a reuse
+     of --sch-stretch / --sch-lj, which name force-field terms. */
+  --sch-descriptor-invariant: #155e75;
+  --sch-descriptor-equivariant: #5b21b6;
   --sch-meso-n: #7c8db0;
   --sch-meso-o: #b07c7c;
 
@@ -134,6 +140,8 @@
   --sch-delta-minus: #e879f9;
   --sch-packet: #fb7185;
   --sch-peripheral: #94a3b8;
+  --sch-descriptor-invariant: #67e8f9;
+  --sch-descriptor-equivariant: #c084fc;
   --sch-meso-n: #9fb0d0;
   --sch-meso-o: #cf9d9d;
 
@@ -258,11 +266,6 @@ body {
   letter-spacing: -0.01em;
 }
 
-@utility type-math {
-  font-family: KaTeX_Main, "Times New Roman", serif;
-  font-weight: 400;
-  letter-spacing: 0;
-}
 
 .scientific-equation .katex {
   font-size: 1.3125rem;

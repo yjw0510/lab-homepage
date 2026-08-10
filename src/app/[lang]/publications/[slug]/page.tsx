@@ -33,6 +33,11 @@ export async function generateMetadata({
   };
 }
 
+/** Section headings the site owns, as opposed to the paper's own prose. */
+const SECTION_TITLE_KO: Record<string, string> = { Abstract: "초록" };
+const sectionTitleFor = (lang: string) => (title: string) =>
+  lang === "ko" ? SECTION_TITLE_KO[title] ?? title : title;
+
 export default async function PublicationDetailPage({
   params,
 }: {
@@ -45,6 +50,8 @@ export default async function PublicationDetailPage({
   const pub = getPublication(slug);
   if (!pub) notFound();
 
+  const sectionTitle = sectionTitleFor(lang);
+
   const sections = parseMarkdownSections(pub.content || "");
 
   return (
@@ -53,7 +60,7 @@ export default async function PublicationDetailPage({
         <div className="max-w-3xl">
           <Link
             href={`/${lang}/publications`}
-            className="type-mono-meta inline-flex min-h-11 items-center gap-1.5 text-[12.5px] text-accent-ink transition-colors hover:text-primary"
+            className="type-mono-meta inline-flex min-h-11 items-center gap-1.5 text-[12.5px] text-accent-ink transition-colors hover:text-primary underline decoration-1 underline-offset-[3px]"
           >
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.75} />
             {dict.common.backTo} {dict.nav.publications}
@@ -65,6 +72,7 @@ export default async function PublicationDetailPage({
 
           <p className="mt-5 leading-relaxed text-muted-foreground">
             <AuthorList
+              lang={lang}
               authors={pub.authors}
               firstAuthors={pub.firstAuthors}
               correspondingAuthors={pub.correspondingAuthors}
@@ -89,7 +97,7 @@ export default async function PublicationDetailPage({
               {pub.doi && (
                 <ExternalLink
                   href={`https://doi.org/${pub.doi}`}
-                  className="text-[12.5px]"
+                  className="text-[12.5px] inline-flex min-h-6 items-center"
                 >
                   {pub.doi}
                 </ExternalLink>
@@ -106,7 +114,7 @@ export default async function PublicationDetailPage({
             {sections.map((section) => (
               <section key={section.title} className="mb-10">
                 <h2 className="type-heading text-lg text-foreground">
-                  {section.title}
+                  {sectionTitle(section.title)}
                 </h2>
                 <div
                   className={`mt-4 leading-relaxed text-muted-foreground ${

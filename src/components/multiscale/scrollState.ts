@@ -5,6 +5,7 @@ export type LevelId = "meso" | "allatom" | "mlff" | "dft";
 export interface LevelConfig {
   id: LevelId;
   label: Record<"en" | "ko", string>;
+  /** The level identity ink, as a CSS token. Consumed by the rail equation accent. */
   color: string;
   steps: number;
   scale: Record<"en" | "ko", string>;
@@ -14,28 +15,28 @@ export const LEVELS: LevelConfig[] = [
   {
     id: "dft",
     label: { en: "Electronic Structure / DFT", ko: "전자구조 / DFT" },
-    color: "#f97316",
+    color: "var(--lv-dft-text)",
     steps: 2,
     scale: { en: "density and orbitals resolved · selected configurations", ko: "전자 밀도·오비탈 해상 · 선택된 배치" },
   },
   {
     id: "mlff",
     label: { en: "MLFF", ko: "MLFF" },
-    color: "#8b5cf6",
+    color: "var(--lv-mlff-text)",
     steps: 2,
     scale: { en: "atoms explicit · learned PES", ko: "원자 명시 · 학습 PES" },
   },
   {
     id: "allatom",
     label: { en: "Classical All-Atom", ko: "고전 전원자" },
-    color: "#06b6d4",
+    color: "var(--lv-aa)",
     steps: 2,
     scale: { en: "atoms explicit · analytic FF", ko: "원자 명시 · 해석적 역장" },
   },
   {
     id: "meso",
     label: { en: "Mesoscale", ko: "메조스케일" },
-    color: "#f59e0b",
+    color: "var(--lv-meso)",
     steps: 2,
     scale: { en: "collective variables · effective model", ko: "집단 변수 · 유효 모형" },
   },

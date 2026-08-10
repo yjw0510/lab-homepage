@@ -7,7 +7,7 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useTheme } from "@/providers/ThemeProvider";
 import { loopSources, posterSrc, type LoopSource, type Specimen } from "@/lib/renderSpecimens";
 
-// The backdrop baked into the loop survives H.264 to within a level or two of the
+// The backdrop baked into the loop survives compression to within a level or two of the
 // background token, which can draw a faint rectangle on a large plate. Fading the
 // outermost 2% on each axis lands the plate edge on the poster underneath, which carries
 // the token exactly. Two nested masks instead of mask-composite, which browsers support
@@ -260,7 +260,7 @@ export function SpecimenPlate({
           className="group absolute inset-0 cursor-pointer [&:focus-visible]:outline-offset-[-2px]"
         >
           <span
-            className={`absolute bottom-0 right-0 flex h-11 w-11 items-center justify-center border-l border-t border-border bg-surface-raised/90 text-muted-foreground backdrop-blur-sm transition-opacity group-hover:text-foreground group-focus-visible:opacity-100 ${
+            className={`absolute bottom-0 right-0 flex h-11 w-11 items-center justify-center border-l border-t border-border bg-surface-raised/90 text-muted-foreground transition-opacity group-hover:text-foreground group-focus-visible:opacity-100 ${
               readerPaused
                 ? "text-foreground"
                 : "opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100"

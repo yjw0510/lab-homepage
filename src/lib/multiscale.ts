@@ -28,7 +28,6 @@ export function getAllMultiscaleAreas(): MultiscaleArea[] {
         order: data.order ?? 99,
         scale: data.scale || "",
         scaleKo: data.scaleKo || "",
-        moleculeViewer: data.moleculeViewer || false,
         content,
         contentKo: data.contentKo || "",
       } as MultiscaleArea;

@@ -20,7 +20,7 @@ export function LanguageToggle({ lang }: { lang: string }) {
       }}
     >
       <Globe className="h-4 w-4" strokeWidth={1.75} />
-      <span className="type-mono-meta text-[12px] font-[500]">
+      <span className="type-mono-meta text-[12px]">
         {targetLang.toUpperCase()}
       </span>
     </button>

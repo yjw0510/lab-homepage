@@ -248,7 +248,7 @@ function A6Observables({
             );
           })}
         </div>
-        <div className="mt-2 border-l-2 border-lv-aa-line pl-4">
+        <div className="mt-2 border-t border-lv-aa-line pt-4">
           <p className={MULTISCALE_TYPE.semititle}>{selected[0]}</p>
           <p className={`mt-2 ${MULTISCALE_TYPE.description}`}>{selected[1]}</p>
         </div>

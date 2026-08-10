@@ -25,7 +25,7 @@ export function TopicIndex({
   return (
     <div className="mb-16 sm:mb-20">
       <section>
-        <h2 className="type-heading flex items-baseline border-t border-border-strong pt-4 text-[21px] text-foreground">
+        <h2 className="type-title flex items-baseline border-t border-border-strong pt-4 text-[28px] text-foreground">
           <span
             aria-hidden="true"
             className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary"
@@ -50,7 +50,7 @@ export function TopicIndex({
           {/* Same shape as the section above. A strong rule with nothing on it reads as a gap
               in the ledger rather than the start of a group: 48px of space, the rule, 16px
               more, then the first row's own hairline 17px below the first. */}
-          <h2 className="type-heading flex items-baseline border-t border-border-strong pt-4 text-[21px] text-foreground">
+          <h2 className="type-title flex items-baseline border-t border-border-strong pt-4 text-[28px] text-foreground">
             <span
               aria-hidden="true"
               className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary"

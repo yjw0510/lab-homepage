@@ -27,7 +27,7 @@ export const LEVEL_CHROME: Record<LevelId, { text: string; line: string; tab: st
   allatom: { text: "text-lv-aa", line: "border-lv-aa-line", tab: "border-lv-aa text-lv-aa" },
   meso: { text: "text-lv-meso", line: "border-lv-meso-line", tab: "border-lv-meso text-lv-meso" },
 };
-import type { StepConfig } from "./levelData";
+import { PROVENANCE_KIND_LABEL, type StepConfig } from "./levelData";
 import { ConceptText } from "./ConceptText";
 import type { AllAtomForceFieldTerm } from "./allatom/allAtomPagePolicy";
 
@@ -94,7 +94,13 @@ export function RightRail({
   const prevStepRef = useRef<string>("");
   const isAllAtomLevel = level.id === "allatom";
   const isAllAtomForceFieldStep = stepConfig.sceneKey === "A3_forcefield";
-  const equationActiveTerms = stepConfig.activeTerms;
+  // On the force-field step the reader's selection is what lights a term, so nothing is lit
+  // until they pick one. Feeding all five in as "active" left every segment coloured and none
+  // dimmed, so selecting one changed nothing on screen.
+  const equationActiveTerms =
+    isAllAtomLevel && isAllAtomForceFieldStep
+      ? (allAtomSelectedTerm ? [allAtomSelectedTerm] : [])
+      : stepConfig.activeTerms;
   const isStack = isMobile;
   const currentStepTitle = stepTitles[scrollState.step] ?? `${lang === "ko" ? "단계" : "Step"} ${scrollState.step + 1}`;
   const previousLabel = previousStepTitle
@@ -123,7 +129,7 @@ export function RightRail({
                   : "border-border-strong text-muted-foreground"
               }`}
             >
-              {layer.kind}
+              {PROVENANCE_KIND_LABEL[layer.kind][lang as "en" | "ko"] ?? layer.kind}
             </span>
             <span className="break-keep text-muted-foreground">
               {layer.label[lang as "en" | "ko"] ?? layer.label.en}
@@ -271,7 +277,7 @@ export function RightRail({
     // rather than size is what carries emphasis in that ladder. Measured across all
     // eight steps at both rail widths, 16px never adds a line and saves 14-46px.
     <div data-rail-role="frame" className={`flex-shrink-0 border-b border-border pb-4 ${isStack ? "mb-3" : "mb-5"}`}>
-      <p className="mb-1.5 text-[0.78125rem] font-medium leading-4 text-muted-foreground">
+      <p className="type-mono-meta mb-1.5 text-[0.78125rem] leading-4 text-muted-foreground">
         {lang === "ko" ? "적용 조건" : "Applicability"}
       </p>
       <p className="type-lead break-keep text-base text-foreground">
@@ -314,9 +320,13 @@ export function RightRail({
         lang={lang}
         className="max-w-[65ch] break-keep text-base leading-[1.75] text-foreground"
       />
+      {/* The tier's own ink, not signal red. `text-primary` is also the MLFF level colour, so
+          this header wore MLFF's identity on the DFT, all-atom and meso pages too, and
+          DESIGN.md reserves signal red for nav underline, focus ring, heading anchor, ruler
+          origin tick, PI name and the primary button fill — not a section header. */}
       {scrollState.step === 0 && (
-        <div className="mt-5 border-t border-primary/60 pt-4">
-          <p className="mb-2 text-sm font-semibold text-primary">
+        <div className={`mt-5 border-t ${LEVEL_CHROME[level.id].line} pt-4`}>
+          <p className={`type-heading mb-2 text-sm ${LEVEL_CHROME[level.id].text}`}>
             {lang === "ko" ? "다음 계층으로" : "To the next tier"}
           </p>
           <ConceptText
@@ -433,8 +443,11 @@ export function RightRail({
               <span className="min-w-0 truncate">{previousButtonText}</span>
             </button>
 
-            <span className="type-mono-meta text-xs text-muted-foreground">
-              {scrollState.step + 1} / {scrollState.stepCount}
+            {/* Named. Unlabelled, this "1 / 2" sat beside the title card's "01 / 08" in the same
+                register and size, so one screen carried two counters with different totals and
+                nothing said which was which. */}
+            <span className="type-mono-meta whitespace-nowrap text-xs text-muted-foreground">
+              {SCALE_SHORT[level.id][lang as "en" | "ko"] ?? SCALE_SHORT[level.id].en} {scrollState.step + 1} / {scrollState.stepCount}
             </span>
 
             <button

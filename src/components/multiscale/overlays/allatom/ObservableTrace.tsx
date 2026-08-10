@@ -95,7 +95,7 @@ export function ObservableTrace({
 
   if (failed) {
     return (
-      <div className="border border-rose-700/25 bg-rose-100/50 px-3 py-4 font-mono text-xs text-rose-900/80 dark:border-rose-300/20 dark:bg-rose-950/18 dark:text-rose-100/80">
+      <div className="border border-border bg-muted/40 px-3 py-4 font-mono text-xs text-muted-foreground">
         {lang === "ko" ? "궤적 관측량을 불러오지 못했습니다." : "Trajectory observables are unavailable."}
       </div>
     );

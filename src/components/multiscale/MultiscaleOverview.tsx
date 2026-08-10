@@ -13,7 +13,7 @@ const rulerMarks = [
    MLFF mark. */
 const rulerMarkText: Record<string, string> = {
   dft: "text-lv-dft",
-  atomistic: "text-lv-mlff",
+  atomistic: "text-lv-mlff-text",
   meso: "text-lv-meso",
 };
 

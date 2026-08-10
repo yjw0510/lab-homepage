@@ -95,7 +95,12 @@ export function DftScfSlider({
           />
         </div>
 
-        <div className="type-mono-meta relative mt-3 h-10 text-xs">
+        {/* Ticks are decoration, not controls. At 59 snapshots the pitch is 5.09px, so no
+            per-snapshot box can reach the 24px WCAG 2.5.8 floor — widening them from 16 to 24px
+            only made each tick's topmost strip sit further from the mark it draws, so clicking a
+            tick selected tick+2. The range input above already covers the whole track and is
+            drag- and keyboard-accessible; it is the control. */}
+        <div className="type-mono-meta pointer-events-none relative mt-3 h-10 text-xs">
           {ticks.map(({ snapshot, index, x }) => {
             const active = index === value;
             // Both ends are named, and then every `labelStride`-th tick, except where that would
@@ -107,11 +112,9 @@ export function DftScfSlider({
               index === max ||
               (index % labelStride === 0 && max - index >= labelStride);
             return (
-              <button
+              <div
                 key={`${snapshot.index}-${snapshot.iteration}`}
-                type="button"
-                onClick={() => onChange(index)}
-                className="absolute top-0 flex min-h-9 w-4 -translate-x-1/2 items-start justify-center"
+                className="pointer-events-none absolute top-0 flex -translate-x-1/2 items-start justify-center"
                 style={{ left: `${x}px` }}
               >
                 <div className="flex flex-col items-center gap-1">
@@ -128,7 +131,7 @@ export function DftScfSlider({
                     </span>
                   ) : null}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
