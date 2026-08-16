@@ -43,7 +43,7 @@ function NavLinks({
           item.href === "/"
             ? pathname === `/${lang}` || pathname === `/${lang}/`
             : pathname.startsWith(`/${lang}${item.href}`);
-        const label = dict.nav[navKeyMap[item.href] ?? "home"] ?? item.label;
+        const label = dict.nav[navKeyMap[item.href] ?? "home"];
         return (
           <Link
             key={item.href}
@@ -91,9 +91,6 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
             <span className="type-heading text-[15px] leading-[1.7]">
               Yu Lab
             </span>
-            <span className="type-mono-meta text-[11px] text-muted-foreground">
-              MMCC
-            </span>
           </Link>
 
           {/* Desktop nav */}
@@ -117,7 +114,15 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex h-11 w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label={lang === "ko" ? "메뉴 전환" : "Toggle menu"}
+              aria-label={
+                mobileOpen
+                  ? lang === "ko"
+                    ? "메뉴 닫기"
+                    : "Close menu"
+                  : lang === "ko"
+                    ? "메뉴 열기"
+                    : "Open menu"
+              }
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav-sheet"
             >

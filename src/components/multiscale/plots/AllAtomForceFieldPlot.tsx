@@ -18,10 +18,10 @@ const TERMS: Array<{
   lane: "bonded" | "nonbonded";
 }> = [
   { id: "Ubond", label: { en: "bond", ko: "결합" }, lane: "bonded" },
-  { id: "Uangle", label: { en: "angle", ko: "각도" }, lane: "bonded" },
-  { id: "Udihedral", label: { en: "dihedral", ko: "이면각" }, lane: "bonded" },
-  { id: "UvdW", label: { en: "vdW", ko: "vdW" }, lane: "nonbonded" },
-  { id: "UCoul", label: { en: "Coulomb", ko: "쿨롱" }, lane: "nonbonded" },
+  { id: "Uangle", label: { en: "bond angle", ko: "결합각" }, lane: "bonded" },
+  { id: "Udihedral", label: { en: "bond rotation", ko: "결합 회전" }, lane: "bonded" },
+  { id: "UvdW", label: { en: "short range", ko: "단거리 힘" }, lane: "nonbonded" },
+  { id: "UCoul", label: { en: "charges", ko: "전하" }, lane: "nonbonded" },
 ];
 
 export function AllAtomForceFieldPlot({
@@ -43,7 +43,7 @@ export function AllAtomForceFieldPlot({
 }) {
   return (
     <PlotContainer
-      ariaLabel={lang === "ko" ? "결합 항과 비결합 항을 합쳐 전체 U를 만드는 전원자 역장" : "Classical all-atom force field: bonded and non-bonded term families summing to total U"}
+      ariaLabel={lang === "ko" ? "분자 모양과 원자 사이 접촉을 나타내는 상호작용을 합쳐 전체 에너지를 계산한다" : "Interactions for molecular shape and contacts between atoms combine to give the total energy"}
       aspectRatio={0.8}
       minHeight={255}
       maxHeight={320}
@@ -134,7 +134,7 @@ export function AllAtomForceFieldPlot({
                     style={{ cursor: "pointer" }}
                     role="button"
                     tabIndex={0}
-                    aria-label={`${lang === "ko" ? "역장 항 선택" : "Select force-field term"}: ${label}`}
+                    aria-label={`${lang === "ko" ? "상호작용 선택" : "Select interaction"}: ${label}`}
                     aria-pressed={isSelected}
                   >
                     {/* Hit area slightly larger than pill */}
@@ -203,7 +203,7 @@ export function AllAtomForceFieldPlot({
                 fill={highlightFamily === "bonded" ? accentColor : PLOT_COLORS.text}
                 fontSize={font.tick} fontWeight={700}
               >
-                {lang === "ko" ? "결합" : "bonded"}
+                {lang === "ko" ? "분자 모양" : "shape"}
               </text>
               <text
                 x={nonBondedLaneX + laneW / 2} y={nonBondedTopY - font.tick * 0.6}
@@ -211,7 +211,7 @@ export function AllAtomForceFieldPlot({
                 fill={highlightFamily === "nonbonded" ? accentColor : PLOT_COLORS.text}
                 fontSize={font.tick} fontWeight={700}
               >
-                {lang === "ko" ? "비결합" : "non-bonded"}
+                {lang === "ko" ? "원자 사이" : "contacts"}
               </text>
             </g>
           ),

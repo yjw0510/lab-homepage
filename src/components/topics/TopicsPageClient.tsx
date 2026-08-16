@@ -43,11 +43,10 @@ export function TopicsPageClient({
         {/* Masthead: display title + subtitle over a double rule */}
         <header className="mb-14 sm:mb-20">
           <h1 className="type-display text-[37px] text-foreground sm:text-[49px]">
-            {dict.topics?.title ?? "Research Topics"}
+            {dict.topics.title}
           </h1>
           <p className="mt-4 max-w-[34rem] leading-relaxed text-muted-foreground">
-            {dict.topics?.subtitle ??
-              "Thematic overview of our research directions and associated publications."}
+            {dict.topics.subtitle}
           </p>
           <div className="mt-8 h-[3px] border-y border-border-strong" />
         </header>

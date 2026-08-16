@@ -241,8 +241,8 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
   return (
     <svg viewBox="-78 0 878 480" className="w-full h-52 sm:h-64" style={{ shapeRendering: "geometricPrecision" }}
       role="img" aria-label={ko
-        ? "고전 전원자 역장: 결합·각도·비틀림·반 데르 발스·정전기 항이 하나의 퍼텐셜을 이루는 구성"
-        : "Classical all-atom force field: bond, angle, torsion, van der Waals and electrostatic terms composing one potential"}>
+        ? "결합의 길이와 각도, 결합 주위 회전, 가까운 원자 사이 힘을 합쳐 분자의 에너지를 계산한다"
+        : "Molecular energy combines bond lengths and angles, rotation around bonds, and forces between nearby atoms"}>
       <AtomPaintProvider>
       <defs>
         <AtomDefs />
@@ -391,11 +391,11 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
       {/* ═══ L6: Labels ═══ */}
       <g {...anim(1.0)}>
         <text x={u(328)} y={u(72)} textAnchor="middle">
-          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "1-4 비결합" : "1-4 nonbonded"}</tspan>
+          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "떨어진 원자 사이" : "atoms farther apart"}</tspan>
           <tspan x={u(328)} dy={u(18)} fontSize={T.sub} fontWeight="500">
-            <tspan fill={C.lj}>Lennard-Jones</tspan>
+            <tspan fill={C.lj}>{ko ? "단거리 힘" : "short-range"}</tspan>
             <tspan fill={C.muted}> + </tspan>
-            <tspan fill={C.coulomb}>Coulomb</tspan>
+            <tspan fill={C.coulomb}>{ko ? "전하 힘" : "charges"}</tspan>
           </tspan>
         </text>
 
@@ -407,7 +407,7 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
         <LabelStack x={angleLabelX} y={angleLabelY} term={ko ? "각 굽힘" : "angle bend"} variable="θ" sub="O-C′-Cα" vColor={C.angle} />
 
         <text x={colCx + u(12)} y={colCy + u(64)} textAnchor="middle">
-          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "이면각" : "dihedral"}</tspan>
+          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "결합 회전" : "bond rotation"}</tspan>
           <tspan x={colCx + u(12)} dy={u(26)} fill={C.torsion} fontSize={T.var} fontWeight="700" fontStyle="italic">φ</tspan>
           <tspan x={colCx + u(12)} dy={u(22)} fill={C.muted} fontSize={T.sub}>Hα-Cα-C′-O</tspan>
         </text>

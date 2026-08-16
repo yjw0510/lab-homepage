@@ -116,7 +116,7 @@ export function EquationDisplay({
   return (
     <div
       className="border-y border-border py-3"
-      aria-label={eqSet.main.ariaLabel}
+      aria-label={lang === "ko" ? "현재 단계의 계산 관계" : eqSet.main.ariaLabel}
     >
       <div className="scientific-equation flex flex-wrap items-baseline gap-x-0 overflow-x-auto px-1 py-1 text-foreground">
         {renderSegments(
@@ -139,7 +139,7 @@ export function EquationDisplay({
             <div
               key={sub.termId}
               className="scientific-equation-sub border border-border bg-muted/40 px-3 py-2.5 text-muted-foreground"
-              aria-label={sub.ariaLabel}
+              aria-label={lang === "ko" ? "선택한 상호작용의 계산 관계" : sub.ariaLabel}
             >
               <div className="flex flex-wrap items-baseline gap-x-0.5">
                 {renderSegments(
@@ -163,7 +163,7 @@ export function EquationDisplay({
       {detailMode === "single" && activeSub && (
         <div
           className="scientific-equation-sub mt-3 flex flex-wrap items-baseline gap-x-0 border-t border-border pt-3 text-muted-foreground"
-          aria-label={activeSub.ariaLabel}
+          aria-label={lang === "ko" ? "선택한 상호작용의 계산 관계" : activeSub.ariaLabel}
         >
           {renderSegments(
             activeSub.segments,

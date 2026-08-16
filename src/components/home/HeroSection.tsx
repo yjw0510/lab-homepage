@@ -118,7 +118,7 @@ export function HeroSection({ lang, dict }: { lang: string; dict: Dictionary }) 
 
   const label = {
     pause: ko ? "자동 재생 멈춤" : "Pause autoplay",
-    play: ko ? "자동 재생" : "Resume autoplay",
+    play: ko ? "자동 재생 다시 시작" : "Resume autoplay",
     tray: ko ? "표본 선택" : "Select specimen",
   };
 

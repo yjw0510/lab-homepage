@@ -30,7 +30,7 @@ export function PlotSlot({
   onTermToggle?: (term: AllAtomForceFieldTerm) => void;
 }) {
   if (plotType === "scf") {
-    return <SCFPlot progress={progress} accentColor={accentColor} activeIndexOverride={activeIndexOverride} />;
+    return <SCFPlot progress={progress} accentColor={accentColor} activeIndexOverride={activeIndexOverride} lang={lang} />;
   }
 
   if (plotType === "allatomForceField") {

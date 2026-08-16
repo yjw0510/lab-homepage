@@ -72,7 +72,12 @@ export function PaperOverview({
                     ) : (
                       pub.authors[0]
                     )}
-                    {pub.authors.length > 1 ? " et al." : ""},{" "}
+                    {pub.authors.length > 1
+                      ? lang === "ko"
+                        ? " 외"
+                        : " et al."
+                      : ""}
+                    {", "}
                     <span className="type-mono-meta text-[12.5px]">
                       {pub.journal}
                     </span>

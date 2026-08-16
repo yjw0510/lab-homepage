@@ -5,6 +5,7 @@ export interface FundingGrant {
   agency: string;
   agencyKo?: string;
   period: string;
+  periodKo?: string;
   amount?: string;
   role: "PI" | "Co-PI" | "Participant";
   description: string;
@@ -14,11 +15,12 @@ export interface FundingGrant {
 export const grants: FundingGrant[] = [
   {
     id: "ajou-basic-science-center",
-    title: "University Core Research Center Support Program",
+    title: "Ajou University Basic Science Research Institute",
     titleKo: "아주대학교 기초과학 자율운영 중점연구소",
     agency: "Ajou University",
     agencyKo: "아주대학교",
-    period: "2026.03 ~",
+    period: "Mar 2026 to present",
+    periodKo: "2026년 3월-현재",
     role: "PI",
     description: "",
     status: "active",
@@ -29,7 +31,8 @@ export const grants: FundingGrant[] = [
     titleKo: "아주대학교 신임교원 정착연구",
     agency: "Ajou University",
     agencyKo: "아주대학교",
-    period: "2026.03 ~",
+    period: "Mar 2026 to present",
+    periodKo: "2026년 3월-현재",
     role: "PI",
     description: "",
     status: "active",

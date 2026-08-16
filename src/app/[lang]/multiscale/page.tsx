@@ -14,11 +14,11 @@ export async function generateMetadata({
   return lang === "ko"
     ? {
         title: "멀티스케일",
-        description: "멀티스케일 분자계산화학 연구실의 계산 방법과 연구 흐름.",
+        description: "반응 중 전자 변화부터 재료를 만드는 집단 운동까지, 질문에 맞는 계산 해상도를 설명합니다.",
       }
     : {
         title: "Multiscale",
-        description: "Methods and research flow of the Multiscale Molecular Computational Chemistry Lab.",
+        description: "How computational resolution connects electronic changes in reactions with the collective motion that shapes materials.",
       };
 }
 

@@ -61,7 +61,7 @@ export const experience = {
     {
       role: "AI 연구원",
       institution: "고등과학원 (KIAS)",
-      department: "AI와 자연과학 센터",
+      department: "AI기초과학센터",
       period: "2023 \u2013 2026",
       detail: "지도교수: 현창봉",
     },
@@ -76,12 +76,12 @@ export const experience = {
 
 export const awards = {
   en: [
-    { title: "Young WATOC Scholar", detail: "Selected by the World Association of Theoretical and Computational Chemists, Oslo 2025" },
+    { title: "Young WATOC Lecture", detail: "WATOC 2025, Oslo" },
     { title: "Dongjin Outstanding Paper Award", detail: "Seoul National University, 2022" },
     { title: "Summa Cum Laude", detail: "Chung-Ang University, 2016" },
   ],
   ko: [
-    { title: "Young WATOC Scholar", detail: "세계이론전산화학회, 오슬로 2025 선정" },
+    { title: "Young WATOC Lecture", detail: "WATOC 2025, 오슬로" },
     { title: "동진 우수논문상", detail: "서울대학교, 2022" },
     { title: "최우등 졸업", detail: "중앙대학교, 2016" },
   ],
@@ -90,7 +90,7 @@ export const awards = {
 export const skills = {
   en: [
     { category: "Molecular Simulation", items: "LAMMPS, GROMACS, HOOMD-blue" },
-    { category: "First-Principles Calculation", items: "VASP, CP2K, Quantum ESPRESSO, Gaussian, PySCF" },
+    { category: "First-Principles Calculations", items: "VASP, CP2K, Quantum ESPRESSO, Gaussian, PySCF" },
     { category: "Machine-Learned Potentials", items: "DeePMD-kit, MACE, NequIP, JAX-MD" },
     { category: "Visualization", items: "VMD, OVITO" },
     { category: "Programming", items: "Python, C++, JAX, CUDA, OpenMP/MPI" },

@@ -114,7 +114,7 @@ export function RightRail({
   const visualEvidenceBlock = (
     <div data-rail-role="provenance" className="mb-5 border-y border-border py-3.5">
       <p className="text-sm font-medium text-muted-foreground">
-        {lang === "ko" ? "출처" : "Provenance"}
+        {lang === "ko" ? "화면 자료" : "Visual source"}
       </p>
       <div className="mt-3 space-y-2">
         {stepConfig.visualLayers.map((layer, index) => (
@@ -278,7 +278,7 @@ export function RightRail({
     // eight steps at both rail widths, 16px never adds a line and saves 14-46px.
     <div data-rail-role="frame" className={`flex-shrink-0 border-b border-border pb-4 ${isStack ? "mb-3" : "mb-5"}`}>
       <p className="type-mono-meta mb-1.5 text-[0.78125rem] leading-4 text-muted-foreground">
-        {lang === "ko" ? "적용 조건" : "Applicability"}
+        {lang === "ko" ? "질문" : "Question"}
       </p>
       <p className="type-lead break-keep text-base text-foreground">
         {stepConfig.question[lang as "en" | "ko"] ?? stepConfig.question.en}
@@ -362,7 +362,7 @@ export function RightRail({
       href={`/${lang}/multiscale/${level.id}`}
       className="type-mono-meta mb-2 flex flex-shrink-0 items-center justify-between gap-3 border border-border-strong px-3.5 py-3 text-xs text-foreground transition-colors hover:bg-muted"
     >
-      <span>{lang === "ko" ? "전체 방법 노트" : "Full method notes"}</span>
+      <span>{lang === "ko" ? "방법 개요 읽기" : "Read the method overview"}</span>
       <ArrowUpRight className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
     </Link>
   );

@@ -11,11 +11,11 @@
   },
   "topics": {
     "title": "연구 주제",
-    "subtitle": "분자 시뮬레이션과 이론, 머신러닝 기법으로 분자의 구조와 움직임이 물질의 성질을 정하는 과정을 연구한다. 나노입자와 고분자부터 물, 유리, 겔까지 다룬다."
+    "subtitle": "분자의 움직임과 배열이 소금물, 고분자 코팅 나노입자, 유리, 겔의 성질로 이어지는 과정을 분자 시뮬레이션과 이론, 머신러닝으로 연구합니다."
   },
   "home": {
     "exploreMultiscale": "연구 분야 보기",
-    "joinLab": "연구실 참여",
+    "joinLab": "연구실 지원",
     "recentPublications": "최근 논문",
     "recentPublicationsSubtitle": "",
     "viewAllPublications": "전체 논문 보기",
@@ -25,14 +25,14 @@
   },
   "multiscale": {
     "title": "멀티스케일",
-    "subtitle": "규모마다 답할 수 있는 질문이 다르다. 전자가 어디 있는지를 묻는 계층부터 재료가 어떤 형태로 자리 잡는지를 묻는 계층까지 넷이다.",
+    "subtitle": "반응 중 전자의 변화부터 재료의 형태를 만드는 집단 운동까지, 연구 질문에 맞는 계산 해상도를 선택합니다.",
     "learnMore": "자세히 보기"
   },
   "publications": {
     "title": "논문",
-    "subtitle": "게재 논문 및 프리프린트",
-    "filterByYear": "연도별 필터",
-    "filterByTag": "태그별 필터",
+    "subtitle": "분자 모델링과 연성물질, 용액 화학에 관한 논문과 리뷰입니다.",
+    "filterByYear": "연도 선택",
+    "filterByTag": "태그 선택",
     "allYears": "전체 연도",
     "allTags": "전체 태그",
     "noResults": "선택한 필터에 맞는 논문이 없습니다.",
@@ -40,26 +40,26 @@
   },
   "people": {
     "title": "구성원",
-    "subtitle": "멀티스케일 분자 전산화학 연구실의 연구책임자와 연구원.",
+    "subtitle": "Yu Lab에서 분자 모델링을 연구하는 사람들을 소개합니다.",
     "pi": "연구책임자",
     "labMembers": "연구실 구성원",
-    "noMembers": "새 구성원을 곧 공지할 예정입니다."
+    "noMembers": "새 구성원은 합류하는 대로 이곳에 소개합니다."
   },
   "news": {
     "title": "소식",
-    "subtitle": "아주대 Yu Lab의 발표와 공지.",
+    "subtitle": "연구실 공지와 연구 소식, 모집 정보를 전합니다.",
     "noNews": "아직 소식이 없습니다."
   },
   "funding": {
     "title": "연구비",
-    "subtitle": "진행 중이거나 완료된 연구 과제.",
+    "subtitle": "분자 모델링과 재료 화학 연구를 지원하는 연구 과제입니다.",
     "active": "진행 중",
     "completed": "완료",
     "noGrants": "연구비 정보를 곧 업데이트할 예정입니다."
   },
   "contact": {
     "title": "연락처",
-    "subtitle": "아주대학교 원천관 연구실 위치와 이메일.",
+    "subtitle": "연구실 위치와 연락 방법, 지원 절차를 안내합니다.",
     "location": "위치",
     "email": "이메일",
     "office": "연구실"
@@ -69,37 +69,40 @@
     "subtitle": "학력 및 경력 사항",
     "education": "학력",
     "experience": "경력",
-    "awards": "수상",
+    "awards": "주요 선정 및 수상",
     "publications": "주요 논문",
-    "skills": "기술",
+    "skills": "사용 기술",
     "professional": "학회 활동"
   },
   "recruitment": {
     "title": "연구실 참여 안내",
-    "msPhdLabel": "석사 / 박사과정",
+    "msPhdLabel": "석·박사과정",
     "msPhdStatus": "곧 모집 예정",
     "postdocLabel": "박사후연구원",
     "postdocStatus": "곧 모집 예정",
     "undergradLabel": "학부 연구생",
     "undergradStatus": "상시 지원 환영",
     "howToApply": "지원 방법",
-    "howToApplyText": "메일을 쓰시기 전에 저희 연구 분야를 살펴보시고, 논문도 최소 한 편은 읽어봐 주세요. 그런 다음 어떤 주제나 논문이 흥미로웠는지, 하고 싶은 연구와 어떻게 이어지는지를 몇 문장으로 적어 CV와 함께 아래 이메일로 보내 주시면 됩니다.",
-    "fields": "지원 분야",
-    "fieldsText": "화학, 화학공학, 물리학, 컴퓨터과학 등"
+    "howToApplyText": "CV와 관심 있는 연구 질문을 짧게 적어 보내 주세요. 연구실 논문 중 그 질문과 맞닿은 논문이 있다면 함께 알려 주세요. 전산화학 입문자도 환영합니다.",
+    "undergradApplyText": "간단한 자기소개와 배우거나 연구해 보고 싶은 내용을 보내 주세요. 면담에서 시작하기 좋은 프로젝트를 함께 찾습니다. 시뮬레이션과 코딩 입문자도 환영합니다.",
+    "fields": "관련 전공",
+    "fieldsText": "화학, 화학공학, 물리학, 재료과학, 컴퓨터과학 및 관련 분야"
   },
   "footer": {
     "quickLinks": "바로가기",
     "contact": "연락처",
-    "allRights": "모든 권리 보유."
+    "allRights": "모든 권리를 보유합니다."
   },
   "common": {
-    "backTo": "돌아가기:"
+    "backTo": "돌아가기",
+    "backToPublications": "논문 목록으로",
+    "backToMultiscale": "멀티스케일 개요로"
   },
   "site": {
     "name": "Yu Lab",
     "fullName": "멀티스케일 분자 전산화학 연구실",
     "university": "아주대학교",
     "departments": "프런티어과학학부 · 화학과",
-    "description": "머신러닝과 전산 시뮬레이션으로 다루는 용액과 나노 재료의 물리화학"
+    "description": "분자 움직임이 여러 규모에서 액체, 고분자, 나노소재의 성질로 이어지는 과정을 설명하는 계산 모형과 머신러닝 도구를 개발합니다."
   }
 }

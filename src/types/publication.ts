@@ -12,6 +12,7 @@ export interface Publication {
   impactFactor?: number;
   coverImage?: string;
   abstract?: string;
+  abstractKo?: string;
   featured?: boolean;
   content?: string;
   firstAuthors?: string[];

@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { siteConfig } from "../../../data/site-config";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
+import { TIER_LABEL, TIER_SCALE, type SpecimenTier } from "@/lib/renderSpecimens";
 
-const scaleIndex = [
-  { slug: "dft", scale: "10⁻¹⁰ m", ko: "DFT", en: "DFT" },
-  { slug: "mlff", scale: "10⁻⁹ m", ko: "MLFF", en: "MLFF" },
-  { slug: "allatom", scale: "10⁻⁸ m", ko: "전원자", en: "All-atom" },
-  { slug: "meso", scale: "10⁻⁷ m", ko: "메조", en: "Meso" },
-];
+const scaleIndex: SpecimenTier[] = ["dft", "mlff", "allatom", "meso"];
 
 const levelTextMap: Record<string, string> = {
   dft: "text-lv-dft",
@@ -85,17 +81,17 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
           <div className="mt-12">
             <div className="scale-ruler" aria-hidden="true" />
             <div className="mt-2 grid grid-cols-2 gap-y-1 sm:flex sm:justify-between sm:gap-x-6">
-              {scaleIndex.map((area, i) => (
+              {scaleIndex.map((tier, i) => (
                 <Link
-                  key={area.slug}
-                  href={`/${lang}/multiscale/${area.slug}`}
+                  key={tier}
+                  href={`/${lang}/multiscale/${tier}`}
                   className={`type-mono-meta whitespace-nowrap py-2 text-[11px] ${
-                    levelTextMap[area.slug] ?? "text-muted-foreground"
+                    levelTextMap[tier] ?? "text-muted-foreground"
                   } transition-colors hover:text-foreground ${
                     i % 2 === 1 ? "justify-self-end sm:justify-self-auto" : ""
                   }`}
                 >
-                  {area.scale} {lang === "ko" ? area.ko : area.en}
+                  {TIER_SCALE[tier]} {TIER_LABEL[tier][lang === "ko" ? "ko" : "en"]}
                 </Link>
               ))}
             </div>

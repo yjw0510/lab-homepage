@@ -66,6 +66,7 @@ export function AllAtomHybridStage({
           reducedMotion={motionReduced}
           canvasColor={canvasColor}
           actionsRef={actionsRef}
+          lang={effectiveLang}
         />
         {!separateMobileMechanism && !hideMechanism ? (
           <AllAtomMechanism

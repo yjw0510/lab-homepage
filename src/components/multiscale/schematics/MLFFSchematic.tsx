@@ -134,8 +134,8 @@ export function MLFFSchematic({ active, ko = false }: { active: boolean; ko?: bo
   return (
     <svg viewBox="6 14 540 244" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
       role="img" aria-label={ko
-        ? "머신러닝 역장: 원자 배치에서 대칭 보존 국소 표현을 거쳐 원자별 에너지와 힘까지"
-        : "Machine-learned force field: atoms to a symmetry-preserving local representation to per-atom energies and forces"}>
+        ? "머신러닝 역장이 각 원자 주변을 읽어 전체 에너지와 원자에 작용하는 힘을 예측하는 과정"
+        : "A machine-learning force field reads the atoms nearby to predict total energy and the force on each atom"}>
       <AtomPaintProvider>
       <defs>
         <AtomDefs />
@@ -269,9 +269,9 @@ export function MLFFSchematic({ active, ko = false }: { active: boolean; ko?: bo
 
       {/* labels */}
       <text x="98" y="242" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.15s" }}>{ko ? "원자" : "Atoms"}</text>
-      <text x="265" y="40" textAnchor="middle" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "표현자" : "Descriptor"}</text>
-      <text x="308" y="200" textAnchor="start" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "그래프" : "Graph"}</text>
-      <text x="265" y="250" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="600" className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.58s" }}>{ko ? "국소 표현" : "Local representation"}</text>
+      <text x="265" y="40" textAnchor="middle" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "가까운 원자" : "Nearby atoms"}</text>
+      <text x="308" y="200" textAnchor="start" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "연결 관계" : "Connections"}</text>
+      <text x="265" y="250" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="600" className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.58s" }}>{ko ? "학습용 설명" : "Learned description"}</text>
 
       <g className={fade} style={{ animationDelay: "0.78s" }}><Fx k="eglobal" xc={440} yb={40} /></g>
       <g className={fade} style={{ animationDelay: "0.85s" }}><Fx k="ei_fi" xc={440} yb={248} /></g>

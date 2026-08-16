@@ -28,20 +28,20 @@ function getInteractionHint(sceneKey: string | undefined, lang: string) {
   const isKorean = lang === "ko";
   const hints: Record<string, { en: string; ko: string }> = {
     M2_mapping: {
-      en: "A single teaching chain fading into its beads. The 8,000-bead melt on the next page is a separate, larger system.",
-      ko: "사슬 하나가 비드로 바뀌는 학습용 모티프입니다. 다음 장의 8,000비드 용융계는 별도의 더 큰 계입니다.",
+      en: "Watch one chain become a row of beads. The next page shows how many such chains move together.",
+      ko: "사슬 하나가 비드로 바뀌는 과정을 살펴보세요. 다음 장에서는 여러 사슬이 함께 움직이는 모습을 보여 줍니다.",
     },
     A3_forcefield: {
-      en: "Select a force-field term in the equation or diagram to isolate its contribution.",
-      ko: "식이나 도식에서 역장 항을 하나 골라 그 기여만 남겨 보세요.",
+      en: "Select one interaction in the diagram to see what it contributes.",
+      ko: "도식에서 상호작용 하나를 골라 어떤 역할을 하는지 살펴보세요.",
     },
     A6_observables: {
-      en: "Select a readout to connect one trajectory frame to its measured signal and distribution.",
-      ko: "관측량을 선택해 궤적 프레임과 해당 신호·분포를 연결해 보세요.",
+      en: "Select a measurement to connect one trajectory frame with its signal and full distribution.",
+      ko: "측정값을 골라 궤적의 한 장면이 전체 신호와 분포로 이어지는 과정을 살펴보세요.",
     },
     D4_scf: {
-      en: "Move the SCF control to compare total-density snapshots and the synchronized energy-change trace.",
-      ko: "SCF 조절기로 총 전자 밀도 스냅샷과 동기화된 에너지 변화 곡선을 비교해 보세요.",
+      en: "Move the control to compare each electron-density snapshot with its energy change.",
+      ko: "조절기를 움직여 전자 밀도 장면과 그때의 에너지 변화를 함께 비교해 보세요.",
     },
   };
   const hint = sceneKey ? hints[sceneKey] : undefined;
@@ -246,8 +246,8 @@ export function MultiscalePinned({
         paused: !scfPlaying,
         toggle: () => setScfPlaying((playing) => !playing),
         title: scfPlaying
-          ? (lang === "ko" ? "이 반복에서 멈춤" : "Hold this iteration")
-          : (lang === "ko" ? "이어서 재생" : "Resume iterating"),
+          ? (lang === "ko" ? "이 밀도 갱신에서 멈춤" : "Hold this density update")
+          : (lang === "ko" ? "밀도 갱신 이어서 재생" : "Resume density updates"),
       }
     : {
         paused: dftCyclePaused,
@@ -356,7 +356,7 @@ export function MultiscalePinned({
     // own, so this always names the frame on screen.
     const scfLabel = !showDftScfSlider
       ? null
-      : `${lang === "ko" ? "SCF 반복" : "SCF iteration"} ${dftSnapshots[effectiveScfIndex]?.iteration ?? effectiveScfIndex + 1}`;
+      : lang === "ko" ? "전자 밀도 갱신" : "density update";
     // The panel no longer carries a height. Its scene gets a definite one from
     // MOBILE_SCENE_HEIGHT and the mechanism band under it sizes to its content, so the
     // panel is the sum of the two rather than a number someone has to keep re-tuning
@@ -371,8 +371,8 @@ export function MultiscalePinned({
       >
         <h1 className="sr-only">
           {lang === "ko"
-            ? "멀티스케일 분자 시뮬레이션, 양자 정밀도에서 메조스케일 창발까지"
-            : "Multiscale molecular simulation, from quantum precision to mesoscale emergence"}
+            ? "멀티스케일 분자 시뮬레이션, 전자 계산에서 재료의 집단 거동까지"
+            : "Multiscale molecular simulation, from electron calculations to collective material behavior"}
         </h1>
 
         <div className="sticky top-16 z-30">
@@ -468,8 +468,8 @@ export function MultiscalePinned({
     <div className="flex items-center justify-center overflow-hidden bg-background pt-16 text-foreground" style={{ height: "100dvh" }}>
       <h1 className="sr-only">
         {lang === "ko"
-          ? "멀티스케일 분자 시뮬레이션, 양자 정밀도에서 메조스케일 창발까지"
-          : "Multiscale molecular simulation, from quantum precision to mesoscale emergence"}
+          ? "멀티스케일 분자 시뮬레이션, 전자 계산에서 재료의 집단 거동까지"
+          : "Multiscale molecular simulation, from electron calculations to collective material behavior"}
       </h1>
       <div
         data-testid="multiscale-stage-shell"

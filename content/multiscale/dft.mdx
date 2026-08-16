@@ -1,40 +1,42 @@
 ---
-title: "First-Principles Calculations (DFT)"
-titleKo: "밀도범함수이론 (DFT)"
-shortDescription: "Where a bond gives way is decided by the electron density spread between its nuclei. Solving for that distribution directly is how a reactive site gets named before anything is synthesized."
-shortDescriptionKo: "결합이 어디서 풀릴지는 원자핵 사이에 퍼진 전자가 정한다. 그 분포를 직접 풀어, 합성해 보기 전에 반응할 자리와 산화 환원 경향을 가늠한다."
+title: "Density Functional Theory (DFT)"
+titleKo: "밀도범함수이론(DFT)"
+shortDescription: "DFT calculates how electrons are distributed, revealing energy changes, atomic forces, and reactive regions for selected molecular structures."
+shortDescriptionKo: "DFT는 전자 분포를 계산해 선택한 분자 구조의 에너지 변화와 원자에 작용하는 힘, 반응이 일어날 만한 자리를 찾는다."
 icon: "Orbit"
 color: "#f97316"
 order: 1
 scale: "0.1-1 nm"
 contentKo: |
-  ## 개요
+  ## 전자 분포로 화학 변화를 읽는다
 
-  밀도범함수이론(DFT)은 경험적 매개변수에 의존하지 않고 양자역학의 기본 방정식으로 분자·물질 내 전자의 거동을 계산한다. DFT를 사용하여 머신러닝 역장 훈련용 참조 데이터를 생성하고, 단순한 모형이 포착하지 못하는 전자적 효과를 연구한다: 초임계수에서의 결합 절단과 형성, 이온과 주변 물 분자의 배위, 액체와 고체를 결합시키는 분자 간 약한 인력(분산 상호작용) 등이 해당된다.
+  밀도범함수이론(DFT)은 원자핵 주위에 전자가 어떻게 퍼지는지 구하는 양자 계산 방법이다. 화학 결합은 전자를 함께 쓰면서 만들어지므로 전자 분포의 변화로 반응이 일어날 자리와 가능한 구조를 비교한다. DFT는 선택한 원자 배치 하나에 대해 에너지와 각 원자가 받는 힘을 계산한다. 이 값은 실험과 비교하거나 다른 모형을 학습시키는 기준으로 쓴다.
 
-  ## 현재 연구
+  ## DFT가 맡는 범위
 
-  - **참조 데이터 생성**: 머신러닝 역장 훈련 데이터셋 구축을 위한 체계적 양자역학 계산. 수용액계, 전해질, 유기 분자 포함
-  - **반응계 전자구조**: 초임계수 환경에서 화학 결합이 끊어지고 형성되는 과정 연구. 반응 중 전자 재배열이 고전 역장을 부적합하게 만드는 영역
-  - **벤치마킹**: 일상적으로 쓰기에는 비용이 과다하지만 핵심 시험계에 확정적 참조값을 내놓는 고정확도 ab initio 방법(결합 클러스터 이론, 섭동 이론)과 대조하여 머신러닝 역장을 검증
-  - **용매화 열역학**: 이온이 물에 녹을 때 방출·흡수되는 에너지와 물 분자의 배열 계산. 전해질 화학 이해의 기본량
+  원자가 움직일 때마다 전자 분포를 다시 풀어야 하므로 계산량이 빠르게 늘어난다. 이 비용 때문에 DFT는 작은 계와 신중하게 고른 구조, 전자 이동이 직접 관여하는 화학 변화에 집중한다. 까다로운 문제에서는 실험이나 더 정밀한 참조 계산으로 결과를 검증한다.
 
-  ## 방법론
+  ## 연구실에서 쓰는 방식
 
-  서로 보완하는 두 가지 전산 접근을 쓴다. 벌크 액체와 고체-액체 계면 같은 주기계에는 평면파 DFT 코드(VASP, Quantum ESPRESSO)를, 분자 수준 계산에는 국소 기저 코드(Gaussian, ORCA)를 쓴다. 양쪽 모두 분산 보정(D3, D4, TS)을 포함하는데, 표준 DFT 근사가 흔히 과소평가하는 분자 간 약한 장거리 인력을 경험적으로 메워 주는 항이다.
+  연구실에서는 DFT 결과를 머신러닝 역장(MLFF)의 학습 자료로 쓴다. MLFF는 양자 계산을 학습해 원자 에너지와 힘을 예측하는 모형이다. 학습 자료에는 평범한 액체 구조와 이온 주위의 물이 바뀌는 순간, 결합이 재배열되는 순간처럼 드물고 중요한 배치를 함께 넣는다. 예측 불확실성이 큰 배치는 DFT로 다시 계산해 학습 자료를 넓힌다. 이 순환은 빠른 모형을 양자 계산에 연결하고 학습한 화학 범위를 분명히 정한다.
+
+  ## 다음 규모로 넘기는 값
+
+  참조 자료 한 건에는 원자 종류와 좌표, 전체 에너지, 원자별 힘이 함께 담긴다. 계산 출처도 기록해 나중의 비교가 추적 가능하도록 한다. 다음 계층의 MLFF는 이런 자료 여러 건에서 구조와 에너지의 관계를 배우고 더 큰 계와 긴 궤적으로 계산 범위를 넓힌다.
 ---
 
-## Overview
+## Reading Chemical Change from Electron Density
 
-Density functional theory (DFT) calculates the behavior of electrons in molecules and materials from the fundamental equations of quantum mechanics, without relying on empirical parameters. We use DFT to generate the reference data that trains our machine learning force fields, and to study electronic effects that simpler models cannot capture: bond breaking and formation in supercritical water, how ions coordinate with surrounding water molecules, and the weak attractive forces (dispersion interactions) between molecules that hold liquids and solids together.
+Density functional theory (DFT) is a quantum-mechanical calculation of how electrons are distributed around atomic nuclei. Because bonds form from shared electrons, changes in that distribution help locate reactive sites, compare possible structures, and estimate energy changes when molecules interact or rearrange. DFT returns an energy and the force on each atom for one chosen arrangement. These quantities can be compared with measurements or used as reference data for other models.
 
-## Current Focus
+## Where DFT Fits
 
-- **Reference data generation**: Systematic quantum-mechanical calculations to build training datasets for machine learning force fields, covering aqueous systems, electrolytes, and organic molecules
-- **Electronic structure of reactive systems**: Studying how chemical bonds break and form in supercritical water environments, where the rearrangement of electrons during reaction makes classical force fields inadequate
-- **Benchmarking**: Validating machine learning force fields against high-accuracy ab initio methods (coupled-cluster theory, perturbation theory) that are too expensive for routine use but provide definitive reference values for critical test cases
-- **Solvation thermodynamics**: Calculating how much energy is released or absorbed when ions dissolve in water and how water molecules arrange around them, fundamental quantities for understanding electrolyte chemistry
+The electronic distribution must be solved again whenever the atoms move, so the computational cost rises quickly. This cost focuses DFT on small systems, carefully selected snapshots, and chemical changes governed directly by electron motion. Experiments and more demanding reference calculations benchmark difficult cases.
 
-## Methods
+## How We Use It
 
-We use two complementary computational approaches: plane-wave DFT codes (VASP, Quantum ESPRESSO) for periodic systems like bulk liquids and solid-liquid interfaces, and localized-basis codes (Gaussian, ORCA) for molecular-level calculations. Both include dispersion corrections (D3, D4, TS), empirical additions that account for the weak long-range attractions between molecules that standard DFT approximations tend to underestimate.
+In our work, DFT supplies examples for a machine-learning force field (MLFF), a model trained to predict atomic energies and forces. The examples include ordinary liquid structures and less common arrangements near ion exchange or bond rearrangement. Configurations with high MLFF uncertainty return to DFT and expand the training data. This loop anchors the faster model to quantum calculations and defines its trained chemistry.
+
+## What Moves to the Next Scale
+
+Each reference record pairs atomic species and coordinates with energy and forces. The record also identifies how the calculation was produced, so later comparisons remain traceable. An MLFF learns the relationship across many such records and extends it to larger systems and longer trajectories.

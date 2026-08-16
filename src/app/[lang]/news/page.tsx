@@ -4,10 +4,16 @@ import { NewsCard } from "@/components/news/NewsCard";
 import { getAllNews } from "@/lib/news";
 import { getDictionary, hasLocale } from "../dictionaries";
 
-export const metadata: Metadata = {
-  title: "News",
-  description: "Latest news and updates from the Yu Lab.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!hasLocale(lang)) return {};
+  const dict = await getDictionary(lang);
+  return { title: dict.news.title, description: dict.news.subtitle };
+}
 
 export default async function NewsPage({
   params,

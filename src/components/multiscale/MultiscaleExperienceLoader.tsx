@@ -11,7 +11,6 @@ const MultiscalePinned = dynamic(
       <div
         className="min-h-[100dvh] bg-background p-6 pt-24"
         aria-busy="true"
-        aria-label="Loading multiscale viewer"
       >
         <div className="mx-auto grid h-[calc(100dvh-7.5rem)] max-w-7xl grid-cols-1 gap-px bg-border lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.42fr)]">
           <div className="bg-surface-sunken" />
@@ -33,8 +32,15 @@ export function MultiscaleExperienceLoader({
   lang: string;
 }) {
   return (
-    <MultiscalePinned
-      lang={lang}
-    />
+    <div
+      role="region"
+      aria-label={
+        lang === "ko"
+          ? "멀티스케일 계산 방법 살펴보기"
+          : "Explore multiscale modeling methods"
+      }
+    >
+      <MultiscalePinned lang={lang} />
+    </div>
   );
 }

@@ -9,20 +9,31 @@ import { getFeaturedPublications } from "@/lib/publications";
 import { getRecentNews } from "@/lib/news";
 import { getDictionary, hasLocale } from "./dictionaries";
 
-export const metadata: Metadata = {
-  title: {
-    absolute: "Yu Lab | Multiscale Molecular Computational Chemistry",
-  },
-  description:
-    "Multiscale Molecular Computational Chemistry Lab at Ajou University.",
-  openGraph: {
-    title: "Yu Lab | Multiscale Molecular Computational Chemistry",
-    description:
-      "Computational chemistry research lab at Ajou University studying molecular phenomena across scales.",
-    url: "https://yu-mmcc.org",
-    type: "website",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!hasLocale(lang)) return {};
+
+  const dict = await getDictionary(lang);
+  const title =
+    lang === "ko"
+      ? "Yu Lab | 멀티스케일 분자 전산화학"
+      : "Yu Lab | Multiscale Molecular Computational Chemistry";
+
+  return {
+    title: { absolute: title },
+    description: dict.site.description,
+    openGraph: {
+      title,
+      description: dict.site.description,
+      url: "https://yu-mmcc.org",
+      type: "website",
+    },
+  };
+}
 
 export default async function HomePage({
   params,

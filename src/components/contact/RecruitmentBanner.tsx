@@ -29,9 +29,14 @@ export function RecruitmentBanner({ dict }: { dict: Dictionary }) {
       </div>
 
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-muted-foreground">
+        <p className="font-[600] text-foreground">{r.howToApply}</p>
         <p>
-          <span className="font-[600] text-foreground">{r.howToApply}:</span>{" "}
+          <span className="font-[600] text-foreground">{r.msPhdLabel}:</span>{" "}
           {r.howToApplyText}
+        </p>
+        <p>
+          <span className="font-[600] text-foreground">{r.undergradLabel}:</span>{" "}
+          {r.undergradApplyText}
         </p>
         <p>
           <a

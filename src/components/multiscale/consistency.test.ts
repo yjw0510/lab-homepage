@@ -11,9 +11,9 @@ import type { LevelId } from "./scrollState";
 // length of its neighbour, or whose takeaway runs three times longer, reads as a
 // different surface even when every individual sentence is fine.
 //
-// Every band below is derived from the measured distribution across the eight steps
-// and is stated with the number it came from, so a future change either fits the
-// established shape or moves the band deliberately.
+// Every band below is derived from the concise, reviewed distribution across the
+// eight steps. A future change must preserve that compact shape or move the band
+// deliberately.
 
 const LEVELS: LevelId[] = ["dft", "mlff", "allatom", "meso"];
 const STEPS = LEVELS.flatMap((level) =>
@@ -29,48 +29,45 @@ describe("multiscale step shape", () => {
     for (const level of LEVELS) expect(CHOREOGRAPHY[level].steps).toHaveLength(2);
   });
 
-  // Measured spread before this test existed: 271 to 397 characters, a 46% swing
-  // between the shortest and longest body. At 271 the all-atom flagship read as a
-  // stub next to its neighbours; at 397 the DFT mechanism page overflowed the column
-  // it shares with an equation and a slider. The band is the middle of that range.
+  // Reviewed spread after the site-wide compression pass: 148 to 187 characters.
+  // The lower bound prevents stubs; the upper bound prevents the overview from
+  // drifting back toward article-level detail.
   it("keeps every concept body inside one length band", () => {
     for (const { id, step } of STEPS) {
       const n = ko(step.concept).length;
-      expect(n, `${id} concept is ${n} Korean characters`).toBeGreaterThanOrEqual(300);
-      expect(n, `${id} concept is ${n} Korean characters`).toBeLessThanOrEqual(380);
+      expect(n, `${id} concept is ${n} Korean characters`).toBeGreaterThanOrEqual(140);
+      expect(n, `${id} concept is ${n} Korean characters`).toBeLessThanOrEqual(195);
     }
   });
 
-  // A body that is one long sentence reads as a definition; one that is twelve short
-  // ones reads as a list. Every step measured between 6 and 9 before this test.
+  // Four sentences is enough to cover question, method, result, and limitation
+  // without turning the overview into a list or a miniature article.
   it("keeps every concept body inside one sentence-count band", () => {
     for (const { id, step } of STEPS) {
       const n = sentences(ko(step.concept)).length;
-      expect(n, `${id} concept has ${n} sentences`).toBeGreaterThanOrEqual(6);
-      expect(n, `${id} concept has ${n} sentences`).toBeLessThanOrEqual(9);
+      expect(n, `${id} concept has ${n} sentences`).toBeGreaterThanOrEqual(3);
+      expect(n, `${id} concept has ${n} sentences`).toBeLessThanOrEqual(5);
     }
   });
 
-  // The takeaway renders only at step 0 of each level, so the four that render sit
-  // beside each other in the reader's memory. Measured: 87, 51, 146, 60. The 146 is
-  // the all-atom one, nearly three times its shortest sibling and four sentences
-  // where the others are one or two.
+  // The takeaway renders only at step 0 of each level. Reviewed spread: 40 to 56
+  // characters, keeping all four at one compact sentence.
   it("keeps the four rendered takeaways comparable", () => {
     for (const { id, index, step } of STEPS) {
       if (index !== 0) continue;
       const n = ko(step.takeaway).length;
-      expect(n, `${id} takeaway is ${n} Korean characters`).toBeGreaterThanOrEqual(45);
-      expect(n, `${id} takeaway is ${n} Korean characters`).toBeLessThanOrEqual(95);
+      expect(n, `${id} takeaway is ${n} Korean characters`).toBeGreaterThanOrEqual(38);
+      expect(n, `${id} takeaway is ${n} Korean characters`).toBeLessThanOrEqual(60);
     }
   });
 
   // The applicability line is typeset large and sits above the fold on every step, so
-  // its length is a layout constant, not a free choice. Measured: 73 to 104.
+  // its length is a layout constant, not a free choice. Reviewed spread: 35 to 60.
   it("keeps every applicability line inside one length band", () => {
     for (const { id, step } of STEPS) {
       const n = ko(step.question).length;
-      expect(n, `${id} question is ${n} Korean characters`).toBeGreaterThanOrEqual(70);
-      expect(n, `${id} question is ${n} Korean characters`).toBeLessThanOrEqual(95);
+      expect(n, `${id} question is ${n} Korean characters`).toBeGreaterThanOrEqual(32);
+      expect(n, `${id} question is ${n} Korean characters`).toBeLessThanOrEqual(65);
     }
   });
 

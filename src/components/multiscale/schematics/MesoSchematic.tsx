@@ -80,8 +80,8 @@ export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: bo
   return (
     <svg viewBox="24 4 531 248" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
       role="img" aria-label={ko
-        ? "메조 조립화: 전원자 고분자를 연결된 조립 비드로 사상하는 과정"
-        : "Mesoscale coarse-graining: an all-atom polymer mapped to connected coarse-grained beads"}>
+        ? "고분자의 여러 원자를 연결된 비드 하나로 묶어 단순한 모형으로 바꾸는 과정"
+        : "Several atoms in a polymer are grouped into connected beads to make a simpler model"}>
       <AtomPaintProvider>
       <defs>
         <AtomDefs />
@@ -137,7 +137,7 @@ export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: bo
       <g className={fade} style={{ animationDelay: "0.42s" }}>
         <line x1="250" y1="150" x2="326" y2="176" stroke="var(--sch-amber-bright)" strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
         <polygon points="326,169 340,178 324,183" fill="var(--sch-amber-bright)" fillOpacity="0.72" />
-        <text x="278" y="150" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="700" className="fill-foreground">CG</text>
+        <text x="278" y="150" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="700" className="fill-foreground">{ko ? "원자 묶기" : "group atoms"}</text>
       </g>
 
       {/* ═══ CG-bead blob (lower-right) ═══ */}
@@ -156,7 +156,7 @@ export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: bo
 
       {/* labels */}
       <text x="150" y="206" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.25s" }}>{ko ? "전원자" : "All-atom"}</text>
-      <text x="410" y="244" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.85s" }}>{ko ? "조대 비드" : "CG beads"}</text>
+      <text x="410" y="244" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.85s" }}>{ko ? "묶은 비드" : "Grouped beads"}</text>
       </AtomPaintProvider>
     </svg>
   );

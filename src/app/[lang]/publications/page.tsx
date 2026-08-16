@@ -8,11 +8,19 @@ import {
 } from "@/lib/publications";
 import { getDictionary, hasLocale } from "../dictionaries";
 
-export const metadata: Metadata = {
-  title: "Publications",
-  description:
-    "Research publications from the Multiscale Molecular Computational Chemistry Lab.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!hasLocale(lang)) return {};
+  const dict = await getDictionary(lang);
+  return {
+    title: dict.publications.title,
+    description: dict.publications.subtitle,
+  };
+}
 
 export default async function PublicationsPage({
   params,

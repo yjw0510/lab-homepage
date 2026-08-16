@@ -83,26 +83,40 @@ describe("specimen record", () => {
     }
   });
 
-  // The first version of this record hedged exact counts ("≈1,056", "원자 약 1,056개")
-  // and published order-of-magnitude ranges. Every count now comes from the file the
-  // render loads, so a hedge means someone guessed again.
-  it("states counts exactly, with no hedging", () => {
+  // Counts identify the modeled object they belong to. For COF-505 that is the periodic
+  // calculation cell, not the larger bond-completed scene drawn around it.
+  it("states model sizes exactly, with no hedging", () => {
     for (const specimen of SPECIMENS) {
       for (const lang of ["en", "ko"] as const) {
         expect(specimen.size[lang], `${specimen.slug} size.${lang}`).not.toMatch(/≈|~|약 /);
       }
     }
+    expect(SPECIMENS.find((s) => s.slug === "woven-cof")?.size).toEqual({
+      en: "1,056-atom periodic cell",
+      ko: "주기 셀 원자 1,056개",
+    });
+  });
+
+  it("does not mislabel the molecular-knot density as DFT", () => {
+    expect(SPECIMENS.find((s) => s.slug === "molecular-knot")?.method).toEqual({
+      en: "Approximate electron-density calculation",
+      ko: "근사 전자 밀도 계산",
+    });
   });
 
   // The tier label is printed by the hero readout, the tier plates and the footer ruler,
-  // and the Korean side once carried three different names for the DFT tier. Length alone
-  // would have passed all three, so this asserts the actual strings.
+  // and the Korean side once carried three different names for the DFT tier. The footer now
+  // consumes the same record instead of copying those names into another array.
   it("prints one name per tier on every surface", () => {
-    expect(TIER_LABEL.dft).toEqual({ en: "DFT", ko: "DFT" });
+    expect(TIER_LABEL).toEqual({
+      dft: { en: "Electron density", ko: "전자 밀도" },
+      mlff: { en: "Learned atomic forces", ko: "학습한 원자 힘" },
+      allatom: { en: "All atoms", ko: "모든 원자" },
+      meso: { en: "Grouped particles", ko: "묶은 입자" },
+    });
     const footer = readFileSync(resolve(__dirname, "../components/layout/Footer.tsx"), "utf8");
-    for (const tier of TIERS) {
-      expect(footer, `footer ruler names ${tier}`).toContain(`"${TIER_LABEL[tier].ko}"`);
-    }
+    expect(footer).toContain("TIER_LABEL[tier]");
+    expect(footer).toContain("TIER_SCALE[tier]");
   });
 
   // The first version of this assertion checked only U+2014, so `host–guest` (U+2013) sat
@@ -115,6 +129,15 @@ describe("specimen record", () => {
             /[—–]/
           );
         }
+      }
+    }
+  });
+
+  it("keeps Home captions free of protocol-level method details", () => {
+    const forbidden = /PBE|plane-wave|Quantum ESPRESSO|MACE|Langevin|NVT|NPT|HOOMD|DPD|MMFF|GFN2|xTB/i;
+    for (const specimen of SPECIMENS) {
+      for (const lang of ["en", "ko"] as const) {
+        expect(specimen.method[lang], `${specimen.slug} method.${lang}`).not.toMatch(forbidden);
       }
     }
   });

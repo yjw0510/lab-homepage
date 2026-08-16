@@ -78,6 +78,7 @@ export function getAllPublications(): Publication[] {
         firstAuthors: data.firstAuthors,
         correspondingAuthors: data.correspondingAuthors,
         abstract: extractSection(content, "Abstract") || "",
+        abstractKo: data.abstractKo || undefined,
         content,
       } as Publication;
     })

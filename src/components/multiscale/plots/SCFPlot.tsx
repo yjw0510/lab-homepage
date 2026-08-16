@@ -48,11 +48,14 @@ export function SCFPlot({
   progress,
   accentColor,
   activeIndexOverride,
+  lang = "en",
 }: {
   progress: number;
   accentColor: string;
   activeIndexOverride?: number;
+  lang?: string;
 }) {
+  const ko = lang === "ko";
   const [data, setData] = useState<ScfData>(FALLBACK);
 
   useEffect(() => {
@@ -76,7 +79,7 @@ export function SCFPlot({
   );
 
   return (
-    <PlotContainer ariaLabel="SCF convergence during the DFT self-consistent cycle">
+    <PlotContainer ariaLabel={ko ? "전자 밀도를 다시 계산할수록 줄어드는 에너지 변화" : "Energy change decreasing as the electron density is recalculated"}>
       {({ height, innerWidth, innerHeight, margin, font }) => {
         const chart = (data.trajectory?.length ? data.trajectory : data.deltaE.map((deltaE, index) => ({
           iteration: index + 1,
@@ -98,7 +101,6 @@ export function SCFPlot({
           .x((_, index) => xScale(index + 1))
           .y((d) => yScale(d.deltaE))(chart) || "";
         const thresholdY = yScale(data.threshold);
-        const activePoint = chart[activeIndex];
         const activeX = xScale(activeIndex + 1);
 
         return {
@@ -126,7 +128,7 @@ export function SCFPlot({
                 );
               })}
               <text x={activeX} y={innerHeight + 22} textAnchor="middle" fill={accentColor} fontSize={font.tick} fontWeight={600}>
-                {activePoint.iteration}
+                {ko ? "현재" : "current"}
               </text>
             </g>
           ),
@@ -134,7 +136,7 @@ export function SCFPlot({
             {
               x: margin.left + innerWidth / 2,
               y: height - font.axisLabel * 0.8,
-              latex: "\\mathrm{Iteration}",
+              text: ko ? "반복 계산" : "Repeated calculation",
               align: "middle",
               color: PLOT_COLORS.axisLabel,
               fontSize: font.axisLabel,
@@ -142,7 +144,7 @@ export function SCFPlot({
             {
               x: font.axisLabel * 0.95,
               y: margin.top + innerHeight / 2,
-              latex: "\\left|\\Delta E\\right|\\,(\\mathrm{Ha})",
+              text: ko ? "에너지 변화" : "Energy change",
               align: "middle",
               rotate: -90,
               color: PLOT_COLORS.axisLabel,
@@ -151,7 +153,7 @@ export function SCFPlot({
             {
               x: margin.left + innerWidth + 6,
               y: margin.top + thresholdY,
-              latex: "10^{-5}",
+              text: ko ? "종료 기준" : "target",
               align: "start",
               color: "#ef4444",
               fontSize: font.annotation,

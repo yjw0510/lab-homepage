@@ -89,8 +89,8 @@ export function AllAtomCoordinationPlot({
   return (
     <PlotContainer
       ariaLabel={ko
-        ? `이온별 배위수 분포. 평균 ${data.mean}, 오차 ${data.blockError.toFixed(2)}, 기준 카보닐 산소 ${data.criterionNm * 10} 옹스트롬`
-        : `Distribution of per-ion coordination number. Mean ${data.mean}, error ${data.blockError.toFixed(2)}, criterion carbonyl O within ${data.criterionNm * 10} angstrom`}
+        ? "각 이온 주변에 있는 산소 원자 수의 분포와 평균"
+        : "Distribution and average number of oxygen atoms around each ion"}
       aspectRatio={0.46}
       minHeight={150}
       maxHeight={192}
@@ -150,7 +150,7 @@ export function AllAtomCoordinationPlot({
             {
               x: margin.left,
               y: margin.top - font.annotation * 0.45,
-              text: `${ko ? "평균" : "mean"} ${data.mean} ± ${data.blockError.toFixed(2)}`,
+              text: `${ko ? "평균" : "mean"} ${data.mean.toFixed(1)}`,
               align: "start" as const,
               color: accentColor,
               fontSize: font.annotation,
@@ -160,8 +160,8 @@ export function AllAtomCoordinationPlot({
               x: margin.left,
               y: height - font.annotation * 0.45,
               text: ko
-                ? `이온 68개 · 이온·프레임 ${data.ionFrames.toLocaleString("ko-KR")}개`
-                : `68 ions · ${data.ionFrames.toLocaleString("en-US")} ion-frames`,
+                ? "전체 궤적에서 나타난 비율"
+                : "Share of sampled frames",
               align: "start" as const,
               color: PLOT_COLORS.axisLabel,
               fontSize: font.annotation,

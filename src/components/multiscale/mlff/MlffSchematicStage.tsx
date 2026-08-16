@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MutableRefObject, ReactNode } from "react";
 import { useMeasuredBox } from "../useMeasuredBox";
-import katex from "katex";
-import "katex/dist/katex.min.css";
 import { Vec3, Vec4 } from "molstar/lib/mol-math/linear-algebra.js";
 import { Color } from "molstar/lib/mol-util/color/color.js";
 import { ELEMENT_HEX, ballAndStick, shortestHeavyBond } from "../ballAndStick";
@@ -105,29 +103,6 @@ const COLORS: Record<string, Color> = Object.fromEntries(
 
 // How much room to leave around a fitted scene.
 const FIT_MARGIN = 1.05;
-
-function MathLabel({
-  latex,
-  display = false,
-  className = "",
-}: {
-  latex: string;
-  display?: boolean;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`mlff-katex ${display ? "mlff-katex-display" : ""} ${className}`}
-      dangerouslySetInnerHTML={{
-        __html: katex.renderToString(latex, {
-          throwOnError: false,
-          displayMode: display,
-          output: "htmlAndMathml",
-        }),
-      }}
-    />
-  );
-}
 
 function centroid(atoms: number[][], indices?: number[]): Vec3Tuple {
   const selected = indices?.length ? indices : atoms.map((_, index) => index);
@@ -1055,7 +1030,7 @@ function MlffMolstarViewport({
       {!ready && !error ? (
         <div className="pointer-events-none absolute inset-0 grid place-items-center" style={{ backgroundColor: canvasColor }}>
           <span className="type-mono-meta text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            {ko ? "Mol* 뷰 준비 중" : "Mol* / preparing view"}
+            {ko ? "분자 구조 준비 중" : "Preparing molecular view"}
           </span>
         </div>
       ) : null}
@@ -1066,7 +1041,7 @@ function MlffMolstarViewport({
           {ko
             ? "MLFF 3D 뷰를 불러오지 못했습니다. 도식과 설명은 계속 볼 수 있습니다."
             : "The MLFF 3D view could not load. The schematic and the explanation remain available."}
-          <span className="sr-only">{error}</span>
+          <span className="sr-only">{ko ? "분자 구조 렌더링 오류" : "Molecular view rendering error"}</span>
         </div>
       ) : null}
     </div>
@@ -1157,9 +1132,11 @@ function rayPolygonIntersection(
 function ExactNeighborMessageOverlay({
   layout,
   geometry,
+  ko,
 }: {
   layout: ProjectedLayout | null;
   geometry: LocalGraphGeometry;
+  ko: boolean;
 }) {
   if (!layout || !layout.cutoffRadius || layout.cutoffBoundary.length < 3) return null;
   const center = layout.anchors.find(({ id }) => id === "center");
@@ -1357,20 +1334,20 @@ function ExactNeighborMessageOverlay({
         className="absolute border border-violet-700/45 bg-surface-raised/95 px-2 py-1 text-2xl font-semibold leading-none text-violet-900 dark:border-violet-300/45 dark:bg-violet-950/94 dark:text-violet-50"
         style={{ left: centerLabelLeft, top: centerLabelTop }}
       >
-        <MathLabel latex={String.raw`i`} />
+        {ko ? "중심 원자" : "center atom"}
       </span>
       <span
         data-mlff-cutoff-label
         className="absolute border border-cyan-700/40 bg-surface-raised/95 px-2 py-1 text-lg font-semibold leading-none text-cyan-900 dark:border-cyan-300/38 dark:text-cyan-50"
         style={{ left: cutoffLabelLeft, top: cutoffLabelTop }}
       >
-        <MathLabel latex={String.raw`r_{\mathrm{cut}}`} />
+        {ko ? "이웃 범위" : "neighbor range"}
       </span>
     </div>
   );
 }
 
-function LocalGraphGlyph() {
+function LocalGraphGlyph({ ko }: { ko: boolean }) {
   const cx = 60;
   const cy = 60;
   const cutoff = 32;
@@ -1401,7 +1378,7 @@ function LocalGraphGlyph() {
   const neighbors = atoms.filter((atom) => atom.inside);
   const bulk = atoms.filter((atom) => atom.index > 0 && !atom.inside);
   return (
-    <svg viewBox="0 0 120 120" className="h-full w-full" role="img" aria-label={`Central atom referencing ${neighbors.length} neighbors inside the cutoff of a dense environment`}>
+    <svg viewBox="0 0 120 120" className="h-full w-full" role="img" aria-label={ko ? "중심 원자와 모형이 사용하는 가까운 원자" : "Central atom and the nearby atoms used by the model"}>
       {bulk.map((atom) => (
         <circle key={`bulk-${atom.index}`} cx={atom.x} cy={atom.y} r={atom.r * 0.92} fill={atom.fill} opacity="0.32" />
       ))}
@@ -1447,12 +1424,9 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
     // 1024 the first box printed straight over the panel's own header.
     <div className="flex h-full flex-col items-center gap-1 px-1.5 [justify-content:safe_center]">
       <div className={`w-full max-w-[15rem] border border-border bg-muted/30 px-2 py-2 text-center text-foreground ${stageClass}`} style={animate ? stageDelayStyle(0) : undefined}>
-        <MathLabel
-          latex={String.raw`\{\mathbf r_{ij}\}_{j\in\mathcal N(i)}`}
-          className={MULTISCALE_TYPE.formulaCompact}
-        />
+        <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "가까운 원자들" : "Nearby atoms"}</p>
         <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-          {ko ? "차단 반경 안 이웃" : "neighbors inside the cutoff"}
+          {ko ? "모형이 읽는 가까운 원자" : "nearby atoms used by the model"}
         </p>
       </div>
 
@@ -1466,12 +1440,9 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
               "symmetry-preserving representation", and printing it twice cost three
               wrapped lines in the narrowest column on the page. */}
           <div className="text-center text-foreground">
-            <MathLabel
-              latex={String.raw`D_i=D\!\left(\{\mathbf r_{ij}\}_{j\in\mathcal N(i)}\right)`}
-              className={MULTISCALE_TYPE.formulaCompact}
-            />
+            <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "일관된 주변 환경 표현" : "Consistent description of the neighborhood"}</p>
             <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-              {ko ? "이동·회전·동일 원자 치환에 불변" : "invariant to translation, rotation, permutation"}
+              {ko ? "옮기거나 돌리고 같은 원자를 바꿔도 같은 값" : "unchanged by moving, rotating, or swapping identical atoms"}
             </p>
           </div>
           {/* Two descriptor families, told apart by colour alone. On the retired
@@ -1482,10 +1453,10 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
               broke (DESIGN.md: "dark raises lightness one step"; 800 to 100 is seven). */}
           <div className="mt-2.5 grid gap-1 border-t border-border pt-2.5 text-left">
             <p className={`${MULTISCALE_TYPE.schematicMeta} text-[var(--sch-descriptor-invariant)]`}>
-              {ko ? "불변 descriptor · SOAP · ACSF · DeePMD" : "invariant descriptors · SOAP · ACSF · DeePMD"}
+              {ko ? "계를 옮기거나 돌려도 에너지는 같음" : "energy stays the same after moving or rotating"}
             </p>
             <p className={`${MULTISCALE_TYPE.schematicMeta} text-[var(--sch-descriptor-equivariant)]`}>
-              {ko ? "등변 특징 · NequIP · MACE" : "equivariant features · NequIP · MACE"}
+              {ko ? "계를 돌리면 힘의 방향도 함께 회전" : "force directions rotate with the system"}
             </p>
           </div>
         </div>
@@ -1493,10 +1464,9 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
 
       <FlowConnector animate={animate} delay={1.55} />
       <div className={`w-full max-w-[15rem] border border-border-strong bg-card px-2 py-2 text-center text-foreground ${stageClass}`} style={animate ? stageDelayStyle(2.4) : undefined}>
-        <MathLabel
-          latex={String.raw`\varepsilon_i=f_\theta(D_i),\ \ E=\textstyle\sum_i\varepsilon_i`}
-          className={MULTISCALE_TYPE.formulaCompact}
-        />
+        <p className={MULTISCALE_TYPE.schematicCaption}>
+          {ko ? "원자별 기여를 더해 총에너지를 구한다" : "Add the contribution from each atom to obtain the total energy"}
+        </p>
       </div>
     </div>
   );
@@ -1504,15 +1474,15 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
 
 function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | null; ko: boolean; className?: string }) {
   return (
-    <section data-mlff-panel="dataset" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "DFT 학습 데이터" : "DFT training data"}>
-      <PanelHeader title={ko ? "DFT 참조 데이터" : "DFT reference data"} detail={ko ? "배치마다 총에너지와 원자별 힘을 계산" : "each configuration carries energy and force labels"} tone="dft" />
+    <section data-mlff-panel="dataset" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "양자 계산으로 만든 학습 자료" : "training data from quantum calculations"}>
+      <PanelHeader title={ko ? "양자 참조 자료" : "quantum reference data"} detail={ko ? "원자 배치마다 에너지와 힘을 계산" : "each atomic arrangement carries energy and force labels"} tone="dft" />
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-0">
           <MlffMolstarViewport
             ko={ko}
             variant="dataset"
             data={data}
-            label={ko ? "다섯 DFT 원자 배치의 Mol* 렌더" : "Mol* render of five DFT configurations"}
+            label={ko ? "양자 계산값이 붙은 원자 배치" : "atomic arrangements with quantum energy and force labels"}
             rowLock={{ rows: 5, pitch: DATASET_ROW_SPACING, gapPx: 6 }}
           />
         </div>
@@ -1524,10 +1494,10 @@ function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | nul
           // defect no DOM geometry check can see.
           <div key={index} data-frame="dataset-row" data-frame-index={index} className="relative border border-border">
             <span className="absolute left-1.5 top-1 bg-surface-raised/80 px-1.5 py-0.5 text-xs text-muted-foreground">
-              <MathLabel latex={`k=${index + 1}`} />
+              {ko ? `예시 ${index + 1}` : `example ${index + 1}`}
             </span>
             <span className="absolute bottom-1 right-1.5 bg-surface-raised/85 px-1.5 py-0.5 text-xs text-muted-foreground">
-              <MathLabel latex={`(\\mathbf R^{(${index + 1})},E_{\\mathrm{DFT}}^{(${index + 1})},\\mathbf F_{i,\\mathrm{DFT}}^{(${index + 1})})`} />
+              {ko ? "원자 위치 · 에너지 · 힘" : "positions · energy · forces"}
             </span>
             </div>
           ))}
@@ -1543,7 +1513,7 @@ function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMoti
   return (
     <div className="flex h-full flex-col items-center px-1.5 [justify-content:safe_center]">
       <div className={`h-[5.25rem] w-24 ${stageClass}`} style={animate ? stageDelayStyle(0) : undefined}>
-        <LocalGraphGlyph />
+        <LocalGraphGlyph ko={ko} />
       </div>
       <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
         {ko ? "국소 기하" : "local geometry"}
@@ -1556,12 +1526,12 @@ function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMoti
         <span className="absolute inset-x-1 top-1 h-full border border-border" />
         <div className="relative border border-border-strong bg-card p-2.5 text-center">
           <p className={MULTISCALE_TYPE.schematicTitle}>
-            {ko ? "대칭 보존 표현" : "symmetry-preserving representation"}
+            {ko ? "변환에 일관된 표현" : "consistent local description"}
           </p>
           <div className="mt-2 border-t border-border pt-2 text-foreground">
-            <MathLabel latex={String.raw`D_i`} className="text-base" />
+            <p className={MULTISCALE_TYPE.schematicCaption}>{ko ? "같은 주변 환경은 같은 설명으로" : "same neighborhood, same description"}</p>
             <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-              {ko ? "이동·회전·치환 불변" : "T / R / permutation invariant"}
+              {ko ? "계를 옮기거나 돌려도 같음" : "same after moving or rotating the system"}
             </p>
           </div>
         </div>
@@ -1569,14 +1539,11 @@ function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMoti
 
       <FlowConnector animate={animate} delay={1.55} />
       <div className={`w-full max-w-[11rem] border border-border-strong bg-card px-3 py-3 text-center ${stageClass}`} style={animate ? stageDelayStyle(2.4) : undefined}>
-        <MathLabel latex={String.raw`E_\theta=\textstyle\sum_i\varepsilon_i`} className={MULTISCALE_TYPE.formulaCompact} />
+        <p className={MULTISCALE_TYPE.schematicCaption}>{ko ? "원자별 에너지를 더해 총에너지로" : "atomic energies sum to a total"}</p>
         <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>
-          {ko ? "미분 가능한 학습 퍼텐셜" : "differentiable potential"}
+          {ko ? "학습한 모형" : "learned model"}
         </p>
       </div>
-      <p className={`mt-2 text-center ${MULTISCALE_TYPE.schematicMeta} text-muted-foreground`}>
-        GAP · DeePMD · NequIP · MACE
-      </p>
     </div>
   );
 }
@@ -1584,7 +1551,7 @@ function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMoti
 function ModelPanel({ ko, reducedMotion, className = "" }: { ko: boolean; reducedMotion: boolean; className?: string }) {
   return (
     <section data-mlff-panel="model" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "머신러닝 역장" : "machine learning force field"}>
-      <PanelHeader title={ko ? "머신러닝 역장" : "machine-learned force field"} align="center" tone="mlff" />
+      <PanelHeader title={ko ? "머신러닝 역장" : "machine-learning force field"} align="center" tone="mlff" />
       <div className="relative mx-1 mb-2 min-h-0 flex-1">
         <CompactPotentialModel ko={ko} reducedMotion={reducedMotion} />
       </div>
@@ -1626,8 +1593,8 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
       className="h-full w-full"
       role="img"
       aria-label={ko
-        ? "정확도와 접근 시간의 트레이드오프에서 학습된 역장은 DFT 정확도로 나노초를 넘는 대규모 샘플링에 도달한다"
-        : "on the accuracy versus timescale tradeoff, the learned force field reaches DFT accuracy with beyond-nanosecond, large-scale sampling"}
+        ? "양자 참조 자료와의 연결 정도와 계산 범위를 비교한 도식"
+        : "Comparison of connection to quantum reference data and computational reach"}
     >
       <defs>
         <clipPath id="mlff-val-clip">
@@ -1641,31 +1608,31 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
       <path d="M48 210 H322 M316 205 L322 210 L316 215" fill="none" stroke="var(--plot-axis)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M48 210 V30 M43 36 L48 30 L53 36" fill="none" stroke="var(--plot-axis)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
 
-      <text x="42" y="24" fill="var(--plot-label)" fontSize={META} fontWeight="600">{ko ? "정확도 ↑" : "accuracy ↑"}</text>
-      <text x="92" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">ps</text>
-      <text x="200" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">ns</text>
-      <text x="296" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">µs</text>
+      <text x="42" y="24" fill="var(--plot-label)" fontSize={META} fontWeight="600">{ko ? "양자 자료와 일치 ↑" : "match to quantum data ↑"}</text>
+      <text x="92" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">{ko ? "짧은 시간" : "short times"}</text>
+      <text x="200" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">{ko ? "긴 시간" : "longer times"}</text>
+      <text x="316" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="end">{ko ? "더 많은 원자" : "more atoms"}</text>
       <text x="185" y="247" fill="var(--plot-label)" fontSize={META} fontWeight="600" textAnchor="middle">{ko ? "시간 · 규모 →" : "time · scale →"}</text>
 
       <g>
         <rect x="56" y="54" width="112" height="52" fill="var(--lv-dft-wash)" stroke="var(--lv-dft-line)" strokeWidth="1.2" />
-        <text x="112" y="78" fill="var(--lv-dft)" fontSize={TITLE} fontWeight="700" textAnchor="middle">DFT · AIMD</text>
-        <text x="112" y="96" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "10² 원자 · ps" : "10² atoms · ps"}</text>
+        <text x="112" y="78" fill="var(--lv-dft)" fontSize={TITLE} fontWeight="700" textAnchor="middle">DFT</text>
+        <text x="112" y="96" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "선택한 원자 배치" : "selected structures"}</text>
       </g>
 
       <g>
         <rect x="184" y="150" width="138" height="58" fill="var(--lv-aa-wash)" stroke="var(--lv-aa-line)" strokeWidth="1.2" />
         <text x="253" y="170" fill="var(--muted-foreground)" fontSize={TITLE} fontWeight="700" textAnchor="middle">{ko ? "고전 역장" : "classical"}</text>
-        <text x="253" y="188" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "대규모 · 장시간" : "large and long"}</text>
-        <text x="253" y="203" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "정확도 낮음" : "low accuracy"}</text>
+        <text x="253" y="188" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "더 많은 원자" : "more atoms"}</text>
+        <text x="253" y="203" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "고정된 상호작용" : "fixed interactions"}</text>
       </g>
 
       <g style={{ filter: "drop-shadow(0 0 9px var(--lv-mlff-line))" }}>
         <rect x="184" y="32" width="138" height="102" fill="var(--lv-mlff-wash)" stroke="var(--lv-mlff-line)" strokeWidth="1.6" />
         <text x="253" y="52" fill="var(--lv-mlff)" fontSize={LEAD} fontWeight="800" textAnchor="middle">MLFF</text>
-        <text x="253" y="70" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "ab-initio 정확도" : "ab-initio accuracy"}</text>
-        <text x="253" y="86" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "10³-10⁴ 원자" : "10³-10⁴ atoms"}</text>
-        <text x="253" y="101" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "ns-µs 동역학" : "ns-µs dynamics"}</text>
+        <text x="253" y="70" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "양자 자료로 학습" : "quantum-trained"}</text>
+        <text x="253" y="86" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "원자 해상도" : "atom-level detail"}</text>
+        <text x="253" y="101" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "더 긴 시간" : "longer times"}</text>
         {/* A dense atom slab clipped by the box reads as a large system continuing
             beyond the frame; the long weaving path is beyond-ns dynamics. */}
         <g clipPath="url(#mlff-val-clip)">
@@ -1686,10 +1653,10 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
 
 function PesPanel({ ko, className = "" }: { ko: boolean; className?: string }) {
   return (
-    <section data-mlff-panel="pes" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "정확도와 규모를 동시에 확보하는 머신러닝 역장의 가치" : "the value of a machine-learned force field: accuracy and scale together"}>
+    <section data-mlff-panel="pes" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "양자 참조 자료와의 연결과 계산 범위를 비교한 도식" : "comparison of connection to quantum reference data and accessible molecular motion"}>
       <PanelHeader
-        title={ko ? "정확도와 규모를 한 번에" : "accuracy and scale, together"}
-        detail={ko ? "DFT의 정확도와 고전 역장의 규모·시간을 한 모델에서" : "DFT accuracy with the scale and time of a classical force field"}
+        title={ko ? "양자 참조와 계산 범위" : "quantum reference and computational reach"}
+        detail={ko ? "양자 참조 자료를 더 긴 원자 궤적으로 확장" : "extend quantum reference data into longer atom-level trajectories"}
         tone="mlff"
       />
       <div className="relative mx-3 min-h-0 flex-1">
@@ -1697,7 +1664,7 @@ function PesPanel({ ko, className = "" }: { ko: boolean; className?: string }) {
       </div>
       <div className="shrink-0 mx-3 mb-3 mt-2 border-t border-border pt-2 text-center">
         <p className={MULTISCALE_TYPE.schematicMeta}>
-          {ko ? "샘플링 결과: 평형 구조 · 동적 거동 · 열역학·수송 물성" : "sampled: equilibrium structure · dynamics · thermodynamic and transport properties"}
+          {ko ? "결과: 구조 · 움직임 · 측정 가능한 물성" : "outputs: structures · motion · measurable properties"}
         </p>
       </div>
     </section>
@@ -1729,12 +1696,10 @@ function OverviewPage({
 function LocalGraphPanel({
   data,
   ko,
-  isMobile,
   className = "",
 }: {
   data: MlffVisualData | null;
   ko: boolean;
-  isMobile: boolean;
   className?: string;
 }) {
   const geometry = useMemo(
@@ -1755,47 +1720,34 @@ function LocalGraphPanel({
   }, [data?.system.focusIndex, geometry]);
 
   return (
-    <section data-mlff-panel="local-graph" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "차단 반경 안의 국소 원자 그래프" : "local atomic graph inside the cutoff"}>
+    <section data-mlff-panel="local-graph" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자 하나를 예측할 때 사용하는 가까운 원자들" : "nearby atoms used to make one atomic prediction"}>
       <PanelHeader
-        title={ko ? "국소 원자 그래프" : "local atomic graph"}
+        title={ko ? "원자 하나와 가까운 환경" : "one atom and its nearby environment"}
         tone="mlff"
-        detail={ko ? "실제 원자 좌표로 투영한 이웃 → 중심 메시지" : "neighbor-to-center messages projected from the actual atom coordinates"}
+        detail={ko ? "가까운 원자가 중심 원자의 예측에 함께 기여" : "nearby atoms contribute to the center atom's prediction"}
       />
       <div className="relative min-h-0 flex-1">
         <MlffMolstarViewport
           ko={ko}
           variant="local"
           data={data}
-          label={ko ? "Mol*로 렌더한 중심 원자와 국소 이웃" : "Mol* render of an atom-centered local neighborhood"}
+          label={ko ? "중심 원자와 예측에 쓰는 가까운 이웃" : "center atom and the nearby atoms used for its prediction"}
           projectionAnchors={projectionAnchors}
           projectionCenterId="center"
           projectionRadius={geometry?.cutoffRadius}
           renderProjectionOverlay={(layout) => geometry
-            ? <ExactNeighborMessageOverlay layout={layout} geometry={geometry} />
+            ? <ExactNeighborMessageOverlay layout={layout} geometry={geometry} ko={ko} />
             : null}
         />
       </div>
       <div className="mx-3 mb-3 mt-2 shrink-0 border-t border-border pt-3 text-center">
-        <div className="grid gap-0.5 text-foreground">
-          <MathLabel
-            latex={String.raw`j\in\mathcal N(i)\iff r_{ij}<r_{\mathrm{cut}}`}
-            className={MULTISCALE_TYPE.formulaCompact}
-          />
-          <MathLabel
-            latex={geometry
-              ? `r_{\\mathrm{cut}}=${geometry.cutoffDistance.toFixed(2)}\\,\\text{\\AA}`
-              : String.raw`r_{\mathrm{cut}}=\text{cutoff}`}
-            className="text-base"
-          />
-        </div>
+        <p className={`${MULTISCALE_TYPE.schematicTitle} text-foreground`}>
+          {ko ? "고른 이웃 범위 안의 원자를 사용" : "Use atoms inside the chosen neighbor range"}
+        </p>
         <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>
-          {geometry
-            ? ko
-              ? `${geometry.neighborCount}개 이웃 모두가 기여하며, 가장 가까운 O 6개의 경로를 강조`
-              : `all ${geometry.neighborCount} neighbors contribute; paths from the six nearest O atoms are highlighted`
-            : ko
-              ? "차단 반경 안의 이웃 메시지가 중심 원자로 모임"
-              : "messages inside the cutoff converge on the center atom"}
+          {ko
+            ? "고른 반경 안의 원자가 모두 중심 원자의 예측에 기여한다"
+            : "all atoms inside the chosen radius contribute to the center atom's prediction"}
         </p>
       </div>
     </section>
@@ -1804,8 +1756,8 @@ function LocalGraphPanel({
 
 function InteractionPanel({ ko, reducedMotion, className = "" }: { ko: boolean; reducedMotion: boolean; className?: string }) {
   return (
-    <section data-mlff-panel="interaction" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "대칭 보존 표현과 원자별 에너지" : "symmetry-preserving representation and atomic energies"}>
-      <PanelHeader title={ko ? "대칭 보존 표현" : "symmetry-preserving representation"} detail={ko ? "국소 이웃을 대칭 보존 표현으로 인코딩" : "encode the local neighborhood into a symmetry-preserving representation"} tone="mlff" />
+    <section data-mlff-panel="interaction" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자 주변 환경을 일관된 에너지 표현으로 바꾸는 과정" : "turning an atomic neighborhood into a consistent energy description"}>
+      <PanelHeader title={ko ? "주변 환경을 읽는 법" : "reading the nearby environment"} detail={ko ? "계를 옮기거나 돌려도 같은 에너지를 내도록 표현" : "the description gives the same energy after moving or rotating the system"} tone="mlff" />
       <div className="relative mx-1 mb-2 min-h-0 flex-1">
         <EquivariantInteractionCore ko={ko} reducedMotion={reducedMotion} />
       </div>
@@ -1825,22 +1777,20 @@ function EnergyForcePanel({
   className?: string;
 }) {
   return (
-    <section data-mlff-panel="energy-force" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자별 에너지 합과 에너지 기울기에서 얻는 힘" : "atomic energy sum and forces from the energy gradient"}>
+    <section data-mlff-panel="energy-force" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자별 기여를 합쳐 총에너지와 힘을 얻는 과정" : "combining atomic contributions to obtain total energy and forces"}>
       <PanelHeader
         title={ko ? "총에너지와 힘" : "total energy and forces"}
         tone="mlff"
-        detail={ko ? "원자별 기여의 합과 같은 에너지의 기울기" : "sum atomic contributions, then differentiate the same energy"}
+        detail={ko ? "원자별 기여를 더하고 같은 에너지 변화에서 힘을 계산" : "sum atomic contributions, then obtain forces from changes in the same energy"}
       />
       <div className="relative min-h-0 flex-1">
-        <MlffMolstarViewport ko={ko} variant="forces" data={data} label={ko ? "Mol*로 렌더한 분자와 예측 힘" : "Mol* render of a molecule and predicted forces"} actionsRef={actionsRef} />
+        <MlffMolstarViewport ko={ko} variant="forces" data={data} label={ko ? "분자 구조와 각 원자에 예측된 힘" : "molecular structure and the force predicted on each atom"} actionsRef={actionsRef} />
       </div>
       <div className="mx-1 mb-2 mt-2 shrink-0 border-t border-border bg-surface-sunken/90 pt-2.5 text-center">
         <div className="border border-lv-mlff-line bg-lv-mlff-wash px-1 py-2.5 text-foreground">
-          <MathLabel
-            display
-            latex={String.raw`\begin{aligned} E_\theta(\mathbf R) &= \sum_i \varepsilon_i \\[0.45em] \mathbf F_i &= -\nabla_{\mathbf R_i}E_\theta(\mathbf R) \end{aligned}`}
-            className={MULTISCALE_TYPE.formulaCompact}
-          />
+          <p className={MULTISCALE_TYPE.schematicCaption}>
+            {ko ? "원자별 기여를 더해 총에너지를 구하고 원자가 움직일 때의 에너지 변화로 힘을 구한다." : "Add atomic contributions to get the total energy, then use its change as atoms move to obtain the forces."}
+          </p>
         </div>
       </div>
     </section>
@@ -1867,13 +1817,13 @@ function InsidePage({
     // and one equation, rather than from the value schematic, whose type is already at
     // the legibility floor at this width (DESIGN.md R11).
     <div className={isMobile ? "mlff-mobile-inside flex min-h-full flex-col gap-2" : "grid h-full min-h-0 grid-cols-[minmax(0,.86fr)_2rem_minmax(0,1.24fr)_2rem_minmax(0,1.04fr)] gap-2"}>
-      <LocalGraphPanel data={data} ko={ko} isMobile={isMobile} className={isMobile ? "h-[430px] flex-none" : ""} />
+      <LocalGraphPanel data={data} ko={ko} className={isMobile ? "h-[430px] flex-none" : ""} />
       <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} label={ko ? "인코딩" : "encode"} />
       <InteractionPanel ko={ko} reducedMotion={reducedMotion} className={isMobile ? "h-[515px] flex-none" : ""} />
       <FlowArrow
         vertical={isMobile}
         reducedMotion={reducedMotion}
-        label={<MathLabel latex={String.raw`\sum,\ -\nabla`} />}
+        label={ko ? "합치기" : "combine"}
       />
       <EnergyForcePanel data={data} ko={ko} actionsRef={actionsRef} className={isMobile ? "h-[420px] flex-none" : ""} />
     </div>

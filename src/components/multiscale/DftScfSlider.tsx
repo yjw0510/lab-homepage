@@ -31,12 +31,6 @@ export function DftScfSlider({
   const currentT = max > min ? (value - min) / (max - min) : 0;
   const currentX = THUMB_R + currentT * railWidth;
 
-  // Every snapshot gets a tick and a hit target; only some get a number. The run is 59
-  // iterations long and a two-digit label needs about this much room, so at full width they
-  // otherwise print on top of each other into an unreadable smear.
-  const LABEL_WIDTH = 26;
-  const labelStride = Math.max(1, Math.ceil(snapshots.length / Math.max(1, Math.floor(railWidth / LABEL_WIDTH))));
-
   const ticks = useMemo(() => {
     if (max <= 0) return [];
     return snapshots.map((snapshot, index) => ({
@@ -48,20 +42,24 @@ export function DftScfSlider({
 
   if (snapshots.length <= 1) return null;
 
-  // scf.json carries English labels ("Iter 4") because it is computed output, so the readout has
-  // to be built from the iteration number the way the ticks below already are. Printing
-  // snapshot.label put English on the Korean page.
-  const activeSnapshot = snapshots[value];
-  const activeLabel = !activeSnapshot
-    ? String(value)
-    : lang === "ko"
-      ? `반복 ${activeSnapshot.iteration}`
-      : `Iteration ${activeSnapshot.iteration}`;
+  const progress = max > 0 ? value / max : 0;
+  const activeLabel =
+    progress < 0.34
+      ? lang === "ko"
+        ? "초기 추정"
+        : "Initial estimate"
+      : progress < 0.8
+        ? lang === "ko"
+          ? "밀도 갱신 중"
+          : "Updating density"
+        : lang === "ko"
+          ? "안정된 결과"
+          : "Stable result";
 
   return (
     <div>
       <div className="type-mono-meta mb-3 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{lang === "ko" ? "SCF 진행" : "SCF Progress"}</span>
+        <span>{lang === "ko" ? "전자 밀도 갱신" : "Electron-density update"}</span>
         <span className="text-foreground">{activeLabel}</span>
       </div>
 
@@ -73,7 +71,12 @@ export function DftScfSlider({
           step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          aria-label={lang === "ko" ? "SCF 반복 슬라이더" : "SCF iteration slider"}
+          aria-label={
+            lang === "ko"
+              ? "전자 밀도 갱신 과정 살펴보기"
+              : "Explore the electron-density update"
+          }
+          aria-valuetext={activeLabel}
           className="absolute inset-0 z-20 h-7 w-full cursor-ew-resize opacity-0"
         />
 
@@ -103,14 +106,6 @@ export function DftScfSlider({
         <div className="type-mono-meta pointer-events-none relative mt-3 h-10 text-xs">
           {ticks.map(({ snapshot, index, x }) => {
             const active = index === value;
-            // Both ends are named, and then every `labelStride`-th tick, except where that would
-            // land within one stride of the end and print on top of it. The selected iteration is
-            // not forced into the row: it is already named above the track, and forcing it printed
-            // its number over whichever strided label it happened to sit beside.
-            const labelled =
-              index === 0 ||
-              index === max ||
-              (index % labelStride === 0 && max - index >= labelStride);
             return (
               <div
                 key={`${snapshot.index}-${snapshot.iteration}`}
@@ -119,17 +114,6 @@ export function DftScfSlider({
               >
                 <div className="flex flex-col items-center gap-1">
                   <span className={`h-2 w-[2px] ${active ? "bg-primary" : "bg-border-strong"}`} />
-                  {labelled ? (
-                    <span
-                      className={
-                        active
-                          ? "whitespace-nowrap bg-muted px-1.5 py-0.5 text-foreground"
-                          : "whitespace-nowrap px-1.5 py-0.5 text-muted-foreground"
-                      }
-                    >
-                      {snapshot.iteration}
-                    </span>
-                  ) : null}
                 </div>
               </div>
             );

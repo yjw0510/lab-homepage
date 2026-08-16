@@ -23,13 +23,17 @@ export async function generateMetadata({
 }: {
   params: Promise<{ lang: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { lang, slug } = await params;
   const pub = getPublication(slug);
-  if (!pub) return { title: "Not Found" };
+  if (!pub) {
+    return { title: lang === "ko" ? "페이지를 찾을 수 없습니다" : "Page not found" };
+  }
   return {
     title: pub.title,
     description:
-      pub.abstract || `${pub.title}, ${pub.journal} (${pub.year})`,
+      (lang === "ko" ? pub.abstractKo : pub.abstract) ||
+      pub.abstract ||
+      `${pub.title}, ${pub.journal} (${pub.year})`,
   };
 }
 
@@ -52,7 +56,11 @@ export default async function PublicationDetailPage({
 
   const sectionTitle = sectionTitleFor(lang);
 
-  const sections = parseMarkdownSections(pub.content || "");
+  const sections = parseMarkdownSections(pub.content || "").map((section) =>
+    lang === "ko" && section.title === "Abstract" && pub.abstractKo
+      ? { ...section, body: pub.abstractKo }
+      : section,
+  );
 
   return (
     <div className="py-20 sm:py-28">
@@ -63,7 +71,7 @@ export default async function PublicationDetailPage({
             className="type-mono-meta inline-flex min-h-11 items-center gap-1.5 text-[12.5px] text-accent-ink transition-colors hover:text-primary underline decoration-1 underline-offset-[3px]"
           >
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.75} />
-            {dict.common.backTo} {dict.nav.publications}
+            {dict.common.backToPublications}
           </Link>
 
           <h1 className="type-display mt-6 text-[26px] text-foreground sm:text-4xl">
@@ -121,7 +129,7 @@ export default async function PublicationDetailPage({
                     lang === "ko" ? "max-w-[36rem]" : "max-w-[65ch]"
                   }`}
                 >
-                  {renderMarkdownBody(section.body)}
+                  {renderMarkdownBody(section.body, lang)}
                 </div>
               </section>
             ))}

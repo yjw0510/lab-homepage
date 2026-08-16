@@ -1,7 +1,5 @@
 "use client";
 
-import katex from "katex";
-import "katex/dist/katex.min.css";
 import {
   type AllAtomForceFieldTerm,
   type AllAtomReadoutId,
@@ -22,28 +20,6 @@ export interface AllAtomMechanismProps {
   onReadoutChange?: (readout: AllAtomReadoutId) => void;
 }
 
-function Formula({
-  value,
-  display = false,
-  className = "",
-}: {
-  value: string;
-  display?: boolean;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`scientific-inline-math ${className}`}
-      dangerouslySetInnerHTML={{
-        __html: katex.renderToString(value, {
-          throwOnError: false,
-          displayMode: display,
-        }),
-      }}
-    />
-  );
-}
-
 const COPY: Record<
   AllAtomSceneKey,
   {
@@ -53,26 +29,26 @@ const COPY: Record<
 > = {
   A3_forcefield: {
     en: {
-      title: "The range of answers five terms allow",
+      title: "Questions answered by fixed interaction rules",
       description:
-        "Bonded terms hold a molecule's shape and nonbonded terms set how closely molecules come together. Conformation and solubility are therefore answerable; bond breaking sits outside the model.",
+        "Separate terms set molecular shape and intermolecular contacts. The model covers shape and solubility for systems with a fixed bonding pattern; bond changes use a reactive model.",
     },
     ko: {
-      title: "다섯 항이 정하는 답의 범위",
+      title: "고정된 상호작용으로 답할 수 있는 범위",
       description:
-        "결합 항은 분자의 모양을 붙잡고, 비결합 항은 분자끼리 다가서는 방식을 정한다. 그래서 배좌와 용해도는 물을 수 있고, 결합이 끊어지는 일만 이 모형 밖에 있다.",
+        "각 항은 분자 모양과 분자 사이 접촉을 정한다. 고정된 결합 구조의 형태와 용해도를 계산하며 결합 변화에는 반응형 모형을 적용한다.",
     },
   },
   A6_observables: {
     en: {
       title: "Turning a trajectory into something measurable",
       description:
-        "A hydration number or a contact lifetime comes out of thousands of frames averaged together, in the form an NMR or scattering measurement reports it.",
+        "The number of nearby solvent molecules or the lifetime of a contact comes from many frames, producing values that experiments can test.",
     },
     ko: {
       title: "궤적을 측정 가능한 값으로 바꾸기",
       description:
-        "수화수나 접촉 수명은 프레임 수천 장을 평균해서 얻는다. NMR과 산란이 내놓는 값과 같은 형태다.",
+        "주변 용매 분자 수나 접촉이 이어지는 시간은 여러 프레임에서 구한다. 같은 종류의 실험값과 비교한다.",
     },
   },
 };
@@ -91,46 +67,38 @@ const FORCE_TERMS: Record<
   {
     label: { en: string; ko: string };
     family: { en: string; ko: string };
-    formula: string;
-    mobileFormula?: string;
     meaning: { en: string; ko: string };
     color: keyof typeof tone;
   }
 > = {
   Ubond: {
     label: { en: "Bond", ko: "결합" },
-    family: { en: "bonded", ko: "결합 항" },
-    formula: String.raw`U_{\mathrm{bond}}=\sum_b \frac{k_b}{2}(r_b-r_{0,b})^2`,
+    family: { en: "shape", ko: "분자 모양" },
     meaning: { en: "Penalizes stretching away from the reference bond length.", ko: "결합 길이가 기준값에서 벗어날 때 에너지가 증가한다." },
     color: "cyan",
   },
   Uangle: {
     label: { en: "Angle", ko: "결합각" },
-    family: { en: "bonded", ko: "결합 항" },
-    formula: String.raw`U_{\mathrm{angle}}=\sum_a \frac{k_a}{2}(\theta_a-\theta_{0,a})^2`,
+    family: { en: "shape", ko: "분자 모양" },
     meaning: { en: "Maintains local molecular geometry around a central atom.", ko: "중심 원자 주변의 국소 분자 구조를 유지한다." },
     color: "violet",
   },
   Udihedral: {
-    label: { en: "Dihedral", ko: "이면각" },
-    family: { en: "bonded", ko: "결합 항" },
-    formula: String.raw`U_{\mathrm{dihedral}}=\sum_n k_n[1+\cos(n\phi-\delta_n)]`,
+    label: { en: "Bond rotation", ko: "결합 회전" },
+    family: { en: "shape", ko: "분자 모양" },
     meaning: { en: "Controls rotation and conformational preferences around bonds.", ko: "결합 주위 회전과 선호하는 분자 형태를 정한다." },
     color: "amber",
   },
   UvdW: {
-    label: { en: "van der Waals", ko: "반데르발스" },
-    family: { en: "nonbonded", ko: "비결합 항" },
-    formula: String.raw`U_{\mathrm{vdW}}=\sum_{i<j}4\varepsilon_{ij}\left[(\sigma_{ij}/r_{ij})^{12}-(\sigma_{ij}/r_{ij})^6\right]`,
-    mobileFormula: String.raw`\begin{aligned}U_{\mathrm{vdW}}=\sum_{i<j}4\varepsilon_{ij}\big[&(\sigma_{ij}/r_{ij})^{12}\\[-2pt]&-(\sigma_{ij}/r_{ij})^6\big]\end{aligned}`,
-    meaning: { en: "Combines short-range repulsion with dispersion attraction.", ko: "짧은 거리 반발과 분산 인력을 함께 나타낸다." },
+    label: { en: "Short-range forces", ko: "단거리 힘" },
+    family: { en: "contacts", ko: "원자 사이" },
+    meaning: { en: "Atoms repel at very short distances and attract a little farther apart.", ko: "원자는 아주 가까우면 밀어내고 조금 멀어지면 끌어당긴다." },
     color: "rose",
   },
   UCoul: {
     label: { en: "Electrostatics", ko: "정전기" },
-    family: { en: "nonbonded", ko: "비결합 항" },
-    formula: String.raw`U_{\mathrm{Coul}}=\sum_{i<j}\frac{q_iq_j}{4\pi\varepsilon_0 r_{ij}}`,
-    meaning: { en: "Charges attract or repel; periodic long-range interactions are evaluated with PME.", ko: "전하 사이 인력과 반발을 계산하며, 주기계의 장거리 항은 PME로 처리한다." },
+    family: { en: "contacts", ko: "원자 사이" },
+    meaning: { en: "Opposite charges attract; like charges repel.", ko: "서로 다른 전하는 끌어당기고 같은 전하는 밀어낸다." },
     color: "cyan",
   },
 };
@@ -147,7 +115,7 @@ function A3ForceField({
   const selected = FORCE_TERMS[activeTerm];
   return (
     <div className="grid gap-4 p-5 lg:grid-cols-[minmax(17rem,.72fr)_minmax(0,1.28fr)]">
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-1" role="tablist" aria-label={ko ? "역장 에너지 항" : "force-field energy terms"}>
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-1" role="tablist" aria-label={ko ? "분자 상호작용 항" : "molecular interaction terms"}>
         {(Object.keys(FORCE_TERMS) as AllAtomForceFieldTerm[]).map((term) => {
           const item = FORCE_TERMS[term];
           const selectedNow = activeTerm === term;
@@ -176,13 +144,7 @@ function A3ForceField({
       </div>
       <div className={`grid content-center border p-5 ${tone[selected.color]}`}>
         <p className={MULTISCALE_TYPE.metadata}>{selected.label[ko ? "ko" : "en"]}</p>
-        <div className={`mt-3 hidden sm:block ${MULTISCALE_TYPE.formula}`}>
-          <Formula value={selected.formula} display />
-        </div>
-        <div className={`mt-3 sm:hidden ${MULTISCALE_TYPE.formulaCompact}`}>
-          <Formula value={selected.mobileFormula ?? selected.formula} display />
-        </div>
-        <p className={`mt-4 ${MULTISCALE_TYPE.body}`}>{selected.meaning[ko ? "ko" : "en"]}</p>
+        <p className={`mt-3 ${MULTISCALE_TYPE.body}`}>{selected.meaning[ko ? "ko" : "en"]}</p>
       </div>
     </div>
   );
@@ -201,8 +163,8 @@ const READOUTS: Record<
     ko: ["분자 배치", "분자 중심과 방향족 평면이 서로 얼마나 가깝게 배치되는지 계산한다."],
   },
   motif: {
-    en: ["Interaction motif", "Count recurring hydration, stacking, or contact patterns."],
-    ko: ["상호작용 모티프", "반복해서 나타나는 수화·적층·접촉 패턴을 센다."],
+    en: ["Repeated contacts", "Count contact patterns that recur between nearby molecules."],
+    ko: ["반복 접촉", "가까운 분자 사이에서 되풀이되는 접촉 형태를 센다."],
   },
 };
 
@@ -226,7 +188,7 @@ function A6Observables({
         <ObservableTrace lang={lang} reducedMotion={reducedMotion} />
       </div>
       <div className="grid content-start gap-2">
-        <div className="grid grid-cols-3 gap-2 lg:grid-cols-1" role="tablist" aria-label={ko ? "궤적 관측량" : "trajectory readouts"}>
+        <div className="grid grid-cols-3 gap-2 lg:grid-cols-1" role="tablist" aria-label={ko ? "궤적에서 얻는 측정값" : "measurements from the trajectory"}>
           {(Object.keys(READOUTS) as AllAtomReadoutId[]).map((readout) => {
             const [label] = READOUTS[readout][ko ? "ko" : "en"];
             const selectedNow = activeReadout === readout;
@@ -316,7 +278,7 @@ export function AllAtomMechanism({
           description={copy.description}
           aside={
             <span className={MULTISCALE_TYPE.metadata}>
-              {ko ? "고전 전원자" : "CLASSICAL ALL-ATOM"}
+              {ko ? "전원자 MD" : "ALL-ATOM MD"}
             </span>
           }
         />

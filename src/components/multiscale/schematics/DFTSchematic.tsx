@@ -211,8 +211,8 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
   return (
     <svg viewBox="0 96 760 344" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
       role="img" aria-label={ko
-        ? "DFT 자기일관 반복: 고정된 원자핵 주위의 전자 밀도가 총에너지와 오비탈 준위로 수렴하는 과정"
-        : "DFT self-consistency cycle: electron density around fixed nuclei converging to total energy and orbital levels"}>
+        ? "고정된 원자핵 주위의 전자 밀도를 반복해서 갱신하고 서로 맞는 전자 상태와 에너지를 얻는 과정"
+        : "The electron density around fixed nuclei is updated until it gives a consistent electronic state and energy"}>
       <defs>
         <marker id="dft-a" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
           <path d="M0,0 L9,4.5 L0,9 z" fill={MUTED} />
@@ -332,7 +332,7 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
 
       {/* ring labels — top row, clear of badges and ring */}
       <g className={f} style={{ animationDelay: "0.45s" }}>
-        <text x={RCX} y={132} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">{ko ? "SCF 순환" : "SCF cycle"}</text>
+        <text x={RCX} y={132} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">{ko ? "밀도 반복" : "density loop"}</text>
         <text x={264} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "구성" : "build"}</text>
         <Fx k="veff" xc={264} yb={124 + TZ.labelToFormula} color={INK} />
         <text x={496} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "풀이" : "solve"}</text>

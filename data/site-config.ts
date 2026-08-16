@@ -9,11 +9,11 @@ export const siteConfig = {
     { name: "Department of Chemistry", nameKo: "화학과" },
   ],
   description:
-    "Multiscale physical chemistry of solutions and nanomaterials through machine learning and computational simulation",
+    "We build computer models and machine-learning tools to explain how molecular motion shapes liquids, polymers, and nanomaterials across scales.",
   url: "https://yu-mmcc.org",
   email: "jiwoongs1492@ajou.ac.kr",
   location: {
-    building: "Woncheon Hall 218",
+    building: "Room 218, Woncheon Hall",
     buildingKo: "원천관 218호",
     address: "206 Worldcup-ro, Yeongtong-gu, Suwon-si, Gyeonggi-do, Republic of Korea",
     addressKo: "경기도 수원시 영통구 월드컵로 206",

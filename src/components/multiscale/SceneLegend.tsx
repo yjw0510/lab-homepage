@@ -31,7 +31,7 @@ export function SceneLegend({
     return (
       <div className={box} data-testid="coordination-legend">
         <span className="type-mono-meta text-muted-foreground">
-          {ko ? "리튬 배위수" : "Li⁺ coordination"}
+          {ko ? "Li⁺ 가까이 있는 산소 원자 수" : "O atoms near Li⁺"}
         </span>
         {BANDS.map((band) => (
           <span key={band.label} className="flex items-center gap-2 whitespace-nowrap">
@@ -49,15 +49,15 @@ export function SceneLegend({
     return (
       <div className={box} data-testid="density-legend">
         <span className="type-mono-meta text-muted-foreground">
-          {ko ? "수렴 대비 밀도" : "vs converged"}
+          {ko ? "최종 전자 밀도와의 차이" : "Difference from final density"}
         </span>
         <span
           className="h-2 w-full"
           style={{ background: `linear-gradient(to right, ${DENSITY_RAMP.join(", ")})` }}
         />
         <span className="type-mono-meta flex justify-between text-muted-foreground">
-          <span>{ko ? "낮음" : "lower"}</span>
-          <span>{ko ? "높음" : "higher"}</span>
+          <span>{ko ? "작음" : "smaller"}</span>
+          <span>{ko ? "큼" : "larger"}</span>
         </span>
       </div>
     );

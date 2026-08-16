@@ -11,7 +11,7 @@
   },
   "topics": {
     "title": "Research Topics",
-    "subtitle": "We use molecular simulation, theory, and machine learning to study how the structure and motion of molecules determine the properties of materials, from nanoparticles and polymers to water, glasses, and gels."
+    "subtitle": "We use molecular simulation, theory, and machine learning to connect molecular motion and arrangement with the behavior of salt solutions, polymer-coated nanoparticles, glasses, and gels."
   },
   "home": {
     "exploreMultiscale": "Explore Research",
@@ -25,12 +25,12 @@
   },
   "multiscale": {
     "title": "Multiscale",
-    "subtitle": "Each scale answers a question the others cannot, from the one that asks where the electrons sit to the one that asks what shape a material settles into.",
+    "subtitle": "We choose the level of detail that matches the question, from electronic changes during a reaction to the collective motion that shapes a material.",
     "learnMore": "Learn more"
   },
   "publications": {
     "title": "Publications",
-    "subtitle": "Peer-reviewed journal articles and preprints.",
+    "subtitle": "Publications on molecular modeling, soft materials, and solution chemistry.",
     "filterByYear": "Filter by Year",
     "filterByTag": "Filter by Tag",
     "allYears": "All Years",
@@ -40,26 +40,26 @@
   },
   "people": {
     "title": "People",
-    "subtitle": "The principal investigator and researchers of the Multiscale Molecular Computational Chemistry Lab.",
+    "subtitle": "The researchers behind Yu Lab's molecular modeling work.",
     "pi": "Principal Investigator",
     "labMembers": "Lab Members",
-    "noMembers": "New members will be announced soon."
+    "noMembers": "New members will appear here as they join."
   },
   "news": {
     "title": "News",
-    "subtitle": "Announcements and updates from Yu Lab at Ajou University.",
+    "subtitle": "Lab announcements, research updates, and opportunities to join us.",
     "noNews": "No news yet."
   },
   "funding": {
     "title": "Funding",
-    "subtitle": "Active and completed research grants.",
+    "subtitle": "Research programs supporting our work in molecular modeling and materials chemistry.",
     "active": "Active",
     "completed": "Completed",
     "noGrants": "Funding information will be updated soon."
   },
   "contact": {
     "title": "Contact",
-    "subtitle": "Lab location in the Wonchun Hall at Ajou University, and how to reach us.",
+    "subtitle": "How to find the lab, reach us, and apply to join.",
     "location": "Location",
     "email": "Email",
     "office": "Office"
@@ -69,7 +69,7 @@
     "subtitle": "Academic background and qualifications.",
     "education": "Education",
     "experience": "Experience",
-    "awards": "Awards",
+    "awards": "Honors",
     "publications": "Selected Publications",
     "skills": "Technical Skills",
     "professional": "Professional Activities"
@@ -83,9 +83,10 @@
     "undergradLabel": "Undergraduate Researchers",
     "undergradStatus": "Applications welcome year-round",
     "howToApply": "How to apply",
-    "howToApplyText": "Before you write to us, please look through our research and read at least one of our papers. Then tell us in a few sentences which topic or paper interested you and how it connects to what you want to work on, and attach your CV. Send it to:",
+    "howToApplyText": "Send your CV and a short note about a research question that interests you. If one of our papers connects to that question, mention it. We welcome applicants who are new to computational chemistry.",
+    "undergradApplyText": "Send a short introduction and tell us what you would like to learn or investigate. We will discuss a suitable starting project when we meet. We welcome beginners in simulation and coding.",
     "fields": "Fields",
-    "fieldsText": "Chemistry, Chemical Engineering, Physics, Computer Science, etc."
+    "fieldsText": "Chemistry, chemical engineering, physics, materials science, computer science, and related fields."
   },
   "footer": {
     "quickLinks": "Quick Links",
@@ -93,13 +94,15 @@
     "allRights": "All rights reserved."
   },
   "common": {
-    "backTo": "Back to"
+    "backTo": "Back to",
+    "backToPublications": "Back to Publications",
+    "backToMultiscale": "Back to Multiscale"
   },
   "site": {
     "name": "Yu Lab",
     "fullName": "Multiscale Molecular Computational Chemistry Lab",
     "university": "Ajou University",
     "departments": "School of Frontier Sciences · Department of Chemistry",
-    "description": "Multiscale physical chemistry of solutions and nanomaterials through machine learning and computational simulation"
+    "description": "We build computer models and machine-learning tools to explain how molecular motion shapes liquids, polymers, and nanomaterials across scales."
   }
 }

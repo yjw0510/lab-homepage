@@ -14,31 +14,31 @@ export interface LevelConfig {
 export const LEVELS: LevelConfig[] = [
   {
     id: "dft",
-    label: { en: "Electronic Structure / DFT", ko: "전자구조 / DFT" },
+    label: { en: "Density Functional Theory", ko: "밀도범함수이론" },
     color: "var(--lv-dft-text)",
     steps: 2,
-    scale: { en: "density and orbitals resolved · selected configurations", ko: "전자 밀도·오비탈 해상 · 선택된 배치" },
+    scale: { en: "electron density · selected structures", ko: "전자 밀도 · 선택한 구조" },
   },
   {
     id: "mlff",
-    label: { en: "MLFF", ko: "MLFF" },
+    label: { en: "Machine-Learning Force Fields", ko: "머신러닝 역장" },
     color: "var(--lv-mlff-text)",
     steps: 2,
-    scale: { en: "atoms explicit · learned PES", ko: "원자 명시 · 학습 PES" },
+    scale: { en: "atoms · learned forces", ko: "원자 · 학습한 힘" },
   },
   {
     id: "allatom",
-    label: { en: "Classical All-Atom", ko: "고전 전원자" },
+    label: { en: "All-Atom Molecular Dynamics", ko: "전원자 분자동역학" },
     color: "var(--lv-aa)",
     steps: 2,
-    scale: { en: "atoms explicit · analytic FF", ko: "원자 명시 · 해석적 역장" },
+    scale: { en: "atoms · fixed interaction rules", ko: "원자 · 고정된 상호작용 규칙" },
   },
   {
     id: "meso",
-    label: { en: "Mesoscale", ko: "메조스케일" },
+    label: { en: "Mesoscale Modeling", ko: "메조스케일 모델링" },
     color: "var(--lv-meso)",
     steps: 2,
-    scale: { en: "collective variables · effective model", ko: "집단 변수 · 유효 모형" },
+    scale: { en: "beads · collective motion", ko: "비드 · 집단 운동" },
   },
 ];
 

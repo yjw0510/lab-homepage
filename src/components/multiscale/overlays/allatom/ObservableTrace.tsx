@@ -76,17 +76,17 @@ export function ObservableTrace({
     if (!points?.length) return [];
     return [
       {
-        label: lang === "ko" ? "카보닐-물 접촉 후보" : "carbonyl-water contact candidates",
+        label: lang === "ko" ? "물과의 접촉" : "water contacts",
         values: points.map((point) => point.hydrationContacts),
         color: "var(--sch-stretch)",
       },
       {
-        label: lang === "ko" ? "최대 휴리스틱 적층 점수" : "max heuristic stacking score",
+        label: lang === "ko" ? "분자 정렬" : "molecular alignment",
         values: points.map((point) => point.packingScore),
         color: "var(--sch-amber)",
       },
       {
-        label: lang === "ko" ? "10 Å 이내 고리 중심 이웃" : "ring-center neighbors within 10 Å",
+        label: lang === "ko" ? "가까운 분자 수" : "nearby molecules",
         values: points.map((point) => point.caffeineNeighbors),
         color: "var(--sch-ink)",
       },
@@ -96,7 +96,7 @@ export function ObservableTrace({
   if (failed) {
     return (
       <div className="border border-border bg-muted/40 px-3 py-4 font-mono text-xs text-muted-foreground">
-        {lang === "ko" ? "궤적 관측량을 불러오지 못했습니다." : "Trajectory observables are unavailable."}
+        {lang === "ko" ? "궤적 측정값을 불러오지 못했습니다." : "Trajectory measurements are unavailable."}
       </div>
     );
   }
@@ -105,7 +105,7 @@ export function ObservableTrace({
     return (
       <div
         className={`h-[142px] border border-border bg-muted/40 ${reducedMotion ? "" : "animate-pulse"}`}
-        aria-label={lang === "ko" ? "궤적 관측량 불러오는 중" : "Loading trajectory observables"}
+        aria-label={lang === "ko" ? "궤적 측정값 불러오는 중" : "Loading trajectory measurements"}
       />
     );
   }
@@ -113,7 +113,7 @@ export function ObservableTrace({
   if (!tracks.length) {
     return (
       <div className="border border-border bg-muted/40 px-3 py-4 font-mono text-xs text-muted-foreground">
-        {lang === "ko" ? "사용 가능한 NVT 표본이 없습니다." : "No NVT samples are available."}
+        {lang === "ko" ? "사용 가능한 궤적 표본이 없습니다." : "No trajectory samples are available."}
       </div>
     );
   }
@@ -124,8 +124,8 @@ export function ObservableTrace({
       role="img"
       aria-label={
         lang === "ko"
-          ? "같은 생산 궤적에서 추출한 세 관측량의 실제 시간 변화"
-          : "Real time-varying traces for three observables from the same production trajectory"
+          ? "같은 분자 궤적에서 세 가지 성질이 시간에 따라 변하는 모습"
+          : "Three properties changing over time along the same molecular trajectory"
       }
     >
       {tracks.map((track, index) => {
@@ -175,8 +175,8 @@ export function ObservableTrace({
         );
       })}
       <div className="flex items-center justify-between gap-4 border-t border-border pt-2 font-mono text-xs text-muted-foreground">
-        <span>{lang === "ko" ? "각 추적선 독립 정규화" : "each trace independently normalized"}</span>
-        <span>{points[0]?.timePs.toFixed(1)}-{points.at(-1)?.timePs.toFixed(1)} ps</span>
+        <span>{lang === "ko" ? "곡선마다 범위를 따로 맞춤" : "each curve scaled separately"}</span>
+        <span>{lang === "ko" ? "이른 시점 → 늦은 시점" : "earlier → later"}</span>
       </div>
     </div>
   );

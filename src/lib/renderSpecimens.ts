@@ -32,34 +32,34 @@ export const SPECIMENS: Specimen[] = [
   {
     slug: "woven-cof",
     tier: "dft",
-    name: { en: "Woven COF-505", ko: "Woven COF-505" },
+    name: { en: "Woven framework COF-505", ko: "직조형 구조 COF-505" },
     method: {
-      en: "PBE plane-wave SCF density · Quantum ESPRESSO",
-      ko: "PBE 평면파 SCF 전자밀도 · Quantum ESPRESSO",
+      en: "Quantum electron-density calculation (DFT)",
+      ko: "양자 전자 밀도 계산(DFT)",
     },
-    size: { en: "1,056-atom cell · periodic", ko: "원자 1,056개 · 주기 격자" },
+    size: { en: "1,056-atom periodic cell", ko: "주기 셀 원자 1,056개" },
     source: "simulations/01_cof505/density.cube",
   },
   {
     slug: "molecular-knot",
     tier: "dft",
-    name: { en: "Heteroaromatic trefoil knot", ko: "헤테로방향족 세잎매듭" },
+    name: { en: "Trefoil molecular knot", ko: "세잎매듭 분자" },
     method: {
-      en: "GFN2-xTB density · Multiwfn cube",
-      ko: "GFN2-xTB 전자밀도 · Multiwfn cube",
+      en: "Approximate electron-density calculation",
+      ko: "근사 전자 밀도 계산",
     },
-    size: { en: "330 atoms · C, H, N, O", ko: "원자 330개 · C, H, N, O" },
+    size: { en: "330 atoms", ko: "원자 330개" },
     source: "structures/knot_hetero_xtb.xyz",
   },
   {
     slug: "buckycatcher",
     tier: "mlff",
-    name: { en: "Buckycatcher", ko: "Buckycatcher" },
+    name: { en: "Buckycatcher molecule", ko: "Buckycatcher 분자" },
     method: {
-      en: "MACE machine-learned force field · 3 ps NVT MD",
-      ko: "MACE 머신러닝 역장 · 3 ps NVT MD",
+      en: "Trajectory from a quantum-trained force model (MLFF)",
+      ko: "양자 계산을 학습한 힘 모형(MLFF)의 궤적",
     },
-    size: { en: "148 atoms · host-guest complex", ko: "원자 148개 · 호스트-게스트 착물" },
+    size: { en: "148 atoms", ko: "원자 148개" },
     source: "simulations/03_buckycatcher/traj.xyz",
   },
   {
@@ -67,10 +67,10 @@ export const SPECIMENS: Specimen[] = [
     tier: "mlff",
     name: { en: "Double-walled carbon nanotube", ko: "이중벽 탄소나노튜브" },
     method: {
-      en: "MACE force field · 300 K Langevin MD",
-      ko: "MACE 역장 · 300 K 랑주뱅 MD",
+      en: "Trajectory from a quantum-trained force model (MLFF)",
+      ko: "양자 계산을 학습한 힘 모형(MLFF)의 궤적",
     },
-    size: { en: "480 atoms · concentric walls", ko: "원자 480개 · 동심 이중벽" },
+    size: { en: "480 atoms", ko: "원자 480개" },
     source: "simulations/04_dwcnt/traj.xyz",
   },
   {
@@ -78,32 +78,32 @@ export const SPECIMENS: Specimen[] = [
     tier: "allatom",
     name: { en: "Pd₃₀L₆₀ Goldberg cage", ko: "Pd₃₀L₆₀ 골드버그 케이지" },
     method: {
-      en: "All-atom assembly · g-xTB ligand geometry",
-      ko: "전원자 조립 · g-xTB 리간드 구조",
+      en: "All-atom molecular model",
+      ko: "전원자 분자 모형",
     },
-    size: { en: "2,070 atoms · hollow polyhedron", ko: "원자 2,070개 · 속 빈 다면체" },
+    size: { en: "2,070 atoms", ko: "원자 2,070개" },
     source: "structures/pd30l60.xyz",
   },
   {
     slug: "dendrimer",
     tier: "allatom",
-    name: { en: "PAMAM G5 dendrimer", ko: "PAMAM 5세대 덴드리머" },
+    name: { en: "Branched PAMAM molecule", ko: "가지형 PAMAM 분자" },
     method: {
-      en: "All-atom model · MMFF94s relaxation",
-      ko: "전원자 모형 · MMFF94s 이완",
+      en: "All-atom molecular model",
+      ko: "전원자 분자 모형",
     },
-    size: { en: "4,548 atoms · fractal branching", ko: "원자 4,548개 · 프랙탈 분지 구조" },
+    size: { en: "4,548 atoms", ko: "원자 4,548개" },
     source: "structures/pamam_g5_real.pdb",
   },
   {
     slug: "double-gyroid",
     tier: "meso",
-    name: { en: "DPD double gyroid", ko: "DPD 이중 자이로이드" },
+    name: { en: "Double-gyroid polymer structure", ko: "이중 자이로이드 고분자 구조" },
     method: {
-      en: "HOOMD-blue DPD · A21-B39 diblock melt",
-      ko: "HOOMD-blue DPD · A21-B39 다이블록 용융체",
+      en: "Polymer trajectory with grouped particles",
+      ko: "여러 원자를 묶어 표현한 고분자 궤적",
     },
-    size: { en: "196,500 beads · bicontinuous", ko: "비드 196,500개 · 이중 연속상" },
+    size: { en: "196,500 model particles", ko: "모형 입자 196,500개" },
     source: "simulations/07_gyroid/gyroid_direct_c40_n1_aG34_final.gsd",
   },
   {
@@ -111,10 +111,10 @@ export const SPECIMENS: Specimen[] = [
     tier: "meso",
     name: { en: "Icosahedral viral capsid", ko: "정이십면체 바이러스 캡시드" },
     method: {
-      en: "Elastic network model · CCMV (PDB 1cwp)",
-      ko: "탄성 네트워크 모형 · CCMV (PDB 1cwp)",
+      en: "Elastic model with grouped particles",
+      ko: "여러 원자를 묶어 표현한 탄성 모형",
     },
-    size: { en: "28,620 beads · one per residue", ko: "비드 28,620개 · 잔기당 하나" },
+    size: { en: "28,620 model particles", ko: "모형 입자 28,620개" },
     source: "simulations/08_capsid/capsid_cg.pdb",
   },
 ];
@@ -122,10 +122,10 @@ export const SPECIMENS: Specimen[] = [
 /** Compact tier names, shared by every surface that captions a specimen so the site does
  *  not grow a second vocabulary. Matches the footer scale ruler. */
 export const TIER_LABEL: Record<SpecimenTier, Record<"en" | "ko", string>> = {
-  dft: { en: "DFT", ko: "DFT" },
-  mlff: { en: "MLFF", ko: "MLFF" },
-  allatom: { en: "All-atom", ko: "전원자" },
-  meso: { en: "Meso", ko: "메조" },
+  dft: { en: "Electron density", ko: "전자 밀도" },
+  mlff: { en: "Learned atomic forces", ko: "학습한 원자 힘" },
+  allatom: { en: "All atoms", ko: "모든 원자" },
+  meso: { en: "Grouped particles", ko: "묶은 입자" },
 };
 
 export const TIER_SCALE: Record<SpecimenTier, string> = {

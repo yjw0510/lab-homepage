@@ -78,13 +78,6 @@ interface ScfConvergenceData {
   threshold: number;
 }
 
-/** Decade exponent as a superscript, so the axis rows can be generated rather than listed. */
-function supers(exponent: number) {
-  const digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
-  const body = String(Math.abs(exponent)).split("").map((d) => digits[Number(d)]).join("");
-  return exponent < 0 ? `⁻${body}` : body;
-}
-
 /**
  * Shown for the frame or two before scf.json arrives, and permanently if that fetch fails.
  *
@@ -144,9 +137,6 @@ function D4Scf({
     Math.min(snapshot?.index ?? 0, scf.trajectory.length - 1),
   );
   const activePoint = scf.trajectory[activeIndex] ?? scf.trajectory[0];
-  // The denominator comes from the same array as the numerator. Hardcoded at 14 it read
-  // "22 / 14" and ended the run at "59 / 14".
-  const totalIterations = scf.trajectory.at(-1)?.iteration ?? scf.trajectory.length;
   // The chart draws in its own pixel box, so fontSize="12" reaches the reader as twelve
   // real pixels whatever the host width is. Under the old fixed 520x180 viewBox the
   // mobile host measured 184x136, scaled the whole drawing to 0.354, and painted the
@@ -186,11 +176,6 @@ function D4Scf({
   const activeCoordinate = pointCoordinates[activeIndex] ?? pointCoordinates[0];
   const activeDelta = activePoint?.deltaE ?? 0;
   const converged = activeDelta < scf.threshold;
-  const deltaLabel =
-    activeDelta >= 0.01
-      ? activeDelta.toFixed(3)
-      : activeDelta.toExponential(1);
-
   const convergenceChart = (
     <svg
       ref={chartSvgRef}
@@ -199,12 +184,11 @@ function D4Scf({
       role="img"
       aria-label={
         ko
-          ? "실제 SCF 반복에 따른 에너지 변화 감소"
-          : "Actual energy change across SCF iterations"
+          ? "전자 밀도를 반복 계산하면서 줄어드는 에너지 변화"
+          : "Energy change shrinking as the electron density is recalculated"
       }
     >
       {decades.map((exponent) => {
-        const label = `10${supers(exponent)}`;
         const y =
           chartTop +
           ((logMax - exponent) / (logMax - logMin)) *
@@ -219,15 +203,6 @@ function D4Scf({
               stroke="var(--plot-grid)"
               strokeOpacity="0.55"
             />
-            <text
-              x={chartLeft - 8}
-              y={y + 4}
-              textAnchor="end"
-              fill="var(--plot-text)"
-              fontSize="12"
-            >
-              {label}
-            </text>
           </g>
         );
       })}
@@ -250,7 +225,7 @@ function D4Scf({
         fill="var(--sch-amber-label)"
         fontSize="12"
       >
-        {ko ? "수렴 기준 10⁻⁵ Ha" : "threshold 10⁻⁵ Ha"}
+        {ko ? "계산 종료 기준" : "stopping target"}
       </text>
       <polyline
         points={pointCoordinates.map(({ x, y }) => `${x},${y}`).join(" ")}
@@ -288,7 +263,7 @@ function D4Scf({
         fontSize="13"
         fontWeight="600"
       >
-        {ko ? `반복 ${activePoint.iteration}` : `iteration ${activePoint.iteration}`}
+        {ko ? "현재" : "current"}
       </text>
     </svg>
   );
@@ -307,9 +282,8 @@ function D4Scf({
                 : "Each pass moves the density a little less."}
             </p>
           </div>
-          <p className="type-quiet shrink-0 text-2xl text-foreground">
-            {activePoint.iteration}
-            <span className="ml-1 text-sm font-normal text-muted-foreground">/ {totalIterations}</span>
+          <p className="type-quiet shrink-0 text-sm font-semibold text-foreground">
+            {converged ? (ko ? "기준 도달" : "target reached") : ko ? "계산 중" : "calculating"}
           </p>
         </div>
 
@@ -319,11 +293,10 @@ function D4Scf({
         <div className="border-b border-border px-4 py-3">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              |ΔE|
-              <span className="ml-2 text-xl font-semibold tabular-nums text-lv-dft-text">
-                {deltaLabel}
+              {ko ? "에너지 변화" : "Energy change"}
+              <span className="ml-2 text-base font-semibold text-lv-dft-text">
+                {converged ? (ko ? "작음" : "small") : ko ? "차이 큼" : "large difference"}
               </span>
-              <span className="ml-1">Ha</span>
             </p>
             <p className={`text-sm font-semibold ${converged ? "text-lv-dft-text" : "text-muted-foreground"}`}>
               {converged
@@ -339,14 +312,13 @@ function D4Scf({
         </div>
 
         <div className="px-4 py-3">
-          <MathNotation
-            latex={String.raw`\rho_{\mathrm{in}}^{(n)}\rightarrow\hat H_{\mathrm{KS}}\rightarrow\{\phi_i^{(n)}\}\rightarrow\rho_{\mathrm{out}}^{(n)}\rightarrow\rho_{\mathrm{in}}^{(n+1)}`}
-            className="block text-center text-[1.02rem] text-foreground"
-          />
+          <p className="text-center text-base font-semibold text-foreground">
+            {ko ? "추정한 밀도 → 새 밀도 계산 → 두 값 비교" : "trial density → calculate a new density → compare"}
+          </p>
           <p className="mt-2 text-sm leading-5 text-muted-foreground">
             {ko
-              ? "새 밀도로 해밀토니안을 다시 만들며, 에너지 변화가 설정한 기준보다 작아지면 반복을 끝낸다."
-              : "The new density rebuilds the Hamiltonian. The loop stops when the energy change falls below the chosen threshold."}
+              ? "새 결과가 이전 추정과 충분히 가까워지면 반복을 끝낸다."
+              : "The loop ends when the new result is close enough to the previous estimate."}
           </p>
         </div>
       </MechanismPanel>
@@ -364,19 +336,13 @@ function D4Scf({
         }
         description={
           ko
-            ? "반복할수록 밀도가 덜 움직인다. 그 남은 움직임이 |ΔE|다."
-            : "Each pass moves the density a little less. What is left of that motion is |ΔE|."
+            ? "반복할수록 이전 추정과 새 결과의 차이가 줄어든다."
+            : "Each pass reduces the difference between the previous estimate and the new result."
         }
         aside={
-          <div className="flex items-baseline gap-3">
-            <span className={MULTISCALE_TYPE.description}>
-              {ko ? "SCF 반복" : "SCF iteration"}
-            </span>
-            <span className={MULTISCALE_TYPE.metric}>
-              {String(activePoint.iteration).padStart(2, "0")}
-            </span>
-            <span className="text-base text-muted-foreground">/ {totalIterations}</span>
-          </div>
+          <span className={MULTISCALE_TYPE.description}>
+            {converged ? (ko ? "기준 도달" : "TARGET REACHED") : ko ? "계산 중" : "CALCULATING"}
+          </span>
         }
       />
 
@@ -385,16 +351,16 @@ function D4Scf({
           <div className="flex items-baseline justify-between gap-4">
             <div>
               <h4 className="text-base font-semibold text-foreground">
-                {ko ? "실제 에너지 수렴" : "Actual energy convergence"}
+                {ko ? "반복에 따른 에너지 변화" : "Energy change during iteration"}
               </h4>
               <p className="mt-1 text-sm text-muted-foreground">
-                {ko ? "세로축은 로그 눈금" : "Logarithmic vertical scale"}
+                {ko ? "아래로 갈수록 변화가 작다" : "Lower on the chart means a smaller change"}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">|ΔE|</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums text-lv-dft-text">
-                {deltaLabel} <span className="text-sm font-normal text-muted-foreground">Ha</span>
+              <p className="text-sm text-muted-foreground">{ko ? "현재 상태" : "Current state"}</p>
+              <p className="mt-1 text-base font-semibold text-lv-dft-text">
+                {converged ? (ko ? "차이가 작음" : "small difference") : ko ? "차이가 남음" : "difference remains"}
               </p>
             </div>
           </div>
@@ -404,21 +370,19 @@ function D4Scf({
         <section className="flex flex-col justify-between bg-surface-sunken px-5 py-4">
           <div>
             <p className="text-base font-semibold text-foreground">
-              {ko ? "한 번의 SCF 반복" : "One SCF iteration"}
+              {ko ? "전자 밀도 한 번 갱신" : "One density update"}
             </p>
-            <MathNotation
-              latex={String.raw`\rho_{\mathrm{in}}^{(n)}\rightarrow\hat H_{\mathrm{KS}}[\rho_{\mathrm{in}}^{(n)}]\rightarrow\{\phi_i^{(n)}\}\rightarrow\rho_{\mathrm{out}}^{(n)}`}
-              className="mt-5 block text-center text-[1.3rem] text-foreground"
-            />
+            <p className="mt-5 text-center text-lg font-semibold text-foreground">
+              {ko ? "추정한 밀도 → 새 밀도 계산" : "trial density → calculate a new density"}
+            </p>
             <div className="mt-5 border-t border-lv-dft-line pt-4">
-              <MathNotation
-                latex={String.raw`\rho_{\mathrm{in}}^{(n+1)}\leftarrow\operatorname{mix}\!\left(\rho_{\mathrm{in}}^{(n)},\rho_{\mathrm{out}}^{(n)}\right)`}
-                className="text-[1.15rem] text-lv-dft-text"
-              />
+              <p className="text-base font-semibold text-lv-dft-text">
+                {ko ? "이전 추정과 새 결과를 비교한다" : "Compare the previous estimate with the new result"}
+              </p>
               <p className="mt-2 text-sm leading-5 text-muted-foreground">
                 {ko
-                  ? "새 밀도로 해밀토니안을 다시 만들고 다음 반복을 시작한다."
-                  : "The updated density rebuilds the Hamiltonian for the next iteration."}
+                  ? "두 값의 차이가 충분히 작아질 때까지 계산을 반복한다."
+                  : "The calculation repeats until the two distributions are close enough."}
               </p>
             </div>
           </div>
@@ -426,11 +390,11 @@ function D4Scf({
             <p className="text-sm text-muted-foreground">
               {converged
                 ? ko
-                  ? "|ΔE|가 10⁻⁵ Ha보다 작아져 계산을 종료한다."
-                  : "|ΔE| is below 10⁻⁵ Ha, so the calculation stops."
+                  ? "새 결과가 이전 추정과 충분히 가까워 계산을 끝낸다."
+                  : "The new result is close enough to the previous estimate, so the calculation stops."
                 : ko
-                  ? "|ΔE|가 아직 기준보다 크므로 다시 계산한다."
-                  : "|ΔE| remains above the threshold, so the loop continues."}
+                  ? "두 결과의 차이가 수렴 기준보다 커 계산을 반복한다."
+                  : "The two results still differ, so the calculation continues."}
             </p>
             <span className={`ml-4 shrink-0 text-sm font-semibold ${converged ? "text-lv-dft-text" : "text-muted-foreground"}`}>
               {converged ? (ko ? "수렴" : "CONVERGED") : ko ? "반복 중" : "ITERATING"}
@@ -446,10 +410,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
   const ko = lang === "ko";
   const data = useDftMechanismData();
   const mode = data.outputMode ?? "density";
-  const gap =
-    typeof data.homoEV === "number" && typeof data.lumoEV === "number"
-      ? data.lumoEV - data.homoEV
-      : undefined;
+  const hasOrbitalLevels =
+    typeof data.homoEV === "number" && typeof data.lumoEV === "number";
   const rows = [
     {
       id: "density" as const,
@@ -461,27 +423,13 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
       id: "homo" as const,
       label: "HOMO",
       symbol: String.raw`\phi_{\mathrm H}`,
-      value:
-        typeof data.homoEV === "number"
-          ? ko
-            ? `${data.homoEV.toFixed(2)} eV · 가장 높은 점유 오비탈`
-            : `${data.homoEV.toFixed(2)} eV · highest occupied orbital`
-          : ko
-            ? "값 불러오는 중"
-            : "loading",
+      value: ko ? "전자가 차 있는 가장 높은 오비탈" : "The highest orbital occupied by electrons",
     },
     {
       id: "lumo" as const,
       label: "LUMO",
       symbol: String.raw`\phi_{\mathrm L}`,
-      value:
-        typeof data.lumoEV === "number"
-          ? ko
-            ? `${data.lumoEV.toFixed(2)} eV · 가장 낮은 비점유 오비탈`
-            : `${data.lumoEV.toFixed(2)} eV · lowest unoccupied orbital`
-          : ko
-            ? "값 불러오는 중"
-            : "loading",
+      value: ko ? "전자가 비어 있는 가장 낮은 오비탈" : "The lowest unoccupied orbital",
     },
   ];
   const activeRow = rows.find((row) => row.id === mode) ?? rows[0];
@@ -492,26 +440,26 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
     <div className="relative h-full min-h-[10rem]">
       <div className="absolute inset-x-0 top-[18%] border-t border-border-strong">
         <div className="mt-2 flex items-baseline justify-between gap-3">
-          <MathNotation latex={String.raw`\varepsilon_{\mathrm L}`} className={`text-xl ${mode === "lumo" ? "text-lv-dft" : "text-muted-foreground"}`} />
-          <span className={`text-base tabular-nums ${mode === "lumo" ? "text-lv-dft" : "text-muted-foreground"}`}>
-            {typeof data.lumoEV === "number" ? `${data.lumoEV.toFixed(2)} eV` : "-"}
+          <span className={`text-base font-semibold ${mode === "lumo" ? "text-lv-dft" : "text-muted-foreground"}`}>LUMO</span>
+          <span className={`text-sm ${mode === "lumo" ? "text-lv-dft" : "text-muted-foreground"}`}>
+            {ko ? "높은 에너지" : "higher energy"}
           </span>
         </div>
       </div>
       <div className="absolute inset-x-0 bottom-[18%] border-t border-border-strong">
         <div className="mt-2 flex items-baseline justify-between gap-3">
-          <MathNotation latex={String.raw`\varepsilon_{\mathrm H}`} className={`text-xl ${mode === "homo" ? "text-lv-dft" : "text-muted-foreground"}`} />
-          <span className={`text-base tabular-nums ${mode === "homo" ? "text-lv-dft" : "text-muted-foreground"}`}>
-            {typeof data.homoEV === "number" ? `${data.homoEV.toFixed(2)} eV` : "-"}
+          <span className={`text-base font-semibold ${mode === "homo" ? "text-lv-dft" : "text-muted-foreground"}`}>HOMO</span>
+          <span className={`text-sm ${mode === "homo" ? "text-lv-dft" : "text-muted-foreground"}`}>
+            {ko ? "낮은 에너지" : "lower energy"}
           </span>
         </div>
       </div>
-      {typeof gap === "number" ? (
+      {hasOrbitalLevels ? (
         <div className="absolute bottom-[31%] right-2 top-[31%] flex w-24 items-center justify-end border-y border-r border-lv-dft-line pr-3">
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">{ko ? "KS 간격" : "KS gap"}</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums text-lv-dft">
-              {gap.toFixed(2)} eV
+            <p className="text-sm text-muted-foreground">{ko ? "오비탈 간격" : "orbital gap"}</p>
+            <p className="mt-1 text-sm font-semibold text-lv-dft">
+              {ko ? "두 상태의 차이" : "separation between levels"}
             </p>
           </div>
         </div>
@@ -519,8 +467,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
       {mode === "density" && showDensityCaption ? (
         <p className="absolute inset-x-0 top-1/2 -translate-y-1/2 pr-28 text-sm leading-5 text-muted-foreground">
           {ko
-            ? "전자 밀도는 점유 오비탈 전부가 겹쳐 만든 공간 분포다. 준위 하나에 대응하지 않는다."
-            : "Electron density is one spatial distribution built from every occupied orbital. It does not correspond to a single level."}
+            ? "전자 밀도는 점유 오비탈 전체가 만든 공간 분포이며 여러 준위의 기여를 함께 담는다."
+            : "Electron density is the combined spatial distribution of every occupied orbital."}
         </p>
       ) : null}
     </div>
@@ -584,8 +532,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             {mode === "density" ? (
               <p className="text-sm leading-5 text-muted-foreground">
                 {ko
-                  ? "전자 밀도는 점유 오비탈 전부가 겹쳐 만든 공간 분포다. 준위 하나에 대응하지 않는다."
-                  : "Electron density is one spatial distribution built from every occupied orbital. It does not correspond to a single level."}
+                  ? "전자 밀도는 점유 오비탈 전체가 만든 공간 분포이며 여러 준위의 기여를 함께 담는다."
+                  : "Electron density is the combined spatial distribution of every occupied orbital."}
               </p>
             ) : (
               renderEnergyLevels(false)
@@ -594,8 +542,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
         </div>
         <p className="border-t border-border px-4 py-2.5 text-sm leading-5 text-muted-foreground">
           {ko
-            ? "이 간격이 넓을수록 전자를 내주거나 받기 어렵다. 다만 흡수 스펙트럼이 알려 주는 들뜸 에너지와 같은 값은 아니다."
-            : "A wider gap means the molecule parts with an electron, or accepts one, less readily. It is not the excitation energy an absorption spectrum reports."}
+            ? "표시한 오비탈 간격은 채워진 준위와 빈 준위의 관계를 정성적으로 비교하는 계산값이다."
+            : "The displayed orbital gap is a calculated value for qualitative comparison of filled and empty boundary levels."}
         </p>
       </MechanismPanel>
     );
@@ -616,7 +564,7 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             : "The density shows where charge has collected; HOMO and LUMO show where it moves first."
         }
         aside={
-          <p className={MULTISCALE_TYPE.description}>B3LYP / 6-31G*</p>
+          <p className={MULTISCALE_TYPE.description}>{ko ? "양자 계산" : "QUANTUM CALCULATION"}</p>
         }
       />
 
@@ -679,8 +627,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
       <div className="flex items-center justify-between gap-5 border-t border-border px-5 py-3">
         <p className="text-sm leading-5 text-muted-foreground">
           {ko
-            ? "이 간격은 전자를 내주거나 받기가 얼마나 쉬운지를 가늠하게 한다. 바닥상태 Kohn-Sham 오비탈의 차이이므로 흡수 스펙트럼의 들뜸 에너지로 바로 옮겨 읽지는 않는다."
-            : "The gap gauges how readily the molecule parts with an electron or accepts one. It is a ground-state Kohn-Sham orbital difference, so it is not read straight across to an absorption spectrum's excitation energy."}
+            ? "표시한 오비탈 간격은 채워진 준위와 빈 준위의 관계를 정성적으로 비교하는 계산값이다."
+            : "The displayed orbital gap is a calculated value for qualitative comparison of filled and empty boundary levels."}
         </p>
         <span className="shrink-0 text-sm font-semibold text-lv-dft">
           {mode === "density" ? (ko ? "전자 밀도" : "DENSITY") : mode.toUpperCase()}
@@ -692,12 +640,12 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
 
 const SCENE_ARIA: Record<DftSceneKey, { en: string; ko: string }> = {
   D4_scf: {
-    en: "SCF cycle sitting at the same iteration as the total density on screen.",
-    ko: "고른 반복의 총 전자 밀도와 같은 지점을 가리키는 SCF 순환.",
+    en: "Repeated electron-density calculation shown at the same step as the density on screen.",
+    ko: "화면의 전자 밀도와 같은 단계에 맞춘 반복 계산 과정.",
   },
   D6_outputs: {
-    en: "Calculated electron density, HOMO, and LUMO, with the corresponding orbital energies.",
-    ko: "계산된 전자 밀도와 HOMO, LUMO, 그리고 각 오비탈 에너지.",
+    en: "Calculated electron density, HOMO, and LUMO shown as complementary views of one electronic state.",
+    ko: "하나의 전자 상태를 서로 다른 방식으로 보여 주는 전자 밀도와 HOMO, LUMO.",
   },
 };
 

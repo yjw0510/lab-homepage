@@ -30,7 +30,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang, slug } = await params;
   const area = getMultiscaleArea(slug);
-  if (!area) return { title: "Not Found" };
+  if (!area) {
+    return { title: lang === "ko" ? "페이지를 찾을 수 없습니다" : "Page not found" };
+  }
   const isKorean = lang === "ko";
   return {
     title: isKorean && area.titleKo ? area.titleKo : area.title,
@@ -83,15 +85,15 @@ export default async function MultiscaleDetailPage({
   const handoff = lang === "ko"
     ? {
         label: "멀티스케일 연결",
-        sequence: "DFT → MLFF → 전원자 → 메조스케일",
-        returnTo: "인터랙티브로 돌아가기",
+        sequence: "전자 → 학습한 힘 → 원자 운동 → 집단 운동",
+        returnTo: "대화형 개요로 돌아가기",
         previous: "이전 방법",
         next: "다음 방법",
       }
     : {
-        label: "MULTISCALE HANDOFF",
-        sequence: "DFT → MLFF → all-atom → mesoscale",
-        returnTo: "Return to interactive",
+        label: "ACROSS SCALES",
+        sequence: "electrons → learned forces → atom-level motion → collective motion",
+        returnTo: "Back to the interactive overview",
         previous: "Previous method",
         next: "Next method",
       };
@@ -104,7 +106,7 @@ export default async function MultiscaleDetailPage({
           className="inline-flex items-center gap-1.5 py-2 text-sm text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
-          {dict.common.backTo} {dict.nav.multiscale}
+          {dict.common.backToMultiscale}
         </Link>
 
         {/* Title block */}

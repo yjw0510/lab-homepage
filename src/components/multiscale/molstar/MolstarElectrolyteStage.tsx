@@ -573,10 +573,12 @@ export function MolstarElectrolyteStage({
   reducedMotion = false,
   canvasColor,
   actionsRef,
+  lang = "en",
 }: {
   step: number;
   reducedMotion?: boolean;
   canvasColor: string;
+  lang?: string;
   /** Where the instrument's zoom, fit and reset are bound. Handed to the plugin rather than
    *  translated into a scene-level zoom index: the camera is the thing being moved, and the
    *  shared binding already scales the snapshot the same way the DFT tier does. */
@@ -752,7 +754,7 @@ export function MolstarElectrolyteStage({
     <div ref={containerRef} className="relative h-full w-full">
       {error ? (
         <p className="absolute inset-0 flex items-center justify-center p-4 text-center text-xs text-muted-foreground">
-          {error}
+          {lang === "ko" ? "분자 장면을 불러오지 못했습니다." : "The molecular scene could not be loaded."}
         </p>
       ) : null}
     </div>

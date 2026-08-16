@@ -1,28 +1,29 @@
 ---
-title: "Machine Learning Force Fields"
+title: "Machine-Learning Force Fields"
 titleKo: "머신러닝 역장"
-shortDescription: "Learning the forces DFT assigns makes them cheap enough to evaluate again and again, which opens up following bonds as they break and re-form over nanoseconds."
-shortDescriptionKo: "DFT가 매긴 힘을 학습해 두면 거의 같은 정확도를 훨씬 싸게 되풀이할 수 있다. 결합이 끊어지고 다시 생기는 과정을 나노초 동안 따라가는 계산이 그렇게 열린다."
+shortDescription: "A model trained on quantum calculations predicts forces for reactive and aqueous simulations at larger sizes and longer times than direct electronic calculations."
+shortDescriptionKo: "양자 계산을 학습한 모형이 원자에 작용하는 힘을 빠르게 예측해 반응계와 수용액계의 원자 운동을 더 큰 계와 긴 시간으로 확장한다."
 icon: "Brain"
 color: "#8b5cf6"
 order: 2
-scale: "1-10 nm (ab initio accuracy)"
-scaleKo: "1-10 nm (제일원리 수준 정확도)"
+scale: "1-10 nm"
+scaleKo: "1-10 nm"
 contentKo: |
-  ## 개요
+  ## 양자 계산에서 힘을 배운다
 
-  분자 시뮬레이션에서 역장(force field)은 원자 사이의 인력과 척력을 기술하는 수학적 모형으로, 모든 힘, 궤적, 예측 물성을 결정한다. 고전 역장은 실험 데이터에 맞춘 단순한 방정식을 사용하여 평가 속도는 빠르지만 근사적이다. 양자역학 계산은 훨씬 정확하지만 큰 시스템이나 긴 시뮬레이션에 비용이 과다하다. 머신러닝 역장(MLFF)은 이 사이를 잇는다: 양자역학 데이터로 훈련한 신경망이 양자에 가까운 정확도로 원자 간 힘을 예측하되 계산 비용은 크게 줄어든다. DeePMD, NequIP, MACE 등의 MLFF 아키텍처를 개발·적용하여, 양자 계산에는 너무 크고 고전 근사에는 너무 민감한 계, 특히 전해질 용액 내 물과 극한 환경의 반응 화학을 연구한다.
+  머신러닝 역장(MLFF)은 양자 계산을 학습해 원자의 에너지와 힘을 예측하는 모형이다. 학습 자료 한 건에는 원자 배치와 그 배치에서 계산한 에너지, 원자별 힘이 담긴다. MLFF는 구조가 바뀔 때 에너지가 어떻게 달라지는지 연속적인 관계로 배운다. 학습이 끝난 MLFF는 각 스텝의 에너지와 힘을 예측한다.
 
-  ## 현재 연구
+  ## 학습 자료가 정하는 적용 범위
 
-  - **물 확산 이상 현상**: 염수 용액에서 물 분자가 용존 이온 종류에 따라 어떻게 다르게 이동하는지 매핑. 고전 역장은 구별하지 못하지만 양자 데이터로 훈련한 머신러닝 모형은 정확히 재현하는 효과
-  - **유전 완화**: 액체 물의 전기 분극이 마이크로파에서 적외선까지의 진동 전기장에 어떻게 응답하는지, 신경망 예측과 고전 역장 결과를 비교
-  - **초임계수 반응 화학**: 374 °C, 22 MPa 이상의 물에서 유기 분자가 분해·재결합되는 과정 추적. 표준 역장으로는 결합의 절단과 형성을 기술할 수 없는 조건
-  - **능동 학습과 전이성**: 어떤 양자역학 계산을 수행할지 효율적으로 선택하는 전략 개발. 결과 역장이 온도와 화학 조성에 걸쳐 안정적으로 일반화되도록 함
+  계산이 빨라지면 원자 해상도를 유지한 채 더 큰 계에서 더 긴 분자동역학 궤적을 얻을 수 있다. 이온 주위의 물이 바뀌는 과정이나 일부 결합 반응처럼 직접 양자 동역학으로 짧게 관찰하던 현상도 충분히 반복해 볼 수 있다. 별도의 양자 계산과 실험 관측량이 학습 자료가 포괄하는 화학 환경과 모형의 적용 범위를 정한다.
 
-  ## 방법론
+  ## 연구실에서 묻는 질문
 
-  밀도범함수이론(DFT) 양자역학 참조 데이터로 MLFF를 훈련하며, 물리적 대칭을 만족하는 신경망 아키텍처를 사용한다. 분자를 회전하거나 이동해도 예측이 변하지 않는다. 향상된 표본추출 기법과 결합하면, 학습에 포함된 원자 환경에서 참조 수준에 가까운 정확도를 목표로 더 긴 시간 규모를 탐색할 수 있다. 적용 범위는 별도의 참조 데이터로 계속 점검한다.
+  연구실은 서로 다른 염이 물의 확산을 늦추거나 빠르게 하는 이유, 물 분자가 Al³⁺ 주위에 들어오는 경로, 고온·고압의 초임계 물에서 아세트산이 산화되는 과정을 MLFF 궤적으로 연구한다. 움직임 전체에서 평균과 속도, 반응 경로를 구한다. 염수에서는 물 분자 사이의 연동 운동이 염별 반응을 가른다. 반응이 넘어야 하는 높은 에너지 구간의 학습 밀도가 장벽 정확도를 좌우한다.
+
+  ## 두 계층을 잇는 반복
+
+  MLFF는 더 단순한 역장이 맞춰야 할 구조와 속도를 제공한다. 예측 불확실성이 큰 원자 배치는 DFT로 되돌려 새 참조값을 얻는다. DFT가 모형의 기준을 잡고 MLFF가 다음 참조 계산을 고르는 순환이다.
 
   ## 관련 논문
 
@@ -31,20 +32,21 @@ contentKo: |
   - Ryu et al., *J. Chem. Inf. Model.* (2025), 초임계수 내 아세트산 반응
 ---
 
-## Overview
+## Learning Energies and Forces
 
-In molecular simulation, a force field is the mathematical model that describes how atoms attract and repel each other; it determines every force, every trajectory, and every predicted property. Classical force fields use simple equations fitted to experimental data: fast to evaluate, but approximate. Quantum-mechanical calculations are far more accurate but too expensive for large systems or long simulation times. Machine learning force fields (MLFFs) bridge this gap: neural networks trained on quantum-mechanical data learn to predict interatomic forces with near-quantum accuracy at a small fraction of the computational cost. We develop and apply MLFF architectures (DeePMD, NequIP, MACE) to study systems that are too large for quantum calculations and too sensitive to classical approximations, particularly water in electrolyte solutions and reactive chemistry in extreme environments.
+A machine-learning force field (MLFF) is a model trained on quantum calculations to predict atomic energies and forces. Each training example contains one arrangement of atoms and the quantum result for that arrangement. The model learns a continuous relationship between structure and energy. Once trained, it predicts energy and forces at every step.
 
-## Current Focus
+## A Domain Defined by Training Data
 
-- **Water diffusion anomalies**: Mapping how water molecules move differently near different dissolved ions in salt solutions, effects that classical force fields fail to distinguish but that machine learning models trained on quantum data reproduce accurately
-- **Dielectric relaxation**: How liquid water's electrical polarization responds to oscillating electric fields across the microwave-to-infrared spectrum, comparing neural network predictions to classical force field results
-- **Reactive chemistry in supercritical water**: Tracking how organic molecules break apart and recombine in water heated above 374 °C and pressurized above 22 MPa, conditions where standard force fields cannot describe bond breaking and formation
-- **Active learning and transferability**: Developing strategies for efficiently selecting which quantum-mechanical calculations to run, so that the resulting force field generalizes reliably across temperatures and chemical compositions
+That speed supports longer trajectories and larger systems with atom-level detail. It can follow water around ions and some reactions in which bonds change, extending phenomena seen briefly in direct quantum dynamics. Separate quantum calculations and experimental observables define the chemical environments represented by the training data and the model's working range.
 
-## Methods
+## Questions We Study
 
-We train MLFFs on quantum-mechanical reference data from density functional theory (DFT) calculations using neural network architectures that respect physical symmetries; predictions remain unchanged when the molecule is rotated or translated. Combined with enhanced sampling techniques that accelerate the observation of rare events, they can explore longer time scales while targeting near-reference accuracy for atomic environments represented in training. Their domain of reliable use still requires checks against separate reference data.
+We use MLFF trajectories to ask why different salts slow or speed water, how a water molecule joins the shell around Al³⁺, and how acetic acid oxidizes in supercritical water, water under high temperature and pressure. Full trajectories yield averages, rates, and reaction pathways. In salt water, correlated motion between water molecules distinguishes the salt response. The density of training structures near a high-energy reaction step controls the accuracy of the predicted barrier.
+
+## A Loop Between Scales
+
+MLFF results can guide simpler force fields by supplying target structures, motion, and rates. Configurations with high prediction uncertainty return to DFT for new reference values. DFT sets the reference, and the MLFF maps training coverage and selects the next calculations.
 
 ## Related Publications
 

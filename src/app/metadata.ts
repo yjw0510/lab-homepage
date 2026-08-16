@@ -7,7 +7,7 @@ export const SITE_METADATA: Metadata = {
     template: "%s | Yu Lab",
   },
   description:
-    "Multiscale Molecular Computational Chemistry Lab at Ajou University. We study molecular phenomena across scales using computational methods including molecular dynamics, machine learning force fields, and first-principles calculations.",
+    "Yu Lab builds computer models and machine-learning tools to explain how molecular motion shapes liquids, polymers, and nanomaterials across scales.",
   keywords: [
     "computational chemistry",
     "molecular dynamics",

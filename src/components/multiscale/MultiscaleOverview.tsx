@@ -3,9 +3,9 @@ import type { MultiscaleArea } from "@/types/multiscale";
 
 /* Method-aware ruler: MLFF and classical all-atom share atomistic resolution. */
 const rulerMarks = [
-  { slug: "dft", scale: "Å-nm", ko: "전자 명시 · DFT", en: "electrons explicit · DFT" },
-  { slug: "atomistic", scale: "nm", ko: "원자 해상도 분기 · MLFF / 고전 역장", en: "atomistic fork · MLFF / classical FF" },
-  { slug: "meso", scale: "10 nm-µm", ko: "집단 변수 · 메조", en: "collective variables · meso" },
+  { slug: "dft", scale: "Å-nm", ko: "전자 · DFT", en: "electrons · DFT" },
+  { slug: "atomistic", scale: "nm", ko: "원자 · MLFF / 고정 역장", en: "atoms · MLFF / fixed rules" },
+  { slug: "meso", scale: "10 nm-µm", ko: "비드 · 집단 운동", en: "beads · collective motion" },
 ];
 
 /* Level identity text colors (mode-aware tokens in globals.css). Full literal
@@ -32,12 +32,12 @@ export function MultiscaleOverview({
         {/* Masthead */}
         <header className="max-w-3xl">
           <h2 className="type-title text-4xl text-foreground sm:text-5xl">
-            {lang === "ko" ? "방법을 더 살펴보기" : "Study the methods in depth"}
+            {lang === "ko" ? "방법별로 살펴보기" : "Explore each method"}
           </h2>
           <p className="mt-5 break-keep leading-relaxed text-muted-foreground">
             {lang === "ko"
-              ? "인터랙티브 여정에서 본 흐름을 각 방법의 연구 맥락, 적용 범위, 그리고 다음 해상도로 이어지는 연결까지 확장해 읽어 보세요."
-              : "Extend the interactive journey with each method's research context, scope of use, and connection to the next resolution."}
+              ? "각 페이지에서 한 가지 방법을 다룬다. 무엇을 구분해 내고 그 해상도에 어떤 비용이 따르는지, 연구실은 어떤 질문에 쓰며 결과가 다음 규모로 어떻게 이어지는지 설명한다."
+              : "Each page explains what one method can resolve, what that resolution costs, which questions we study with it, and how its results support the next scale."}
           </p>
         </header>
 
