@@ -3,85 +3,101 @@ import type { ResearchTopic } from "@/types/topic";
 export const topics: ResearchTopic[] = [
   {
     id: "self-assembly",
-    title: "Polymer-Directed Self-Assembly",
-    titleKo: "고분자가 이끄는 자기조립",
+    title: "Self-Assembly of Nanoparticles and Colloids",
+    titleKo: "나노 입자와 콜로이드의 자기조립",
     tagline:
-      "Polymer chain shape determines how nanoparticles pack",
-    taglineKo: "고분자 사슬 모양이 나노입자 배열을 정한다",
-    description: `Attaching polymer chains to a nanoparticle changes how the particles pack. We study this with coarse-grained molecular dynamics (CGMD), which groups several atoms into one interaction site to reach larger systems. The polymer brush changes gradually: chains are crowded and stretched near the surface, then relax farther from the core. Using that crossover as an effective particle boundary gives a softness measure that predicts a dense or open arrangement. Grafting density, the number of chains per surface area, shifts the same balance because dense brushes interpenetrate less and make soft particles pack more like hard spheres.
+      "Assembly and transport of nanoparticles and colloidal particles",
+    taglineKo: "나노 입자와 콜로이드 입자의 조립과 수송",
+    description: `Nanoparticles a few to a few tens of nanometers across stick together under strong attraction once they come close in solution, so they fail to stay evenly dispersed. One of the best known ways around this is to graft polymer chains onto the particles and tune the attraction and repulsion between them. The grafted chains engage each other at a distance, before the cores ever touch, and that early interaction keeps the particles from clustering. Our lab varies the character of the grafted polymer, for example grafting density and chain length, to determine how it shapes the self-assembled structure of the nanoparticles. We also examine the morphology the particles take under a given environment, such as two parallel plates or a spherical confinement, and compute thermodynamic stability to determine which morphological phase is stable as the design parameters vary.
 
-Attaching one bottlebrush polymer, a backbone bearing dense side chains, gives the particle a preferred direction. In a layer confined to a flat surface, backbone length, side-chain length, and shell thickness select hexagonal, square, or chain-like order; missing or extra grafts shift the stable range of each arrangement. Cylinders embedded in a brush interact through regions with fewer polymer segments. The distance over which brush segments move together provides a common scale for comparing grafting densities. Competition between polymer-depleted regions beside and above the cylinders can strengthen or weaken interactions and shift them between attraction and repulsion. Simulations turn this mechanism into a biologically testable hypothesis for protein clustering beneath the glycocalyx, the polymer-rich coating on a cell surface. Enhanced sampling, which makes rare transitions easier to observe, also reveals a temporary network of misaligned cylinders as block copolymers, linked polymers with distinct sections, move toward an ordered phase.`,
-    descriptionKo: `나노입자에 고분자 사슬을 붙이면 입자 배열이 달라진다. 원자 여러 개를 하나의 계산 단위로 묶어 더 큰 계를 다루는 조대화 분자동역학(CGMD)으로 이 변화를 계산한다. 나노입자 주위의 고분자 사슬층인 고분자 브러시에서는 표면 가까운 사슬이 빽빽하게 늘어나고 입자 중심에서 멀어질수록 느슨하게 풀린다. 이 전환 지점을 입자의 유효 경계로 잡으면 입자가 얼마나 무른지 나타내는 값이 나온다. 이 값으로 무작위 상태의 입자가 조밀한 배열을 만들지, 더 열린 격자를 만들지 예측한다. 표면당 사슬 수인 그래프팅 밀도가 높으면 브러시끼리 덜 파고들어 무른 입자도 단단한 구처럼 쌓인다.
+The structures colloidal particles assemble into, and the way the particles move, depend on particle shape and size, surface properties, and the environment the particles occupy. Experiments that track individual particles have made this behavior observable one particle at a time, but observation alone cannot explain which conditions produce ordered structures or why confined particles move differently than expected.
 
-곁사슬이 촘촘한 병솔형 고분자를 한 가닥 붙이면 입자에 방향성이 생긴다. 평면에 가까운 한 층에서는 주쇄와 곁사슬의 길이, 입자 껍질의 두께가 육각형, 정사각형, 사슬형 배열을 가른다. 사슬 수가 0개 또는 2개인 입자는 각 구조가 안정한 범위를 바꾼다. 고분자 브러시에 박힌 원기둥은 주변에 고분자가 적은 영역을 사이에 두고 상호작용한다. 브러시 사슬이 함께 움직이는 길이를 거리의 기준으로 삼아 그래프팅 밀도가 다른 결과를 비교한다. 원기둥 옆과 위의 고분자 빈 영역이 경쟁하며 인력과 척력의 세기와 방향을 바꾼다. 시뮬레이션은 이 원리를 세포 표면의 고분자층인 glycocalyx 아래 단백질 군집화에 적용해 생물학적으로 검증할 가설을 만든다. 드문 전환을 더 잘 포착하는 강화 샘플링에서는 서로 다른 고분자 블록을 이은 블록 공중합체가 정렬되는 도중, 어긋난 원기둥이 이어진 임시 그물도 나타났다.`,
+Our lab builds particle-level models of colloidal systems to address these questions. We compute how particle shape and arrangement, surface properties, and confinement such as droplets or thin liquid films relate to the structure of an assembly and to particle transport and aggregation, and compare the results quantitatively with single-particle measurements.`,
+    descriptionKo: `수 나노미터에서 수십 나노미터 크기의 나노 입자는 용액 내에서 인접하면 강한 인력에 의해 달라붙으며, 균질하게 분산되지 못한다. 이것을 해결하는 가장 잘 알려진 방법 중 하나는 나노 입자에 고분자 가지를 접합시켜 나노 입자 사이의 인력과 척력을 튜닝하는 것이다. 이는 나노 입자가 서로 접촉하기 전에 고분자가 더 먼 거리에서부터 인력과 척력에 관여하여, 나노 입자가 클러스터를 이루는 것을 막는 것이다. 우리 연구실에서는 나노 입자 위 고분자의 특성, 가령 접합 밀도와 사슬 길이를 바꾸어, 나노 입자의 자기조립 구조가 어떻게 달라지는지를 규명하는 연구를 한다. 또한 나노 입자가 주어진 환경, 가령 two parallel plates나 spherical confinement 하에서 어떤 morphology를 취하는지 확인하고 열역학적 안정성을 계산하여, design parameter에 따라 어떤 morphological phase가 안정한지를 도출하는 연구를 진행한다.
+
+콜로이드 입자가 이루는 집합체의 구조와 입자의 수송은 입자의 모양과 크기, 표면 특성, 입자가 놓인 환경에 따라 달라진다. 개별 입자를 직접 관찰하는 실험이 발전하면서 이런 거동을 입자 단위로 추적할 수 있게 되었지만, 어떤 조건에서 질서 있는 구조가 형성되는지, 제한된 공간의 입자가 왜 예상과 다르게 움직이는지는 관찰만으로 설명하기 어렵다.
+
+우리 연구실에서는 콜로이드 계를 입자 수준 모형으로 구성해 이 물음을 다룬다. 입자의 모양과 배열, 표면 특성, 그리고 액적이나 얇은 액체층 같은 구속 조건이 집합체의 구조와 입자의 이동·응집과 어떻게 연관되는지를 계산으로 규명하고, 그 결과를 단일 입자 수준의 실험 관찰과 정량적으로 비교한다.`,
     icon: "Hexagon",
     color: "#f59e0b",
     gridSpan: [2, 2],
-    tags: ["Self-Assembly", "Polymer Brush", "Polymer Physics"],
+    tags: ["Self-Assembly", "Nanoparticle", "Colloidal Dynamics", "Nanoparticle Imaging"],
+  },
+  {
+    id: "polymer-simulation",
+    title: "Molecular Simulation of Polymers",
+    titleKo: "고분자 분자 모사",
+    tagline: "Chain-level simulation of polymer ordering and interactions",
+    taglineKo: "사슬 수준에서 계산하는 고분자의 정렬과 상호작용",
+    description: `Polymer properties are set by monomer chemistry together with chain length, connectivity, and the way chains entangle and arrange. Our lab studies this relationship with chain-level molecular simulation. Block copolymers, chains built from chemically distinct blocks, order into periodic nanostructures, and the ordering transition sits behind a free-energy barrier too large to cross in ordinary simulation time. We design order parameters that measure the target structures and run enhanced sampling along them, computing the pathway of ordering and the free-energy landscape of the transition.
+
+A polymer brush also exerts forces on objects placed inside it. Chains excluded from the region around an object, or piled above it, generate attraction and repulsion between embedded objects. Our lab computes the free energy of these interactions with coarse-grained simulation and polymer theory, varying brush height, grafting density, and the size and shape of the objects, to determine the conditions under which embedded objects aggregate.`,
+    descriptionKo: `고분자의 물성은 단위체의 화학과 함께 사슬의 길이와 연결 구조, 사슬들이 얽히고 배열되는 방식으로 정해진다. 우리 연구실에서는 사슬 수준의 분자 모사로 이 관계를 연구한다. 서로 다른 블록을 이어 붙인 블록 공중합체는 주기적인 나노 구조로 정렬하는데, 이 전이는 큰 자유 에너지 장벽 뒤에 있어 보통의 시뮬레이션 시간 안에 일어나지 않는다. 목표 구조를 재는 order parameter를 설계하고 그 좌표를 따라 enhanced sampling을 수행해, 정렬이 어떤 경로를 거치는지와 그 자유 에너지 지형을 계산한다.
+
+고분자 브러시는 그 내부에 놓인 물체에도 힘을 미친다. 사슬이 물체 주위에서 배제되거나 물체 위를 덮으면서 물체 사이에 인력과 척력이 생긴다. 우리 연구실에서는 브러시의 높이와 접합 밀도, 물체의 크기와 형상을 바꾸어 가며 이 상호작용의 자유 에너지를 조대화 시뮬레이션과 고분자 이론으로 계산하고, 어떤 조건에서 물체가 응집하는지를 규명하는 연구를 한다.`,
+    icon: "Layers",
+    color: "#f43f5e",
+    gridSpan: [1, 1],
+    tags: ["Polymer Physics", "Polymer Brush"],
   },
   {
     id: "aqueous-solution",
     title: "Aqueous Chemistry with Machine-Learning Force Fields",
     titleKo: "머신러닝 역장으로 다루는 수용액 화학",
     tagline:
-      "Models trained on quantum calculations follow water, ions, and chemical reactions",
-    taglineKo: "양자 계산을 학습한 모형으로 물과 이온의 움직임, 화학 반응을 추적한다",
-    description: `A machine-learning force field (MLFF) is trained on quantum-mechanical calculations to predict atomic energies and forces. It extends aqueous and reactive simulations to larger systems and longer times than direct quantum calculations. In alkali chloride solutions, different positive ions (cations) either slow or accelerate water diffusion. The conventional force fields evaluated in this study predict slowing for every salt. An MLFF and direct quantum simulations reproduce the experimentally observed split. Correlated molecular motion distinguishes the solutions. Across the salts and model families in this study, rescaling diffusion by the distance and time over which water molecules move together places the results on a common comparison curve.
+      "Ion effects and solvation dynamics in liquid water",
+    taglineKo: "물의 집단 운동과 이온 수화",
+    description: `The measurable properties of liquid water, such as diffusion, dielectric relaxation, and the rearrangement of the hydrogen bond network, arise from many molecules moving together, so any calculation that reproduces them needs quantum-mechanical accuracy and long statistics at the same time. Direct quantum simulation supplies the accuracy but reaches only small systems over short times, while classical force fields run long and leave out the many-body interactions among water molecules. Machine-learning force fields trained on quantum-mechanical data removed that trade-off, and collective motion in aqueous systems became something one can watch at first-principles quality for as long as the statistics demand.
 
-The same modeling strategy resolves distinct chemical problems. As an aluminum ion completes its surrounding water layers, coordinated motion across the first and second layers opens a site for water arriving from beyond the second layer. For pure water, a separate quantum-trained model reproduces its response to changing electric fields and connects the high-frequency signal to coupled hydrogen-bond motion. A reactive MLFF can also follow bonds breaking and forming during acetic-acid oxidation in supercritical water, meaning water at high temperature and pressure. It recovers pathways through short-lived reactive fragments and complete oxidation. Training coverage near high-energy barrier structures controls barrier accuracy; sparse coverage lowers the predicted barriers.`,
-    descriptionKo: `머신러닝 역장(MLFF)은 양자역학 계산을 학습해 원자의 에너지와 힘을 예측하는 모형이다. 직접 양자 계산보다 큰 계와 긴 시간까지 수용액과 반응 시뮬레이션을 넓힌다. 알칼리 염화물 수용액에서는 양전하를 띤 이온인 양이온의 종류에 따라 물의 확산이 느려지거나 빨라진다. 이 연구에서 평가한 기존 역장은 모든 염에서 물이 느려진다고 예측했다. MLFF와 직접 양자 계산은 실험에서 관찰된 염별 차이를 재현했다. 물 분자가 서로 맞물려 움직이는 방식이 염별 차이를 가른다. 연구에서 다룬 염과 모형군의 확산을 물이 함께 움직이는 거리와 시간으로 환산해 하나의 곡선에서 비교했다.
+Our lab uses these potentials to investigate how water and dissolved ions move together. We examine how an ion reshapes the collective motion of the water around it, and why water speeds up near some ions and slows down near others as ion identity and concentration change. The same simulations follow how a solvation shell is completed, which water molecule reaches the ion and by what route, and how long it stays before exchanging with the surrounding liquid. We study how changes in physical and chemical conditions, such as ion identity and concentration, temperature and pressure, and applied electric fields, relate to the structural and dynamical behavior of water at the level of single molecules and of their collective motion.`,
+    descriptionKo: `액체 상태의 물의 성질은 독립된 분자의 개별 상태로 이해할 수 없다. 확산, 유전 완화, 수소 결합 네트워크의 재배열은 여러 분자의 집단적인 움직임에서 나오는 양이어서, 계산으로 재현하려면 양자역학 수준의 정확도와 긴 시간의 통계가 동시에 필요하다. 양자 계산은 정확하지만 다룰 수 있는 계의 크기와 시간이 제한되고, 고전 역장은 긴 시간 규모를 다루지만 물 분자 사이의 many-body 상호작용을 기술하지 못한다. 양자역학 계산을 학습한 머신러닝 역장이 이 제약을 해소하여, 수용액의 집단 운동을 제일원리 수준의 정확도로 긴 시간에 걸쳐 추적할 수 있게 되었다.
 
-같은 모델링 전략으로 서로 다른 화학 문제를 푼다. 알루미늄 이온을 둘러싼 물층이 완성될 때는 첫째와 둘째 물층의 움직임이 맞물려 빈자리를 열고 둘째 층 바깥에 있던 물이 들어온다. 순수한 물에서는 별도로 학습한 모형이 변하는 전기장에 대한 반응을 재현하고 고주파 신호를 수소 결합의 집단 운동과 연결한다. 반응용 MLFF는 고온·고압의 물인 초임계수에서 결합이 끊어지고 새로 생기는 과정도 따라간다. 짧은 수명의 반응성 단편과 완전 산화 경로가 궤적에 나타난다. 에너지 장벽 부근의 학습 구조가 장벽 정확도를 좌우하며 구조가 적으면 장벽을 낮게 예측한다.`,
+우리 연구실에서는 이 퍼텐셜로 물과 이온의 동역학을 규명하는 연구를 한다. 용해된 이온이 주변 물의 집단 운동을 어떻게 바꾸는지, 이온의 종류와 농도에 따라 물의 확산이 빨라지거나 느려지는 현상이 어디에서 비롯되는지 확인한다. 같은 시뮬레이션으로 이온을 둘러싼 solvation shell이 어떤 경로로 채워지는지, 배위된 물 분자가 얼마나 머무른 뒤 주변과 교환되는지도 추적한다. 이온의 종류와 농도, 온도와 압력, 외부 전기장 같은 물리적·화학적 조건의 변화가 분자 하나 혹은 분자 집단 수준의 구조적·동역학적 특성과 어떻게 연관되는지를 분자 수준의 계산화학 방법론으로 연구한다.`,
     icon: "Droplets",
     color: "#3b82f6",
     gridSpan: [1, 1],
-    tags: ["Water", "Dissolution", "MLFF"],
+    tags: ["Water", "Dissolution"],
+  },
+  {
+    id: "reaction-mlff",
+    title: "Chemical Reaction Simulation with Ab Initio and Machine-Learning Methods",
+    titleKo: "제일원리 계산과 머신러닝 역장으로 모사하는 화학 반응",
+    tagline: "Reactive dynamics, pathways, and intermediates from first-principles and learned potentials",
+    taglineKo: "제일원리와 학습 퍼텐셜로 계산하는 반응 동역학과 경로, 중간체",
+    description: `A chemical reaction breaks and forms bonds, which fixed-bond classical force fields cannot represent. Ab initio dynamics, which solves for the electrons directly, follows a reaction as it happens but is limited in system size and time. A reactive machine-learning force field learns from ab initio calculations that include bond changes and carries their accuracy to larger systems and longer times. Our lab uses the two methods together to study reactions in solution and under extreme conditions. Varying temperature, pressure, and composition, we determine the intermediates and pathways through which a reaction proceeds and the conditions that control its rate and products. Because the accuracy of a predicted pathway depends on training data near transition states, we refine the model by active learning, returning high-uncertainty structures to ab initio calculation.`,
+    descriptionKo: `화학 반응은 결합이 끊어지고 새로 형성되는 과정이어서, 결합을 고정해 둔 고전 역장으로는 모사할 수 없다. 전자를 직접 푸는 제일원리 동역학은 반응을 그대로 따라가지만 다룰 수 있는 시간과 크기가 제한된다. 반응성 머신러닝 역장은 결합 변화가 포함된 제일원리 계산을 학습해, 그 정확도를 유지한 채 더 큰 계와 긴 시간에서 반응 동역학을 모사한다. 우리 연구실에서는 두 방법을 함께 써서 용액과 극한 조건에서 일어나는 반응을 연구한다. 온도와 압력, 반응물의 조성을 바꾸어 가며 반응이 어떤 중간체와 경로를 거쳐 진행하는지, 어떤 조건이 반응 속도와 생성물을 결정하는지를 규명한다. 반응 경로의 정확도는 전이 상태 부근의 학습 데이터가 좌우하므로, 불확실성이 큰 구조를 제일원리 계산으로 되돌려 보강하는 능동 학습으로 모형을 다듬는다.`,
+    icon: "FlaskConical",
+    color: "#8b5cf6",
+    gridSpan: [1, 1],
+    tags: ["Reaction"],
   },
   {
     id: "glass",
     title: "Glass Dynamics and Microrheology",
     titleKo: "유리의 동역학과 미시유변학",
     tagline:
-      "One moving probe reveals how a glass resists and relaxes",
-    taglineKo: "움직이는 탐침 하나로 유리가 버티고 풀리는 과정을 읽는다",
-    description: `Active microrheology reads how the surrounding material responds from the force on a small driven probe. In molecular dynamics, a simulation that follows atomic motion over time, one particle is pulled at constant velocity through a model glass, a solid with disordered atomic structure. The trajectory samples differences between the neighborhoods it crosses. Deforming the whole sample provides the corresponding average response. Comparing the local friction curve with that average shows how faithfully the probe reports the material. On cooling, a threshold force appears below which the probe remains trapped. Friction relaxes in two stages: motion inside a temporary cage of neighbors, followed by escape as the structure rearranges.
-
-A later study extracts both time scales from the friction signal of a single trajectory. As the drive slows, steady fluctuations give way to fluctuations with long-time memory. The correlated region inferred from this crossover changes sharply near the trapping boundary and grows as the glass cools. The method therefore turns one local force record into a measure of how relaxation varies across the material.`,
-    descriptionKo: `능동 미시유변학은 움직이는 작은 탐침에 걸리는 힘으로 주변이 얼마나 쉽게 변형되는지 읽는다. 분자의 움직임을 시간에 따라 계산하는 분자동역학 안에서 입자 하나를 일정한 속도로 모형 유리에 끌고 간다. 유리는 원자가 불규칙하게 배열된 고체다. 탐침의 궤적은 지나간 영역마다 달라지는 반응을 보여 준다. 시료 전체를 변형한 결과에서는 평균 반응을 얻는다. 탐침 주변의 마찰 곡선을 이 평균과 비교해 탐침이 재료의 성질을 얼마나 충실히 읽는지 평가한다. 유리를 식히면 탐침이 움직이기 시작하는 임계 힘이 나타난다. 마찰이 풀리는 완화 과정은 이웃이 만든 임시 우리 안의 운동과 구조가 재배열되며 그 우리를 벗어나는 운동으로 나뉜다.
-
-후속 연구에서는 궤적 하나의 마찰 신호에서 두 시간 척도를 분리했다. 탐침을 천천히 끌수록 일정하던 요동에 긴 시간의 기억이 생긴다. 이 전환에서 추정한 함께 움직이는 영역의 크기는 탐침이 갇히는 경계 부근에서 급격히 달라지고 유리가 식을수록 커진다. 탐침 주변의 힘 기록 하나로 재료 내부의 완화 속도가 위치마다 어떻게 다른지 측정한다.`,
+      "Particle-level measurement of the glass transition",
+    taglineKo: "입자 수준에서 재는 유리 전이",
+    description: `A glass keeps the disordered structure of a liquid and still holds its shape the way a crystal does, and why it can do both is unsettled. The dynamics inside such a material are patchy: some regions rearrange quickly while their neighbors stay frozen for long stretches, and a measurement that presses on the whole sample returns one averaged response in which that patchwork disappears. Our lab measures locally instead. In simulation we drag a single particle through the material at fixed velocity and record the force acting on it, reading the resistance of the neighborhoods it crosses one at a time. Varying temperature and the strength of the drive, we look for the conditions under which the material stops yielding to the probe and holds it in place, and we obtain the sizes and lifetimes of the slow regions from the way the recorded force fluctuates. The aim is a description of the glass transition stated at the level of single particles.`,
+    descriptionKo: `유리는 액체의 무질서한 구조를 그대로 지닌 채 결정처럼 형태를 유지한다. 무질서한 구조와 고체의 강성이 어떻게 양립하는지는 아직 밝혀지지 않았다. 유리 내부의 동역학은 균일하지 않아서, 빠르게 재배열되는 영역과 오랫동안 거의 움직이지 않는 영역이 한 시료 안에 공존한다. 시료 전체에 힘을 가하는 측정에서는 이러한 불균일성이 평균화되어 드러나지 않는다. 우리 연구실은 이를 국소적으로 측정한다. 시뮬레이션에서 탐침 입자 하나를 일정한 속도로 재료 속에서 끌며 그 입자에 걸리는 힘을 기록하면, 탐침이 지나는 국소 영역의 저항을 순차적으로 얻는다. 온도와 구동 세기를 바꿔 가며 재료가 더 이상 항복하지 않고 탐침을 구속하는 조건을 찾고, 힘의 요동으로부터 느린 영역의 크기와 수명을 추출한다. 이를 바탕으로 유리 전이가 개별 입자의 운동에 어떻게 반영되는지를 규명하는 연구를 진행한다.`,
     icon: "Atom",
     color: "#06b6d4",
     gridSpan: [1, 1],
     tags: ["Metallic Glass"],
   },
   {
-    id: "colloidal-dynamics",
-    title: "Colloidal Structure, Transport, and Optics",
-    titleKo: "콜로이드의 구조·수송·광학",
-    tagline:
-      "Particle shape and packing control color, connected paths, and motion in tight spaces",
-    taglineKo: "입자의 모양과 배열이 색과 연결 경로, 좁은 공간의 움직임을 정한다",
-    description: `Colloids are small particles dispersed in a fluid. Silica particles dried inside water droplets dispersed in another liquid assemble into ordered, 20-faced icosahedral clusters when water leaves slowly; fast drying produces onion-like shells. Three-dimensional confocal microscopy images particle positions inside the droplet, molecular dynamics in a shrinking cavity builds model clusters, and electromagnetic calculations predict reflected colors that match the measurements. The ordered clusters produce stronger, more saturated color from their particle arrangement. The reflected wavelength stays similar across cluster orientations. A thin carbon shell suppresses background scattering and makes the color cleaner.
-
-Charge moves through a colloidal nanocrystal film by jumping between particles, so conduction begins once contacts span the film. Shape-based simulations show that branched and longer-armed particles form a connected path at lower density and need fewer jumps. The simulations use this geometric network as a structural indicator of conduction. Films made from four-armed CdSe tetrapods support the connection: longer-armed particles conduct better and retain most of that conductivity when bent repeatedly. Graphene liquid-cell electron microscopy follows single nanoparticles in confined liquid. Nanoparticle mobility is reduced on average, and the trajectories contain rare, long steps. A model with an environment-dependent local diffusion rate reproduces these statistics and attributes the slowdown to strong confinement resistance. As two particles merge, surface coatings first keep them apart; the particles then rotate into contact.`,
-    descriptionKo: `콜로이드는 액체에 작은 입자가 퍼져 있는 계다. 다른 액체에 물방울이 퍼진 에멀전 안의 실리카 입자는 물이 천천히 빠질 때 정이십면체 모양의 질서 있는 집합체로 조립되고 빠르게 마르면 동심 껍질 구조에 갇힌다. 물방울 내부의 입자 위치를 보는 3차원 공초점 현미경으로 조립 경로를 따라가고 줄어드는 구형 공간 안에서 분자동역학으로 모형 집합체를 만든 뒤 전자기 계산으로 반사색을 예측한다. 계산은 측정값과 잘 맞는다. 질서 있는 집합체는 입자 배열이 만드는 색이 더 선명하고 채도가 높다. 가장 강하게 반사하는 빛의 파장은 보는 방향에 따른 변화가 작다. 얇은 탄소 껍질은 배경 산란을 줄여 색을 더 또렷하게 만든다.
-
-콜로이드 나노결정 막에서는 전하가 입자 사이를 건너뛴다. 입자 접촉이 막을 가로질러 이어져야 전도 경로가 생긴다. 입자의 모양과 접촉을 표현한 시뮬레이션에서는 가지가 많거나 팔이 긴 입자가 더 낮은 밀도에서 연결 경로를 만들고 경로를 따라 건너야 할 접촉 수도 줄었다. 이 기하학적 연결망을 전도 가능성을 나타내는 구조 지표로 사용했다. 팔이 네 개인 CdSe 테트라포드 막에서도 팔이 긴 입자가 더 잘 통하고 반복해서 굽혀도 전도도를 대부분 유지했다. 그래핀 액체 셀 전자현미경은 그래핀 사이에 액체를 가둔 뒤 나노입자를 하나씩 추적한다. 나노입자는 평균적으로 이동성이 낮았고 드물게 긴 이동을 보였다. 위치에 따라 확산 속도가 달라지는 모형은 이 통계를 재현하고 느린 움직임을 구속 저항과 연결한다. 두 입자가 합쳐질 때는 표면을 덮은 분자층이 입자 사이의 간격을 유지하는 단계를 거친 뒤 입자가 회전해 서로 붙는다.`,
-    icon: "Orbit",
-    color: "#f43f5e",
-    gridSpan: [1, 1],
-    tags: ["Colloidal Dynamics"],
-  },
-  {
     id: "hydrogel",
     title: "Multiscale Modeling of Hydrogels",
     titleKo: "하이드로겔 멀티스케일 모델링",
     tagline:
-      "Chain shape controls stiffness; chemical sequence controls when a gel forms",
-    taglineKo: "사슬 모양은 단단함을, 화학적 배열은 겔이 생기는 조건을 정한다",
-    description: `A hydrogel is a water-rich polymer network. Its stiffness depends on how many links join the chains, how much water it holds, and the shape of the chain segments between those links. A coarse-grained model groups atoms into simpler units and is tuned against simulations that represent every atom, allowing it to reach larger networks. Its predicted stiffness agrees with synthesized polyacrylamide gels. At fixed water content and polymer chemistry, the balance between folded and swollen strands changes stiffness. Under tension, contacts within and between strands reorganize differently depending on whether the strands begin folded or swollen. Chain shape supplies an independent design variable at fixed composition. For PLGA-PEG-PLGA copolymers, polymers built from more than one kind of repeating chemical unit, experiments and coarse-grained simulations show that the order of those units changes how molecular clusters called micelles bridge or merge near body temperature, shifting when the gel forms and how quickly it releases a drug.`,
-    descriptionKo: `하이드로겔은 물을 많이 머금은 고분자 그물이다. 단단함은 사슬을 잇는 결합의 수와 물의 양, 결합 사이에 놓인 사슬 모양에 따라 달라진다. 원자 여러 개를 단순한 단위로 묶은 조대화 모형을 모든 원자를 나타내는 전원자 시뮬레이션에 맞춰 조정해 더 큰 고분자 그물까지 계산한다. 이 모형이 예측한 단단함은 합성한 폴리아크릴아마이드 겔의 측정값과 맞았다. 물의 양과 고분자 화학을 고정하면 접힌 사슬과 물을 머금어 부푼 사슬의 비율이 단단함을 바꾼다. 잡아당길 때는 사슬 안의 접촉과 사슬 사이의 접촉이 초기 사슬 모양에 따라 다르게 재편된다. 사슬 모양은 같은 조성 안에서 조절할 수 있는 설계 변수다. 두 종류 이상의 화학 단위가 반복되는 PLGA-PEG-PLGA 공중합체에서는 실험과 조대화 시뮬레이션을 결합했다. 반복 단위의 배열이 미셀이라는 분자 집합체의 연결과 합체를 바꾸고 겔이 생기는 시점과 약물이 빠져나오는 속도도 달라졌다.`,
+      "Molecular design of water-swollen polymer networks",
+    taglineKo: "물을 머금은 고분자 그물의 분자 설계",
+    description: `A hydrogel is a polymer network that holds water inside it. Macroscopic properties such as stiffness, gelation temperature, and swelling behavior are decided by choices made at the molecular level. They include the cross-linking density, the length and conformation of the strands between cross-links, the monomer sequence along a chain, and the water content. Composition alone does not settle the answer, since chains of the same chemistry can arrange themselves in ways that give different mechanical and gelation behavior. Which of these choices to change to reach a target property remains an open question.
+
+Our lab works on that mapping with coarse-grained simulation, which groups atoms into larger interaction sites and makes a full water-swollen network tractable. The bonded and nonbonded interactions of the coarse-grained model are calibrated against atomistic reference simulations, and the mechanical response of the simulated network is placed alongside tensile measurements on synthesized gels. We also investigate how chain-level variables such as monomer sequence and block architecture relate to gelation behavior.`,
+    descriptionKo: `하이드로겔은 다량의 물을 함유한 고분자 네트워크다. 강성, 겔화 온도, 팽윤 거동 같은 거시 물성은 분자 수준의 설계 선택으로 결정된다. 가교 밀도, 가교점 사이 사슬의 길이와 conformation, 사슬 내 monomer의 배열 순서, 함수량이 대표적인 설계 변수다. 화학 조성이 같아도 사슬의 배열에 따라 역학 거동과 겔화 거동이 달라지므로, 목표 물성에 도달하려면 어느 변수를 어떻게 조절해야 하는지는 아직 체계적으로 밝혀져 있지 않다.
+
+우리 연구실에서는 여러 원자를 하나의 상호작용 단위로 묶는 조대화 시뮬레이션으로 물을 함유한 네트워크 전체를 다루며, 이 대응 관계를 규명한다. 조대화 모형의 결합과 비결합 상호작용은 전원자 시뮬레이션을 기준으로 보정하고, 계산한 역학 응답은 합성한 겔의 인장 측정과 비교한다. monomer 배열과 블록 구조 같은 사슬 수준의 변수가 겔화 거동과 어떻게 연관되는지도 확인한다.`,
     icon: "FlaskConical",
     color: "#10b981",
     gridSpan: [1, 1],
@@ -93,8 +109,8 @@ Charge moves through a colloidal nanocrystal film by jumping between particles, 
     titleKo: "공동 연구",
     tagline: "Targeted models connect observations in experiment-led studies",
     taglineKo: "목적에 맞는 계산 모형으로 실험 관측을 잇는다",
-    description: `Experiment-led collaborations use targeted models to connect observations. Simulations locate strain in soft, polymer-rich regions of a stretchable silver-gold nanowire composite. The conductive network remains intact during extension. A thermodynamic film model explains why a perovskite precursor moves onto water-attracting patterns and why faster spinning improves yield. An optical model, checked against measured plates, estimates window-scale efficiency for a clear luminescent solar concentrator that guides emitted light to edge-mounted solar cells.`,
-    descriptionKo: `실험 중심 공동 연구에서는 목적에 맞는 모형으로 관측 사이의 관계를 밝힌다. 시뮬레이션은 늘어나는 은-금(Ag-Au) 나노선 복합체의 변형이 부드러운 고분자 영역에 모이는 과정을 보여 줬다. 재료가 늘어나는 동안 전도성 연결망은 유지됐다. 열역학 모형은 페로브스카이트 전구체가 물을 끌어당기는 패턴으로 이동하고 회전 속도가 빨라질수록 패턴 형성률이 높아지는 이유를 설명한다. 측정한 시편으로 검증한 광학 모형은 방출광을 가장자리 태양전지로 보내는 투명 발광 집광판을 창문 크기로 키웠을 때의 효율을 추정한다.`,
+    description: `Experiment-led collaborations use targeted models to connect observations. Simulations locate strain in soft, polymer-rich regions of a stretchable silver-gold nanowire composite. The conductive network remains intact during extension. A thermodynamic film model explains why a perovskite precursor moves onto water-attracting patterns and why faster spinning improves yield. An efficiency model, checked against measured plates, estimates window-scale performance for a clear luminescent solar concentrator that guides emitted light to edge-mounted solar cells.`,
+    descriptionKo: `실험 중심 공동 연구에서는 목적에 맞는 모형으로 관측 사이의 관계를 밝힌다. 시뮬레이션은 늘어나는 은-금(Ag-Au) 나노선 복합체의 변형이 부드러운 고분자 영역에 모이는 과정을 보여 줬다. 재료가 늘어나는 동안 전도성 연결망은 유지됐다. 열역학 모형은 페로브스카이트 전구체가 물을 끌어당기는 패턴으로 이동하고 회전 속도가 빨라질수록 패턴 형성률이 높아지는 이유를 설명한다. 측정한 시편으로 검증한 효율 모형은 방출광을 가장자리 태양전지로 보내는 투명 발광 집광판을 창문 크기로 키웠을 때의 효율을 추정한다.`,
     icon: "FlaskConical",
     color: "#9ca3af",
     gridSpan: [1, 1],
