@@ -36,7 +36,16 @@
     "allYears": "All Years",
     "allTags": "All Tags",
     "noResults": "No publications match the current filters.",
-    "preprint": "Preprint"
+    "preprint": "Preprint",
+    "manuscripts": {
+      "title": "Manuscripts in Progress",
+      "workingTitle": "working title",
+      "status": {
+        "underReview": "Under review",
+        "submitted": "Submitted",
+        "inPreparation": "In preparation"
+      }
+    }
   },
   "people": {
     "title": "People",

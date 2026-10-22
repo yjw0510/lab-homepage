@@ -134,8 +134,8 @@ const publicationFiles = readdirSync(publicationDir)
   .filter((name) => name.endsWith(".mdx"))
   .sort();
 
-if (publicationFiles.length !== 22) {
-  fail(`Publications: found ${publicationFiles.length}; expected 22`);
+if (publicationFiles.length !== 23) {
+  fail(`Publications: found ${publicationFiles.length}; expected 23`);
 }
 
 for (const name of publicationFiles) {

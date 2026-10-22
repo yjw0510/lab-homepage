@@ -36,7 +36,16 @@
     "allYears": "전체 연도",
     "allTags": "전체 태그",
     "noResults": "선택한 필터에 맞는 논문이 없습니다.",
-    "preprint": "프리프린트"
+    "preprint": "프리프린트",
+    "manuscripts": {
+      "title": "진행 중인 원고",
+      "workingTitle": "가제",
+      "status": {
+        "underReview": "심사 중",
+        "submitted": "투고",
+        "inPreparation": "준비 중"
+      }
+    }
   },
   "people": {
     "title": "구성원",

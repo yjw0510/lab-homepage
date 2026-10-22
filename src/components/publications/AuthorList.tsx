@@ -1,4 +1,5 @@
-const PI_NAME = "Ji Woong Yu";
+// Published records spell the name out; in-progress manuscripts keep the CV's initials.
+const PI_NAMES = new Set(["Ji Woong Yu", "J. W. Yu"]);
 
 export function AuthorList({
   authors,
@@ -16,8 +17,8 @@ export function AuthorList({
   const corrSet = new Set(correspondingAuthors);
 
   // Derive PI role for parenthetical suffix
-  const piIsFirst = firstSet.has(PI_NAME);
-  const piIsCorr = corrSet.has(PI_NAME);
+  const piIsFirst = authors.some((a) => PI_NAMES.has(a) && firstSet.has(a));
+  const piIsCorr = authors.some((a) => PI_NAMES.has(a) && corrSet.has(a));
   let piRole: string | undefined;
   // Generated editorial annotation, not bibliographic data, so it localizes. Author names,
   // titles and journals stay as published; this sentence is the site talking.
@@ -42,7 +43,7 @@ export function AuthorList({
   return (
     <>
       {authors.map((author, i) => {
-        const isPI = author === PI_NAME;
+        const isPI = PI_NAMES.has(author);
         const isFirst = firstSet.has(author);
         const isCorr = corrSet.has(author);
         const separator = i < authors.length - 1 ? ", " : "";

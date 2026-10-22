@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicationList } from "@/components/publications/PublicationList";
+import { ManuscriptList } from "@/components/publications/ManuscriptList";
+import { manuscripts } from "../../../../data/manuscripts";
 import {
   getAllPublications,
   getAllYears,
@@ -61,6 +63,12 @@ export default async function PublicationsPage({
             allTags: dict.publications.allTags,
             noResults: dict.publications.noResults,
           }}
+        />
+
+        <ManuscriptList
+          manuscripts={manuscripts}
+          lang={lang}
+          labels={dict.publications.manuscripts}
         />
       </div>
     </div>
