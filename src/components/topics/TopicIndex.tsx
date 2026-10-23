@@ -50,12 +50,14 @@ export function TopicIndex({
           {/* Same shape as the section above. A strong rule with nothing on it reads as a gap
               in the ledger rather than the start of a group: 48px of space, the rule, 16px
               more, then the first row's own hairline 17px below the first. */}
+          {/* This title wraps at phone width; the anchor centres on its first line, not
+              between the two. On one line it sits where `self-center` puts it. */}
           <h2 className="type-title flex items-baseline border-t border-border-strong pt-4 text-[28px] text-foreground">
             <span
               aria-hidden="true"
-              className="mr-3 inline-block h-2.5 w-2.5 shrink-0 self-center bg-primary"
+              className="mr-3 mt-[calc(0.5lh-5px)] inline-block h-2.5 w-2.5 shrink-0 self-start bg-primary"
             />
-            {lang === "ko" ? "그 외" : "Other"}
+            {lang === "ko" ? "공동 연구와 새 연구 방향" : "Collaborations and new directions"}
           </h2>
           <div className="mt-4">
             {others.map((topic) => (

@@ -12,6 +12,8 @@
   --background: #f5f5f5;
   --foreground: #1a1a1a;
   --primary: #c3272b;
+  /* Button fill, split from the mark red so dark mode can step down one shade (below). */
+  --primary-fill: #c3272b;
   --accent-ink: #1e4c9a;
   --primary-foreground: #f5f5f5;
   --card: #fcfcfc;
@@ -50,7 +52,7 @@
 
   /* Schematic structural colors (scientific layer) */
   --sch-ink: #334155;
-  --sch-muted: #64748b;
+  --sch-muted: #4f5d72; /* #64748b measured 4.36:1 on the #f5f5f5 paper and 3.4:1 on the MLFF wash */
   --sch-bond: #2b2d42;
   --sch-carbon: #6b7280;
 
@@ -92,6 +94,9 @@
   --background: #100f0f;
   --foreground: #cecdc3;
   --primary: #d14d41;
+  /* Flexoki red-500. The paper label measures 4.21:1 on red-400, under AA for 16px text,
+     and 5.13:1 here. red-400 stays the mark colour, where 3:1 is the floor. */
+  --primary-fill: #c03e35;
   --accent-ink: #4385be;
   --primary-foreground: #fffcf0;
   --card: #1c1b1a;
@@ -158,6 +163,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-fill: var(--primary-fill);
   --color-accent-ink: var(--accent-ink);
   --color-primary-foreground: var(--primary-foreground);
   --color-card: var(--card);
@@ -288,6 +294,17 @@ body {
   transition: none;
 }
 
+/* The skip link's target is the page's main landmark, not a control: no ring around the page. */
+#main:focus-visible {
+  outline: none;
+}
+
+/* Phone menu links span the full screen width, so a 2px outset ring lost its left and right
+   sides off-screen. Inset it there. */
+#mobile-nav-sheet a:focus-visible {
+  outline-offset: -2px;
+}
+
 ::selection {
   background: var(--accent);
   color: var(--accent-foreground);
@@ -307,15 +324,16 @@ body {
 /* Signature system: the scale ruler (DESIGN.md §7).
    Hairline baseline, minor ticks every 24px, major ticks every 120px,
    signal-red origin tick. Used ONLY on home scale-index, footer colophon,
-   multiscale overview header. */
+   multiscale overview header. Majors are the first layer so they paint over
+   the minors; the other order drew each major in two tones. */
 .scale-ruler {
   position: relative;
   height: 10px;
   border-bottom: 1px solid var(--border-strong);
   background-image:
-    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 120px);
-  background-size: 100% 5px, 100% 10px;
+    repeating-linear-gradient(90deg, var(--border-strong) 0 1px, transparent 1px 120px),
+    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 24px);
+  background-size: 100% 10px, 100% 5px;
   background-position: bottom left, bottom left;
   background-repeat: no-repeat;
 }
@@ -327,6 +345,35 @@ body {
   width: 2px;
   height: 10px;
   background: var(--primary);
+}
+
+/* Home scale index: the ruler as a real four-decade log axis, 0.1 nm to 1 µm. Majors at each
+   decade (0, 25, 50, 75, 100%), minors at log10(2…9) inside each one, so labels and tier spans
+   placed at those percentages sit on their ticks. */
+.scale-ruler-log {
+  --decade: linear-gradient(90deg,
+    transparent 0 30.103%, var(--border) 0 calc(30.103% + 1px),
+    transparent 0 47.712%, var(--border) 0 calc(47.712% + 1px),
+    transparent 0 60.206%, var(--border) 0 calc(60.206% + 1px),
+    transparent 0 69.897%, var(--border) 0 calc(69.897% + 1px),
+    transparent 0 77.815%, var(--border) 0 calc(77.815% + 1px),
+    transparent 0 84.510%, var(--border) 0 calc(84.510% + 1px),
+    transparent 0 90.309%, var(--border) 0 calc(90.309% + 1px),
+    transparent 0 95.424%, var(--border) 0 calc(95.424% + 1px),
+    transparent 0);
+  background-image:
+    linear-gradient(90deg,
+      var(--border-strong) 0 1px, transparent 0 25%,
+      var(--border-strong) 0 calc(25% + 1px), transparent 0 50%,
+      var(--border-strong) 0 calc(50% + 1px), transparent 0 75%,
+      var(--border-strong) 0 calc(75% + 1px), transparent 0 calc(100% - 1px),
+      var(--border-strong) 0),
+    var(--decade), var(--decade), var(--decade), var(--decade);
+  /* A 25%-wide layer at position p% lands at p% of the remaining 75%, so 0 / 33.333 / 66.667 /
+     100% put the four decades at 0 / 25 / 50 / 75% of the ruler exactly. */
+  background-size: 100% 10px, 25% 5px, 25% 5px, 25% 5px, 25% 5px;
+  background-position: 0 100%, 0 100%, 33.333% 100%, 66.667% 100%, 100% 100%;
+  background-repeat: no-repeat;
 }
 
 /* Reveal policy (DESIGN.md §5): content is visible without JS.
@@ -605,6 +652,19 @@ body {
   stroke: rgb(237 233 254 / 0.94);
   stroke-width: 1.2;
   vector-effect: non-scaling-stroke;
+}
+
+/* The cyan tints above are tuned for the dark ground. On light paper the cutoff outline measured
+   1.11:1 and the radius and message lines vanished, so light mode takes the token's light step. */
+:root:not(.dark) .mlff-exact-cutoff-shell,
+:root:not(.dark) .mlff-exact-cutoff-radius {
+  stroke: var(--sch-stretch);
+}
+
+:root:not(.dark) .mlff-exact-message-edge,
+:root:not(.dark) .mlff-exact-neighbor-anchor {
+  stroke: var(--sch-stretch);
+  stroke-opacity: 0.7;
 }
 
 @keyframes mlff-exact-source-emit {

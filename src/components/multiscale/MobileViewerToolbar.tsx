@@ -9,6 +9,8 @@ interface Props {
   lang: string;
   isOpen: boolean;
   onToggle: () => void;
+  /** False where the stage offers Reset only (meso, MLFF). */
+  showFit?: boolean;
 }
 
 const ACTIONS = [
@@ -21,7 +23,7 @@ const ACTIONS = [
 const BTN =
   "flex h-12 w-full items-center justify-center text-foreground transition-colors hover:bg-muted";
 
-export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }: Props) {
+export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle, showFit = true }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on click outside
@@ -42,7 +44,7 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
       className="absolute bottom-3 right-3 z-10"
       data-testid="mobile-viewer-toolbar"
     >
-      {/* Trigger sits in the bottom corner, clear of the sticky step navigation. */}
+      {/* Trigger sits in the bottom corner, clear of the step navigation above the scene. */}
       <button
         type="button"
         className="flex h-12 w-12 flex-shrink-0 items-center justify-center border border-border-strong bg-surface-raised text-foreground transition-colors hover:bg-muted"
@@ -62,14 +64,14 @@ export function MobileViewerToolbar({ cameraActionsRef, lang, isOpen, onToggle }
             className="absolute bottom-[3.5rem] right-0 grid w-[6.5rem] grid-cols-2 gap-1 border border-border-strong bg-surface-raised p-1"
             data-testid="mobile-viewer-toolbar-tray"
           >
-            {ACTIONS.map((action) => {
+            {ACTIONS.filter((action) => showFit || action.key !== "fit").map((action) => {
               const Icon = action.icon;
               const label = lang === "ko" ? action.ko : action.en;
               return (
                 <button
                   key={action.key}
                   type="button"
-                  className={BTN}
+                  className={`${BTN} ${action.key === "reset" && !showFit ? "col-span-2" : ""}`}
                   onClick={() => {
                     cameraActionsRef.current?.[action.key as keyof ResearchCameraActions]?.();
                   }}

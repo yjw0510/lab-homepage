@@ -38,8 +38,8 @@ export const MULTISCALE_PANEL = {
 export const MOBILE_SCENE_HEIGHT: Record<string, number> = {
   D6_outputs: 460,
   D4_scf: 460,
-  L1_why: 1520,
-  L5_energy_force: 1640,
+  L1_why: 1382,
+  L5_energy_force: 1497,
   A6_observables: 420,
   A3_forcefield: 420,
   M5_collective: 380,

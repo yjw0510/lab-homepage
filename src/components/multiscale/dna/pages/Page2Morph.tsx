@@ -23,7 +23,27 @@ function centerOf(positions: Float32Array | null): [number, number, number] {
   return [x / n, y / n, z / n];
 }
 
+/**
+ * The replacement is the scene's whole message, so it loops: atoms held, the morph, beads
+ * held, a quick return, again. Played once from mount it was over before most readers looked
+ * up from the rail, and on a slow link it ran while the assets were still in flight, so the
+ * atomistic picture it starts from never appeared. The morph's own first 0.18 is also a hold,
+ * so the atoms stand for about 1.2 s in all.
+ */
+const ATOM_HOLD_MS = 500;
 const MORPH_MS = 3800;
+const BEAD_HOLD_MS = 3000;
+const RETURN_MS = 1000;
+const CYCLE_MS = ATOM_HOLD_MS + MORPH_MS + BEAD_HOLD_MS + RETURN_MS;
+
+/** Morph phase, 0 = atoms and 1 = beads, at `elapsed` ms into the loop. */
+function loopPhase(elapsed: number) {
+  const e = elapsed % CYCLE_MS;
+  if (e < ATOM_HOLD_MS) return 0;
+  if (e < ATOM_HOLD_MS + MORPH_MS) return (e - ATOM_HOLD_MS) / MORPH_MS;
+  if (e < ATOM_HOLD_MS + MORPH_MS + BEAD_HOLD_MS) return 1;
+  return 1 - (e - ATOM_HOLD_MS - MORPH_MS - BEAD_HOLD_MS) / RETURN_MS;
+}
 
 /** Cubic ease-out over one act of the sequence, 0 before it starts and 1 after it ends. */
 const act = (t: number, from: number, to: number) => {
@@ -40,6 +60,13 @@ const act = (t: number, from: number, to: number) => {
  */
 const BEAD_BONDS: [number, number][] =
   Array.from({ length: 35 }, (_, i) => [i, i + 1]);
+
+/**
+ * Every bead is the same kind of site, one per base pair, so every bead takes one colour. Left
+ * to BeadLayer's `i % 12` fallback the strand cycled through twelve hues, which read as twelve
+ * bead types here and, since colour means chain identity on the next page, as 36 tiny chains.
+ */
+const ONE_CHAIN: number[] = Array(36).fill(0);
 
 /**
  * M2 mapping motif: atomistic-derived teaching chain fades into its 36
@@ -63,18 +90,20 @@ export function Page2Morph({
       .catch(() => {});
   }, []);
 
+  // The clock starts when there is something to draw, not at mount.
+  const ready = Boolean(assets.aaPositions && assets.aaTopology && bpBeads);
+
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || !ready) return;
     const started = performance.now();
     let frame = 0;
     const tick = (now: number) => {
-      const t = Math.min(1, (now - started) / MORPH_MS);
-      setPhase(t);
-      if (t < 1) frame = requestAnimationFrame(tick);
+      setPhase(loopPhase(now - started));
+      frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [reducedMotion]);
+  }, [reducedMotion, ready]);
 
   // The one place that knows this scene's bond lengths, so the one place the ball-and-stick
   // rule can be measured. Sticks used to be handed in at 0.006 against a 0.050 ball, a twelfth
@@ -140,6 +169,7 @@ export function Page2Morph({
       <group position={[-beadCenter[0], -beadCenter[1], -beadCenter[2]]}>
         <BeadLayer
           positions={bpBeads}
+          duplexIds={ONE_CHAIN}
           radius={beadRadius}
           opacity={beadOpacity}
         />

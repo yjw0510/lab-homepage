@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import type { Publication } from "@/types/publication";
 import type { ResearchTopic } from "@/types/topic";
 import { getTopicsForPublication } from "@/lib/topics";
 import { cn } from "@/lib/utils";
+import { keepCompounds } from "@/components/publications/keepCompounds";
 
 interface Props {
   publications: Publication[];
@@ -61,9 +63,12 @@ export function PaperOverview({
                   {i === 0 ? year : ""}
                 </span>
                 <div className="col-span-10 sm:col-span-11">
-                  <p className="text-[15px] font-[600] leading-snug text-foreground">
-                    {pub.title}
-                  </p>
+                  <Link
+                    href={`/${lang}/publications/${pub.slug}`}
+                    className="block text-[15px] font-[600] leading-snug text-foreground decoration-[1px] underline-offset-[3px] transition-colors hover:text-accent-ink hover:underline"
+                  >
+                    {keepCompounds(pub.title)}
+                  </Link>
                   <p className="mt-1 text-[13px] text-muted-foreground">
                     {pub.authors[0] === "Ji Woong Yu" ? (
                       <span className="type-lead text-lv-mlff-text">

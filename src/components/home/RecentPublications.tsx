@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { AuthorList } from "@/components/publications/AuthorList";
 import { ExternalLink } from "@/components/ui/ExternalLink";
+import { keepCompounds } from "@/components/publications/keepCompounds";
 import type { Publication } from "@/types/publication";
 
 export function RecentPublications({
@@ -42,7 +43,7 @@ export function RecentPublications({
                     href={`/${lang}/publications/${pub.slug}`}
                     className="transition-colors hover:text-accent-ink"
                   >
-                    {pub.title}
+                    {keepCompounds(pub.title)}
                   </Link>
                 </h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -56,7 +57,11 @@ export function RecentPublications({
                 <p className="type-mono-meta mt-2 text-[12px] text-muted-foreground">
                   {pub.journal}
                   {pub.volume ? ` · ${pub.volume}` : ""}
-                  {pub.pages ? `, ${pub.pages}` : ""}
+                  {pub.pages && (
+                    <>
+                      , <span className="whitespace-nowrap">{pub.pages}</span>
+                    </>
+                  )}
                   {pub.doi && (
                     <>
                       {" · "}

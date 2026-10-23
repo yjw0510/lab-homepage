@@ -91,13 +91,15 @@ def main() -> None:
 
     manifest_path = OUT_DIR / "manifest.json"
     manifest = json.loads(manifest_path.read_text())
+    # The RDF reads the exported trajectory, which keeps every CG_TRAJECTORY_STRIDE-th frame.
+    frames_analyzed = int(manifest["assets"]["cg_trajectory"]["shape"][0])
     manifest["analysis"]["rdf"].update({
         "status": "complete",
-        "frames_analyzed": int(cg_trajectory.shape[0]),
+        "frames_analyzed": frames_analyzed,
     })
     manifest["assets"]["rdf"]["provenance"].update({
         "status": "complete",
-        "frames_analyzed": int(cg_trajectory.shape[0]),
+        "frames_analyzed": frames_analyzed,
     })
     manifest_path.write_text(json.dumps(manifest, indent=2))
 
@@ -118,7 +120,7 @@ def main() -> None:
     print(f"\nPipeline complete in {elapsed:.1f}s")
     print(f"  AA atoms: {len(aa_data['positions'])}")
     print(f"  CG beads: {n_beads}")
-    print(f"  CG frames: {n_frames}")
+    print(f"  CG frames: {n_frames} simulated, {frames_analyzed} exported")
     print(f"  RDF bins: {manifest['assets']['rdf']['shape'][0]}")
     print(f"  Output: {OUT_DIR}")
 

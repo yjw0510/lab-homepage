@@ -4,6 +4,8 @@ export interface Publication {
   authors: string[];
   journal: string;
   year: number;
+  /** First online publication (YYYY-MM-DD, from Crossref); orders papers within a year. */
+  date?: string;
   volume?: number;
   issue?: number;
   pages?: string;

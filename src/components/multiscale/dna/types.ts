@@ -28,11 +28,13 @@ export interface DNAManifest {
 
 export interface DNAAssetEntry {
   path: string;
+  /** "float32", or "uint16" on the grid given by `quantization`. */
   dtype: string;
   shape: number[];
   byteLength: number;
   unit?: string;
   layout?: string;
+  quantization?: { offsetNm: number; scaleNm: number };
 }
 
 /** Camera data section — same shape as polymer.json for ThreeStageCamera compatibility. */

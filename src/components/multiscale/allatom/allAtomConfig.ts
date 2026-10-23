@@ -4,7 +4,6 @@ import { CHOREOGRAPHY } from "../levelData";
 
 export type AllAtomForceFieldTerm = "Ubond" | "Uangle" | "Udihedral" | "UvdW" | "UCoul";
 export type AllAtomCueFamily = "bonded" | "nonbonded";
-export type AllAtomReadoutId = "orientation" | "packing" | "motif";
 export type AllAtomSceneKey = "A6_observables" | "A3_forcefield";
 
 

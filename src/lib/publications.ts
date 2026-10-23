@@ -67,6 +67,8 @@ export function getAllPublications(): Publication[] {
         authors: data.authors || [],
         journal: data.journal || "",
         year: data.year || 0,
+        // An unquoted YAML date parses as a Date, which would not sort as a string.
+        date: data.date instanceof Date ? data.date.toISOString().slice(0, 10) : data.date,
         volume: data.volume,
         issue: data.issue,
         pages: data.pages,
@@ -82,23 +84,23 @@ export function getAllPublications(): Publication[] {
         content,
       } as Publication;
     })
-    .sort((a, b) => b.year - a.year);
+    // Volume year first, then the online date within it, newest first; an undated paper counts
+    // as the year's newest. The slug breaks remaining ties, because readdir order is
+    // filesystem-dependent and the deploy build could otherwise order a year differently.
+    .sort(
+      (a, b) =>
+        b.year - a.year ||
+        (b.date ?? `${b.year}-12-31`).localeCompare(a.date ?? `${a.year}-12-31`) ||
+        a.slug.localeCompare(b.slug),
+    );
 }
 
 export function getPublication(slug: string): Publication | undefined {
   return getAllPublications().find((p) => p.slug === slug);
 }
 
-export function getFeaturedPublications(): Publication[] {
-  return getAllPublications()
-    .filter((p) => p.featured)
-    .slice(0, 3);
-}
-
-export function getAllTags(): string[] {
-  const tags = new Set<string>();
-  getAllPublications().forEach((p) => p.tags.forEach((t) => tags.add(t)));
-  return Array.from(tags).sort();
+export function getRecentPublications(count = 3): Publication[] {
+  return getAllPublications().slice(0, count);
 }
 
 export function getAllYears(): number[] {

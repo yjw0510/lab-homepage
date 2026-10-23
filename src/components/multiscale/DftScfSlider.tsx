@@ -17,11 +17,14 @@ export function DftScfSlider({
   value,
   lang,
   onChange,
+  convergedFrom,
 }: {
   snapshots: ScfSnapshotMeta[];
   value: number;
   lang: string;
   onChange: (nextIndex: number) => void;
+  /** First snapshot whose energy change is below the run's stopping threshold (scf.json). */
+  convergedFrom?: number;
 }) {
   const [trackRef, track] = useMeasuredBox<HTMLDivElement>({ width: 0, height: 0 });
 
@@ -42,19 +45,19 @@ export function DftScfSlider({
 
   if (snapshots.length <= 1) return null;
 
-  const progress = max > 0 ? value / max : 0;
+  // Read off the run, not off fixed thirds of the track: those called update 20 the initial
+  // estimate. ORCA's energy tolerance (TolE 1e-8 Eh, scf.json threshold) is first met at the
+  // final update, so only that update is called converged.
+  const ko = lang === "ko";
   const activeLabel =
-    progress < 0.34
-      ? lang === "ko"
-        ? "초기 추정"
-        : "Initial estimate"
-      : progress < 0.8
-        ? lang === "ko"
-          ? "밀도 갱신 중"
-          : "Updating density"
-        : lang === "ko"
-          ? "안정된 결과"
-          : "Stable result";
+    value === 0
+      ? ko ? "초기 추정" : "Initial estimate"
+      : value < (convergedFrom ?? max)
+        ? ko ? "밀도 갱신 중" : "Updating density"
+        : ko ? "수렴" : "Converged";
+  const valueText = ko
+    ? `갱신 ${value + 1} / ${snapshots.length}, ${activeLabel}`
+    : `Update ${value + 1} of ${snapshots.length}, ${activeLabel}`;
 
   return (
     <div>
@@ -76,7 +79,7 @@ export function DftScfSlider({
               ? "전자 밀도 갱신 과정 살펴보기"
               : "Explore the electron-density update"
           }
-          aria-valuetext={activeLabel}
+          aria-valuetext={valueText}
           className="absolute inset-0 z-20 h-7 w-full cursor-ew-resize opacity-0"
         />
 

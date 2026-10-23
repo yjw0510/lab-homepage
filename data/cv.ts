@@ -7,24 +7,22 @@ export const education = {
       detail: "Advisor: Prof. Won Bo Lee",
     },
     {
-      degree: "B.S., Chemical Engineering (Summa Cum Laude)",
+      degree: "B.S., Chemical Engineering",
       institution: "Chung-Ang University",
       period: "2012 \u2013 2016",
-      detail: "GPA: 4.31 / 4.50",
     },
   ],
   ko: [
     {
-      degree: "박사, 화학생물공학부",
+      degree: "화학생물공학 박사",
       institution: "서울대학교",
       period: "2016 \u2013 2022",
       detail: "지도교수: 이원보",
     },
     {
-      degree: "학사, 화학공학과 (최우등 졸업)",
+      degree: "화학공학 학사",
       institution: "중앙대학교",
       period: "2012 \u2013 2016",
-      detail: "GPA: 4.31 / 4.50",
     },
   ],
 };
@@ -47,8 +45,9 @@ export const experience = {
     {
       role: "Postdoctoral Research Fellow",
       institution: "Seoul National University",
-      department: "Department of Chemical and Biological Engineering",
+      department: "Institute of Chemical Processes",
       period: "2022 \u2013 2023",
+      detail: "Advisor: Prof. Won Bo Lee",
     },
   ],
   ko: [
@@ -68,8 +67,9 @@ export const experience = {
     {
       role: "박사후연구원",
       institution: "서울대학교",
-      department: "화학생물공학부",
+      department: "화학공정신기술연구소",
       period: "2022 \u2013 2023",
+      detail: "지도교수: 이원보",
     },
   ],
 };
@@ -87,36 +87,17 @@ export const awards = {
   ],
 };
 
-export const skills = {
-  en: [
-    { category: "Molecular Simulation", items: "LAMMPS, GROMACS, HOOMD-blue" },
-    { category: "First-Principles Calculations", items: "VASP, CP2K, Quantum ESPRESSO, Gaussian, PySCF" },
-    { category: "Machine-Learned Potentials", items: "DeePMD-kit, MACE, NequIP, JAX-MD" },
-    { category: "Visualization", items: "VMD, OVITO" },
-    { category: "Programming", items: "Python, C++, JAX, CUDA, OpenMP/MPI" },
-    { category: "Infrastructure", items: "PBS, SGE, Slurm, Docker" },
-  ],
-  ko: [
-    { category: "분자 시뮬레이션", items: "LAMMPS, GROMACS, HOOMD-blue" },
-    { category: "제일원리 계산", items: "VASP, CP2K, Quantum ESPRESSO, Gaussian, PySCF" },
-    { category: "머신러닝 퍼텐셜", items: "DeePMD-kit, MACE, NequIP, JAX-MD" },
-    { category: "시각화", items: "VMD, OVITO" },
-    { category: "프로그래밍", items: "Python, C++, JAX, CUDA, OpenMP/MPI" },
-    { category: "인프라", items: "PBS, SGE, Slurm, Docker" },
-  ],
-};
-
 export const professional = {
   en: [
     "American Physical Society (APS)",
     "American Chemical Society (ACS)",
-    "International Centre for Multiscale Simulations (ICMS)",
+    "International Conference on Molecular Simulation (ICMS)",
     "World Association of Theoretical and Computational Chemists (WATOC)",
   ],
   ko: [
     "미국물리학회 (APS)",
     "미국화학회 (ACS)",
-    "국제 멀티스케일 시뮬레이션 센터 (ICMS)",
+    "국제분자시뮬레이션학술대회 (ICMS)",
     "세계이론전산화학회 (WATOC)",
   ],
 };

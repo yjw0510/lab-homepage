@@ -58,10 +58,12 @@ export function RightRail({
   showDftScfSlider,
   dftSnapshots,
   scfValue,
+  scfConvergedFrom,
   onScfChange,
   stepTitles,
   previousStepTitle,
   nextStepTitle,
+  nextStepLevel,
   interactionHint,
 }: {
   scrollState: ScrollState;
@@ -84,10 +86,14 @@ export function RightRail({
   showDftScfSlider?: boolean;
   dftSnapshots?: ScfSnapshotMeta[];
   scfValue?: number;
+  /** First SCF snapshot below the run's stopping threshold, so the slider names convergence from the data. */
+  scfConvergedFrom?: number;
   onScfChange?: (index: number) => void;
   stepTitles: string[];
   previousStepTitle?: string;
   nextStepTitle?: string;
+  /** Level of the next step; when it differs from this level, the Next eyebrow names the tier. */
+  nextStepLevel?: string;
   interactionHint?: string;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
@@ -106,36 +112,47 @@ export function RightRail({
   const previousLabel = previousStepTitle
     ? `${lang === "ko" ? "이전" : "Prev"}: ${previousStepTitle}`
     : lang === "ko" ? "이전 단계" : "Previous step";
+  // Crossing into another tier, the eyebrow names that tier, so "Next" does not read as one more
+  // step of the method on screen.
+  const nextEyebrow =
+    nextStepLevel && nextStepLevel !== level.id && SCALE_SHORT[nextStepLevel]
+      ? `${lang === "ko" ? "다음" : "Next"} · ${SCALE_SHORT[nextStepLevel][lang as "en" | "ko"] ?? SCALE_SHORT[nextStepLevel].en}`
+      : lang === "ko" ? "다음" : "Next";
   const nextLabel = nextStepTitle
-    ? `${lang === "ko" ? "다음" : "Next"}: ${nextStepTitle}`
+    ? `${nextEyebrow}: ${nextStepTitle}`
     : lang === "ko" ? "다음 단계" : "Next step";
-  const previousButtonText = previousStepTitle ?? (lang === "ko" ? "이전" : "Prev");
-  const nextButtonText = nextStepTitle ?? (lang === "ko" ? "다음" : "Next");
+  // After the last step, Next leads to the method overview on the same page.
+  const overviewTitle = lang === "ko" ? "방법별로 살펴보기" : "Explore each method";
+  const overviewLabel = `${lang === "ko" ? "다음" : "Next"}: ${overviewTitle}`;
   const visualEvidenceBlock = (
     <div data-rail-role="provenance" className="mb-5 border-y border-border py-3.5">
       <p className="text-sm font-medium text-muted-foreground">
         {lang === "ko" ? "화면 자료" : "Visual source"}
       </p>
       <div className="mt-3 space-y-2">
-        {stepConfig.visualLayers.map((layer, index) => (
-          <div
-            key={`${layer.kind}-${index}`}
-            className="grid grid-cols-[auto_1fr] items-start gap-2.5 text-sm leading-snug"
-          >
-            <span
-              className={`type-mono-meta border px-2 py-1 text-xs ${
-                layer.kind === "TARGET NOT AVAILABLE"
-                  ? "border-primary/60 text-primary"
-                  : "border-border-strong text-muted-foreground"
-              }`}
+        {/* A layer drawn only by the phone's mechanism band is not on a desktop screen, so the
+            desktop list does not credit it. */}
+        {stepConfig.visualLayers
+          .filter((layer) => isStack || !layer.mobileOnly)
+          .map((layer, index) => (
+            <div
+              key={`${layer.kind}-${index}`}
+              className="grid grid-cols-[auto_1fr] items-start gap-2.5 text-sm leading-snug"
             >
-              {PROVENANCE_KIND_LABEL[layer.kind][lang as "en" | "ko"] ?? layer.kind}
-            </span>
-            <span className="break-keep text-muted-foreground">
-              {layer.label[lang as "en" | "ko"] ?? layer.label.en}
-            </span>
-          </div>
-        ))}
+              <span
+                className={`type-mono-meta border px-2 py-1 text-xs ${
+                  layer.kind === "TARGET NOT AVAILABLE"
+                    ? "border-primary/60 text-primary"
+                    : "border-border-strong text-muted-foreground"
+                }`}
+              >
+                {PROVENANCE_KIND_LABEL[layer.kind][lang as "en" | "ko"] ?? layer.kind}
+              </span>
+              <span className="break-keep text-muted-foreground">
+                {layer.label[lang as "en" | "ko"] ?? layer.label.en}
+              </span>
+            </div>
+          ))}
       </div>
       <p className="type-mono-meta mt-3 text-[0.78125rem] leading-relaxed text-muted-foreground/90">
         {stepConfig.systemCaption[lang as "en" | "ko"] ??
@@ -220,6 +237,7 @@ export function RightRail({
         <DftScfSlider
           snapshots={dftSnapshots}
           value={scfValue ?? 0}
+          convergedFrom={scfConvergedFrom}
           lang={lang}
           onChange={onScfChange}
         />
@@ -304,8 +322,11 @@ export function RightRail({
     </div>
   ) : null;
 
+  // One rule on the side that has no neighbouring rule of its own. On desktop the provenance
+  // strip follows the hint and its top rule closes it; stacked, the hint follows the question,
+  // whose bottom rule opens it. Ruled on both sides it doubled the hairline about 12-20px apart.
   const blockHint = interactionHint ? (
-    <p data-rail-role="frame" className="mb-5 flex-shrink-0 border-y border-border py-3 text-sm leading-relaxed text-muted-foreground">
+    <p data-rail-role="frame" className={`flex-shrink-0 border-border py-3 text-sm leading-relaxed text-muted-foreground ${isStack ? "mb-5 border-b" : "border-t"}`}>
       {interactionHint}
     </p>
   ) : null;
@@ -327,7 +348,7 @@ export function RightRail({
       {scrollState.step === 0 && (
         <div className={`mt-5 border-t ${LEVEL_CHROME[level.id].line} pt-4`}>
           <p className={`type-heading mb-2 text-sm ${LEVEL_CHROME[level.id].text}`}>
-            {lang === "ko" ? "다음 계층으로" : "To the next tier"}
+            {lang === "ko" ? "핵심" : "Key point"}
           </p>
           <ConceptText
             text={stepConfig.takeaway[lang as "en" | "ko"] ?? stepConfig.takeaway.en}
@@ -362,7 +383,7 @@ export function RightRail({
       href={`/${lang}/multiscale/${level.id}`}
       className="type-mono-meta mb-2 flex flex-shrink-0 items-center justify-between gap-3 border border-border-strong px-3.5 py-3 text-xs text-foreground transition-colors hover:bg-muted"
     >
-      <span>{lang === "ko" ? "방법 개요 읽기" : "Read the method overview"}</span>
+      <span>{lang === "ko" ? "이 방법 자세히 보기" : "More on this method"}</span>
       <ArrowUpRight className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
     </Link>
   );
@@ -379,9 +400,14 @@ export function RightRail({
   // The stage sits in the left grid column on desktop, side by side with the rail, so
   // moving the slider down the rail does not separate it from what it drives. On the
   // stacked path the stage is above the rail, which is why the controls lead there.
+  //
+  // The plot follows the slider directly on desktop: the slider scrubs the run the chart plots,
+  // and with the hint and provenance between them the two could not share a 900px screen. On a
+  // phone the SCF chart is already drawn beside the slider in the band under the scene, so the
+  // rail does not plot the same run a second time.
   const composition = isStack
-    ? [blockControls, blockApplicability, blockEquation, blockHint, blockBody, blockMethodLink, blockProvenance, blockPlot]
-    : [blockLevelIdentity, blockLevelTabs, blockApplicability, blockBody, blockEquation, blockControls, blockHint, blockProvenance, blockPlot, blockMethodLink];
+    ? [blockControls, blockApplicability, blockEquation, blockHint, blockBody, blockMethodLink, blockProvenance, stepConfig.plotType === "scf" ? null : blockPlot]
+    : [blockLevelIdentity, blockLevelTabs, blockApplicability, blockBody, blockEquation, blockControls, blockPlot, blockHint, blockProvenance, blockMethodLink];
 
   return (
     <div
@@ -428,39 +454,71 @@ export function RightRail({
         )}
       </div>
 
+      {/* Next names where it goes in full, on up to two lines. Splitting the row three ways left
+          each title about 100px, so every step's label was a truncated fragment such as
+          "How One Mo…". Prev goes back to what the reader just saw, so it is the icon alone and
+          keeps its destination in the accessible name and tooltip. */}
       {!isMobile && (
-        <div data-rail-role="nav" className="mt-3 flex-shrink-0 border-t border-border pt-3">
-          <div className="flex items-center justify-between gap-2">
+        // Same right inset as the scroller above (pr-1 plus a stable gutter), so the rule and Next
+        // end where the body copy does. The gutter needs an overflow value; -ml-1 pl-1 and pb-1
+        // keep the 4px focus ring inside that clip.
+        <div data-rail-role="nav" className="-ml-1 mt-3 flex-shrink-0 overflow-y-hidden pb-1 pl-1 pr-1 [scrollbar-gutter:stable]">
+          <div className="border-t border-border pt-3">
+          {/* Named. Unlabelled, this "1 / 2" sat beside the title card's "01 / 08" in the same
+              register and size, so one screen carried two counters with different totals and
+              nothing said which was which. */}
+          <p className="type-mono-meta mb-2 text-xs text-muted-foreground">
+            {SCALE_SHORT[level.id][lang as "en" | "ko"] ?? SCALE_SHORT[level.id].en} {scrollState.step + 1} / {scrollState.stepCount}
+          </p>
+          <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={!canGoPrev}
               onClick={onPrev}
-              className="type-mono-meta flex min-w-0 flex-1 h-11 items-center gap-1.5 border border-border-strong px-3 text-xs text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
               aria-label={previousLabel}
               title={previousLabel}
             >
-              <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
-              <span className="min-w-0 truncate">{previousButtonText}</span>
+              <ChevronLeft className="h-5 w-5" strokeWidth={1.75} />
             </button>
 
-            {/* Named. Unlabelled, this "1 / 2" sat beside the title card's "01 / 08" in the same
-                register and size, so one screen carried two counters with different totals and
-                nothing said which was which. */}
-            <span className="type-mono-meta whitespace-nowrap text-xs text-muted-foreground">
-              {SCALE_SHORT[level.id][lang as "en" | "ko"] ?? SCALE_SHORT[level.id].en} {scrollState.step + 1} / {scrollState.stepCount}
-            </span>
-
-            <button
-              type="button"
-              disabled={!canGoNext}
-              onClick={onNext}
-              className="type-mono-meta flex min-w-0 flex-1 h-11 items-center justify-end gap-1.5 border border-border-strong px-3 text-xs text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label={nextLabel}
-              title={nextLabel}
-            >
-              <span className="min-w-0 truncate">{nextButtonText}</span>
-              <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
-            </button>
+            {/* The last step used to end on a disabled, empty Next. It now leads to the method
+                overview below the instrument, as a native same-page anchor. */}
+            {canGoNext ? (
+              <button
+                type="button"
+                onClick={onNext}
+                className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-2 border border-border-strong px-3 py-1.5 text-left text-foreground transition-colors hover:bg-muted"
+                aria-label={nextLabel}
+                title={nextLabel}
+              >
+                <span className="min-w-0">
+                  <span className="type-mono-meta block text-[11px] text-muted-foreground">
+                    {nextEyebrow}
+                  </span>
+                  {nextStepTitle ? (
+                    <span className="line-clamp-2 break-keep text-[13px] leading-snug">{nextStepTitle}</span>
+                  ) : null}
+                </span>
+                <ChevronRight className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+              </button>
+            ) : (
+              <a
+                href="#methods"
+                className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-2 border border-border-strong px-3 py-1.5 text-left text-foreground transition-colors hover:bg-muted"
+                aria-label={overviewLabel}
+                title={overviewLabel}
+              >
+                <span className="min-w-0">
+                  <span className="type-mono-meta block text-[11px] text-muted-foreground">
+                    {lang === "ko" ? "다음" : "Next"}
+                  </span>
+                  <span className="line-clamp-2 break-keep text-[13px] leading-snug">{overviewTitle}</span>
+                </span>
+                <ChevronRight className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+              </a>
+            )}
+          </div>
           </div>
         </div>
       )}

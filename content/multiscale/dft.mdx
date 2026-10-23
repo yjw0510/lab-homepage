@@ -14,7 +14,7 @@ contentKo: |
 
   ## DFT가 맡는 범위
 
-  원자가 움직일 때마다 전자 분포를 다시 풀어야 하므로 계산량이 빠르게 늘어난다. 이 비용 때문에 DFT는 작은 계와 신중하게 고른 구조, 전자 이동이 직접 관여하는 화학 변화에 집중한다. 까다로운 문제에서는 실험이나 더 정밀한 참조 계산으로 결과를 검증한다.
+  원자가 움직일 때마다 전자 분포를 다시 풀어야 하고, 전자 수가 늘수록 한 번 푸는 계산량도 가파르게 커진다. 이 비용 때문에 DFT는 작은 계와 신중하게 고른 구조, 전자 이동이 직접 관여하는 화학 변화에 집중한다. 까다로운 문제에서는 실험이나 더 정밀한 참조 계산으로 결과를 검증한다.
 
   ## 연구실에서 쓰는 방식
 
@@ -31,11 +31,11 @@ Density functional theory (DFT) is a quantum-mechanical calculation of how elect
 
 ## Where DFT Fits
 
-The electronic distribution must be solved again whenever the atoms move, so the computational cost rises quickly. This cost focuses DFT on small systems, carefully selected snapshots, and chemical changes governed directly by electron motion. Experiments and more demanding reference calculations benchmark difficult cases.
+The electron distribution must be solved again whenever the atoms move, and each solution grows steeply in cost as the number of electrons rises. This cost focuses DFT on small systems, carefully selected snapshots, and chemical changes governed directly by electron motion. Experiments and more demanding reference calculations benchmark difficult cases.
 
 ## How We Use It
 
-In our work, DFT supplies examples for a machine-learning force field (MLFF), a model trained to predict atomic energies and forces. The examples include ordinary liquid structures and less common arrangements near ion exchange or bond rearrangement. Configurations with high MLFF uncertainty return to DFT and expand the training data. This loop anchors the faster model to quantum calculations and defines its trained chemistry.
+In our work, DFT supplies examples for a machine-learning force field (MLFF), a model trained to predict atomic energies and forces. The examples include ordinary liquid structures and rarer arrangements, such as water entering an ion's shell or a bond rearranging. Configurations with high MLFF uncertainty return to DFT and expand the training data. This loop anchors the faster model to quantum calculations and defines its trained chemistry.
 
 ## What Moves to the Next Scale
 

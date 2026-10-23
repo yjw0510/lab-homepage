@@ -23,31 +23,43 @@ export function LabNews({
         />
 
         <div>
-          {news.map((item) => (
-            <div
-              key={item.slug}
-              className="grid grid-cols-12 gap-x-6 gap-y-2 border-t border-border py-5"
-            >
-              {/* Margin column: mono date + category */}
-              <div className="col-span-12 sm:col-span-3">
-                <p className="type-mono-meta text-[12px] text-accent-ink">
-                  {formatDate(item.date, lang)}
-                </p>
-                <p className="type-mono-meta mt-0.5 text-[12px] text-muted-foreground">
-                  {newsCategoryLabel(item.category, lang)}
-                </p>
-              </div>
+          {news.map((item) => {
+            const title = lang === "ko" && item.titleKo ? item.titleKo : item.title;
+            return (
+              <div
+                key={item.slug}
+                className="grid grid-cols-12 gap-x-6 gap-y-2 border-t border-border py-5"
+              >
+                {/* Margin column: mono date + category */}
+                <div className="col-span-12 sm:col-span-3">
+                  <p className="type-mono-meta text-[12px] text-accent-ink">
+                    {formatDate(item.date, lang)}
+                  </p>
+                  <p className="type-mono-meta mt-0.5 text-[12px] text-muted-foreground">
+                    {newsCategoryLabel(item.category, lang)}
+                  </p>
+                </div>
 
-              <div className="col-span-12 min-w-0 sm:col-span-9">
-                <h3 className="type-heading text-foreground">
-                  {lang === "ko" && item.titleKo ? item.titleKo : item.title}
-                </h3>
-                <p className="mt-1 max-w-[34rem] break-keep text-sm leading-relaxed text-muted-foreground">
-                  {lang === "ko" && item.summaryKo ? item.summaryKo : item.summary}
-                </p>
+                <div className="col-span-12 min-w-0 sm:col-span-9">
+                  <h3 className="type-heading text-foreground">
+                    {item.link ? (
+                      <Link
+                        href={`/${lang}${item.link}`}
+                        className="text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
+                      >
+                        {title}
+                      </Link>
+                    ) : (
+                      title
+                    )}
+                  </h3>
+                  <p className="mt-1 max-w-[34rem] break-keep text-sm leading-relaxed text-muted-foreground">
+                    {lang === "ko" && item.summaryKo ? item.summaryKo : item.summary}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="border-t border-border pt-5">

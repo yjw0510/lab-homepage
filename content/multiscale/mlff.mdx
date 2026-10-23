@@ -1,8 +1,8 @@
 ---
 title: "Machine-Learning Force Fields"
 titleKo: "머신러닝 역장"
-shortDescription: "A model trained on quantum calculations predicts forces for reactive and aqueous simulations at larger sizes and longer times than direct electronic calculations."
-shortDescriptionKo: "양자 계산을 학습한 모형이 원자에 작용하는 힘을 빠르게 예측해 반응계와 수용액계의 원자 운동을 더 큰 계와 긴 시간으로 확장한다."
+shortDescription: "A model trained on quantum calculations predicts atomic forces fast enough to simulate reactive and aqueous systems at larger sizes and longer times than DFT allows."
+shortDescriptionKo: "양자 계산을 학습한 모형이 원자에 작용하는 힘을 빠르게 예측해, 반응계와 수용액을 DFT보다 큰 규모에서 더 오래 시뮬레이션한다."
 icon: "Brain"
 color: "#8b5cf6"
 order: 2
@@ -15,7 +15,7 @@ contentKo: |
 
   ## 학습 자료가 정하는 적용 범위
 
-  계산이 빨라지면 원자 해상도를 유지한 채 더 큰 계에서 더 긴 분자동역학 궤적을 얻을 수 있다. 이온 주위의 물이 바뀌는 과정이나 일부 결합 반응처럼 직접 양자 동역학으로 짧게 관찰하던 현상도 충분히 반복해 볼 수 있다. 별도의 양자 계산과 실험 관측량이 학습 자료가 포괄하는 화학 환경과 모형의 적용 범위를 정한다.
+  계산이 빨라지면 원자 해상도를 유지한 채 더 큰 계에서 더 긴 분자동역학 궤적을 얻을 수 있다. 이온 주위의 물이 바뀌는 과정이나 일부 결합 반응처럼 직접 양자 동역학으로 짧게 관찰하던 현상도 충분히 반복해 볼 수 있다. 학습 자료가 포괄하는 화학 환경이 모형의 적용 범위를 정하고, 별도의 양자 계산과 실험 관측량으로 그 범위를 확인한다.
 
   ## 연구실에서 묻는 질문
 
@@ -28,6 +28,7 @@ contentKo: |
   ## 관련 논문
 
   - Yu et al., *Science Advances* (2024), MLFF를 이용한 물 확산 이상 현상
+  - Kim et al., *J. Phys. Chem. Lett.* (2024), Al³⁺ 용해
   - Ryu et al., *J. Mol. Liquids* (2024), 물의 유전 완화
   - Ryu et al., *J. Chem. Inf. Model.* (2025), 초임계수 내 아세트산 반응
 ---
@@ -38,7 +39,7 @@ A machine-learning force field (MLFF) is a model trained on quantum calculations
 
 ## A Domain Defined by Training Data
 
-Because prediction is fast, trajectories run longer and systems grow larger while atom-level detail is kept. Water around ions and some bond-changing reactions, seen only briefly in direct quantum dynamics, can be sampled repeatedly. Separate quantum calculations and experimental observables define the chemical environments represented by the training data and the model's working range.
+Because prediction is fast, trajectories run longer and systems grow larger at atom-level detail. Water around ions and some bond-changing reactions, seen only briefly in direct quantum dynamics, can be sampled repeatedly. The chemical environments represented by the training data define the model's working range, and separate quantum calculations and experimental observables test it.
 
 ## Questions We Study
 
@@ -51,5 +52,6 @@ MLFF results can guide simpler force fields by supplying target structures, moti
 ## Related Publications
 
 - Yu et al., *Science Advances* (2024), Water diffusion anomalies via MLFF
+- Kim et al., *J. Phys. Chem. Lett.* (2024), Al³⁺ dissolution
 - Ryu et al., *J. Mol. Liquids* (2024), Dielectric relaxation of water
 - Ryu et al., *J. Chem. Inf. Model.* (2025), Acetic acid in supercritical water

@@ -261,10 +261,10 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
 
       {/* ═══ 1. Nuclear configuration ═══ */}
       <g className={f} style={{ animationDelay: "0.1s" }}>
-        <rect x={LBX} y={LBY} width={LBW} height={LBH} rx={18}
+        <rect x={LBX} y={LBY} width={LBW} height={LBH}
           fill="none" stroke={HAIRLINE} strokeWidth="1.4" />
-        <text x={LCX} y={LBY + 28} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">{ko ? "핵 배치" : "nuclear"}</text>
-        <text x={LCX} y={LBY + 28 + FS_SUB} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fillOpacity="0.7" fontWeight="500">{ko ? "배치" : "configuration"}</text>
+        <text x={LCX} y={LBY + 28} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fontWeight="500">{ko ? "원자핵" : "nuclear"}</text>
+        <text x={LCX} y={LBY + 28 + FS_SUB} textAnchor="middle" fontSize={FS_SUB} fill={MUTED} fontWeight="500">{ko ? "배치" : "configuration"}</text>
 
         {/* mini O=C=O */}
         {(() => {
@@ -308,7 +308,7 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
 
       {/* update ρ(r) */}
       <g className={f} style={{ animationDelay: "0.35s" }}>
-        <text x={RCX - 46} y={RCY + RRY + 40} textAnchor="end" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "갱신" : "update"}</text>
+        <text x={RCX - 46} y={RCY + RRY + 40} textAnchor="end" fontSize={FS_CAPTION} fill={AMBER_LABEL} fontWeight="500" letterSpacing="0.5">{ko ? "갱신" : "update"}</text>
         <Fx k="rho" xc={RCX + 16} yb={RCY + RRY + 40} color={INK} />
       </g>
 
@@ -330,12 +330,12 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
         <motion.circle cx={headX} cy={headY} r={4} fill={AMBER} />
       </g>
 
-      {/* ring labels — top row, clear of badges and ring */}
+      {/* ring labels — top row, clear of badges and ring. The ring and its moving head already
+          draw the loop, so the row names only its stages. */}
       <g className={f} style={{ animationDelay: "0.45s" }}>
-        <text x={RCX} y={132} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.45" fontWeight="400" letterSpacing="0.5">{ko ? "밀도 반복" : "density loop"}</text>
-        <text x={264} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "구성" : "build"}</text>
+        <text x={264} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fontWeight="500" letterSpacing="0.5">{ko ? "구성" : "build"}</text>
         <Fx k="veff" xc={264} yb={124 + TZ.labelToFormula} color={INK} />
-        <text x={496} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fillOpacity="0.6" fontWeight="500" letterSpacing="0.5">{ko ? "풀이" : "solve"}</text>
+        <text x={496} y={124} textAnchor="middle" fontSize={FS_CAPTION} fill={AMBER_LABEL} fontWeight="500" letterSpacing="0.5">{ko ? "풀이" : "solve"}</text>
         <Fx k="phi_eps" xc={496} yb={124 + TZ.labelToFormula} color={INK} />
       </g>
 
@@ -345,7 +345,7 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
 
       {/* ═══ 4. Output — E[ρ] + MO ladder ═══ */}
       <g className={f} style={{ animationDelay: "0.55s" }}>
-        <rect x={RBX} y={RBY} width={RBW} height={RBH} rx={18} fill="none" stroke={HAIRLINE} strokeWidth="1.4" />
+        <rect x={RBX} y={RBY} width={RBW} height={RBH} fill="none" stroke={HAIRLINE} strokeWidth="1.4" />
         <Fx k="erho" xc={RBCX} yb={RBY + 40} color={INK} />
         {(() => {
           const LX = RBX + 20, LW = 52, LBLX = LX + LW + 10;
@@ -355,9 +355,9 @@ export function DFTSchematic({ active, ko = false }: { active: boolean; ko?: boo
               <line key={`v${i}`} x1={LX} x2={LX + LW} y1={top + i * gap} y2={top + i * gap} stroke={HAIRLINE} strokeWidth="1.6" strokeOpacity="0.8" />
             ))}
             <line x1={LX} x2={LX + LW} y1={top + 3.4 * gap} y2={top + 3.4 * gap} stroke="#94a3b8" strokeWidth="3.2" strokeLinecap="round" />
-            <text x={LBLX} y={top + 3.4 * gap + 6} fontSize={FS_FRONTIER} fontWeight="500" fill="#94a3b8">LUMO</text>
+            <text x={LBLX} y={top + 3.4 * gap + 6} fontSize={FS_FRONTIER} fontWeight="500" fill={MUTED}>LUMO</text>
             <line x1={LX} x2={LX + LW} y1={top + 4.9 * gap} y2={top + 4.9 * gap} stroke="#f97316" strokeWidth="3.2" strokeLinecap="round" />
-            <text x={LBLX} y={top + 4.9 * gap + 6} fontSize={FS_FRONTIER} fontWeight="500" fill="#f97316">HOMO</text>
+            <text x={LBLX} y={top + 4.9 * gap + 6} fontSize={FS_FRONTIER} fontWeight="500" className="fill-[#c2410c] dark:fill-[#f97316]">HOMO</text>
             {[0, 1, 2].map((i) => (
               <line key={`o${i}`} x1={LX} x2={LX + LW} y1={top + (6.3 + i) * gap} y2={top + (6.3 + i) * gap} stroke={HAIRLINE} strokeWidth="1.6" strokeOpacity="0.8" />
             ))}

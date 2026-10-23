@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { withBasePath } from "@/lib/basePath";
-import { decodeFloat32 } from "./binaryLoader";
-import type { DNAManifest, AATopology, CGTopology } from "./types";
+import { decodeFloat32, decodeQuantizedUint16 } from "./binaryLoader";
+import type { DNAManifest, DNAAssetEntry, AATopology, CGTopology } from "./types";
 
 const jsonCache = new Map<string, Promise<unknown>>();
 const binaryCache = new Map<string, Promise<ArrayBuffer>>();
 
-function cachedJson<T>(url: string): Promise<T> {
+/** Shared with the meso camera, which reads the same manifest; two caches fetched it twice. */
+export function cachedJson<T>(url: string): Promise<T> {
   let p = jsonCache.get(url);
   if (!p) {
     const resolvedUrl = withBasePath(url);
@@ -40,6 +41,22 @@ function cachedBinary(url: string): Promise<ArrayBuffer> {
 
 const BASE = "/data/dna";
 
+/** Decoded once per page load: the trajectory is the largest asset and remounts are common. */
+const decodedCache = new Map<string, Promise<Float32Array>>();
+
+function cachedAsset(entry: DNAAssetEntry): Promise<Float32Array> {
+  let p = decodedCache.get(entry.path);
+  if (!p) {
+    p = cachedBinary(`${BASE}/${entry.path}`).then((buffer) =>
+      entry.dtype === "uint16" && entry.quantization
+        ? decodeQuantizedUint16(buffer, entry.quantization.offsetNm, entry.quantization.scaleNm)
+        : decodeFloat32(buffer),
+    );
+    decodedCache.set(entry.path, p);
+  }
+  return p;
+}
+
 export interface DNAAssets {
   manifest: DNAManifest | null;
   aaPositions: Float32Array | null;
@@ -47,6 +64,8 @@ export interface DNAAssets {
   cgPositions: Float32Array | null;
   cgTrajectory: Float32Array | null;
   cgTopology: CGTopology | null;
+  /** The collective trajectory will not arrive; the still frame stands without a loading status. */
+  cgTrajectoryFailed: boolean;
 }
 
 export type DNAAssetMode = "mapping" | "collective" | null;
@@ -58,6 +77,7 @@ const EMPTY_ASSETS: DNAAssets = {
   cgPositions: null,
   cgTrajectory: null,
   cgTopology: null,
+  cgTrajectoryFailed: false,
 };
 
 export function useDNAAssets(mode: DNAAssetMode): DNAAssets {
@@ -82,23 +102,47 @@ export function useDNAAssets(mode: DNAAssetMode): DNAAssets {
       : Promise.all([
           manifestRequest,
           cachedBinary(`${BASE}/cg/positions.bin`).then(decodeFloat32),
-          cachedBinary(`${BASE}/cg/trajectory.bin`).then(decodeFloat32),
           cachedJson<CGTopology>(`${BASE}/cg/topology.json`),
-        ]).then(([manifest, cgPositions, cgTrajectory, cgTopology]) => ({
+        ]).then(([manifest, cgPositions, cgTopology]) => ({
           ...EMPTY_ASSETS,
           manifest,
           cgPositions,
-          cgTrajectory,
           cgTopology,
         }));
 
-    request
+    // The collective page draws its first frame from the small assets above and starts moving
+    // when the trajectory lands. Awaiting all four together held the trajectory download (48 MB
+    // before it was quantized) in front of a 96 KB frame, and the stage stayed empty until the
+    // whole file was in. The trajectory is requested after them so it does not slow them down.
+    const loaded = request
       .then((nextAssets) => {
         if (active) setAssets(nextAssets);
+        return nextAssets;
       })
       .catch(() => {
-        if (active) setAssets(EMPTY_ASSETS);
+        if (active) setAssets({ ...EMPTY_ASSETS, cgTrajectoryFailed: mode === "collective" });
+        return null;
       });
+
+    if (mode === "collective") {
+      loaded.then((base) => {
+        if (!base) return;
+        const entry = base.manifest?.assets?.cg_trajectory;
+        // A failed trajectory leaves the still frame on screen and clears the loading status.
+        const fail = () => {
+          if (active) setAssets({ ...base, cgTrajectoryFailed: true });
+        };
+        if (!entry) {
+          fail();
+          return;
+        }
+        cachedAsset(entry)
+          .then((cgTrajectory) => {
+            if (active) setAssets({ ...base, cgTrajectory });
+          })
+          .catch(fail);
+      });
+    }
 
     return () => {
       active = false;

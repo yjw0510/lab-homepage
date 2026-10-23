@@ -3,6 +3,18 @@ export function decodeFloat32(buffer: ArrayBuffer): Float32Array {
   return new Float32Array(buffer);
 }
 
+/** Decode little-endian uint16 values on a fixed grid: value_nm = offsetNm + q * scaleNm. */
+export function decodeQuantizedUint16(
+  buffer: ArrayBuffer,
+  offsetNm: number,
+  scaleNm: number,
+): Float32Array {
+  const q = new Uint16Array(buffer);
+  const out = new Float32Array(q.length);
+  for (let i = 0; i < q.length; i++) out[i] = offsetNm + q[i] * scaleNm;
+  return out;
+}
+
 /**
  * Extract one frame from a flat trajectory buffer.
  * Trajectory layout: [frame0_bead0_x, y, z, frame0_bead1_x, y, z, ..., frame1_bead0_x, ...]

@@ -2,6 +2,7 @@ import { ExternalLink } from "@/components/ui/ExternalLink";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { Manuscript, ManuscriptStatus } from "@/types/publication";
 import { AuthorList } from "./AuthorList";
+import { keepCompounds } from "./keepCompounds";
 
 const STATUS_ORDER: ManuscriptStatus[] = ["underReview", "submitted", "inPreparation"];
 
@@ -24,7 +25,7 @@ export function ManuscriptList({
   if (manuscripts.length === 0) return null;
 
   return (
-    <section className="mt-20">
+    <section className="mt-10">
       <SectionHeading title={labels.title} />
       {STATUS_ORDER.map((status) => {
         const group = manuscripts.filter((m) => m.status === status);
@@ -38,7 +39,7 @@ export function ManuscriptList({
               {group.map((m) => (
                 <article key={m.title} data-bibliographic className="border-t border-border py-5">
                   <h4 className="type-heading break-keep text-[16.5px] leading-snug text-foreground">
-                    {m.title}
+                    {keepCompounds(m.title)}
                     {m.workingTitle && (
                       <span className="text-muted-foreground"> ({labels.workingTitle})</span>
                     )}

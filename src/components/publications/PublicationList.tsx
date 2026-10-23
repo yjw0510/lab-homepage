@@ -15,22 +15,26 @@ export interface PublicationListLabels extends PublicationFilterLabels {
 export function PublicationList({
   publications,
   years,
-  tags,
+  topics,
+  topicsBySlug,
   lang,
   labels,
 }: {
   publications: Publication[];
   years: number[];
-  tags: string[];
+  /** Research topics that hold at least one paper, in the Research Topics page's order. */
+  topics: { id: string; label: string }[];
+  topicsBySlug: Record<string, string[]>;
   lang: string;
   labels: PublicationListLabels;
 }) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const topicLabel = new Map(topics.map((t) => [t.id, t.label]));
 
   const filtered = publications.filter((pub) => {
     if (selectedYear && pub.year !== selectedYear) return false;
-    if (selectedTag && !pub.tags.includes(selectedTag)) return false;
+    if (selectedTopic && !topicsBySlug[pub.slug].includes(selectedTopic)) return false;
     return true;
   });
 
@@ -47,31 +51,30 @@ export function PublicationList({
 
   return (
     <div>
-      <div className="mt-8">
-        <PublicationFilter
-          years={years}
-          tags={tags}
-          selectedYear={selectedYear}
-          selectedTag={selectedTag}
-          onYearChange={setSelectedYear}
-          onTagChange={setSelectedTag}
-          labels={labels}
-        />
-      </div>
+      <PublicationFilter
+        years={years}
+        topics={topics}
+        selectedYear={selectedYear}
+        selectedTopic={selectedTopic}
+        onYearChange={setSelectedYear}
+        onTopicChange={setSelectedTopic}
+        labels={labels}
+      />
 
       {filtered.length > 0 ? (
         <div className="mt-10">
           {yearOrder.map((year) => (
             <section key={year} className="grid grid-cols-12 gap-x-6">
-              <h2 className="type-mono-meta col-span-12 border-t border-border pt-5 text-2xl text-accent-ink md:col-span-2">
+              <h3 className="type-mono-meta col-span-12 border-t border-border pt-5 text-2xl text-accent-ink md:col-span-2">
                 {year}
-              </h2>
+              </h3>
               <div className="col-span-12 md:col-span-10">
                 {byYear.get(year)!.map((pub) => (
                   <PublicationCard
                     key={pub.slug}
                     publication={pub}
                     lang={lang}
+                    topics={topicsBySlug[pub.slug].map((id) => topicLabel.get(id) ?? id)}
                   />
                 ))}
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MutableRefObject, ReactNode } from "react";
 import { useMeasuredBox } from "../useMeasuredBox";
 import { Vec3, Vec4 } from "molstar/lib/mol-math/linear-algebra.js";
@@ -10,6 +10,7 @@ import { withBasePath } from "@/lib/basePath";
 import type { ResearchCameraActions } from "../molstar/shared";
 import { MULTISCALE_TYPE } from "../visualRules";
 import { useMultiscaleCanvasColor } from "../useMultiscaleCanvasColor";
+import { useTheme } from "@/providers/ThemeProvider";
 import {
   AMBER,
   BLUE,
@@ -103,6 +104,60 @@ const COLORS: Record<string, Color> = Object.fromEntries(
 
 // How much room to leave around a fitted scene.
 const FIT_MARGIN = 1.05;
+
+// Mol* fits the bounding sphere into the narrow side of the canvas. The force panel holds the
+// 16 atoms inside the cutoff, a sparse cloud that drew at about a quarter of its tall canvas
+// that way. Keep Mol*'s view direction, centre on what is drawn, and fit its projected width
+// and height instead. Relative to the fitted camera, so it needs neither the fov nor Mol*'s scale.
+function fitToDrawnExtent(
+  fitted: CameraSnapshotLike,
+  layers: ResearchLayerSpec[],
+  width: number,
+  height: number,
+  margin: number,
+): CameraSnapshotLike {
+  const extents: { point: Vec3; radius: number }[] = [];
+  for (const primitive of layers.flatMap((layer) => layer.primitives)) {
+    if (primitive.kind === "sphere") {
+      extents.push({ point: Vec3.create(...primitive.center), radius: primitive.radius });
+    } else if (primitive.kind === "cylinder") {
+      const radius = Math.max(primitive.radiusTop, primitive.radiusBottom);
+      extents.push({ point: Vec3.create(...primitive.start), radius }, { point: Vec3.create(...primitive.end), radius });
+    }
+  }
+  if (!extents.length || width <= 0 || height <= 0 || fitted.radius <= 0) return scaleSnapshot(fitted, margin);
+
+  const forward = Vec3.normalize(Vec3(), Vec3.sub(Vec3(), fitted.target, fitted.position));
+  // Mol*'s snapshot carries `up`; the shared type leaves it out.
+  const viewUp = (fitted as CameraSnapshotLike & { up?: Vec3 }).up ?? Vec3.create(0, 1, 0);
+  const right = Vec3.normalize(Vec3(), Vec3.cross(Vec3(), forward, viewUp));
+  const up = Vec3.cross(Vec3(), right, forward);
+  const span = (axis: Vec3) => {
+    const lo = Math.min(...extents.map(({ point, radius }) => Vec3.dot(point, axis) - radius));
+    const hi = Math.max(...extents.map(({ point, radius }) => Vec3.dot(point, axis) + radius));
+    return { mid: (lo + hi) / 2, half: (hi - lo) / 2 };
+  };
+  const x = span(right);
+  const y = span(up);
+  const z = span(forward);
+  const target = Vec3.add(
+    Vec3(),
+    Vec3.add(Vec3(), Vec3.scale(Vec3(), right, x.mid), Vec3.scale(Vec3(), up, y.mid)),
+    Vec3.scale(Vec3(), forward, z.mid),
+  );
+  // At the fitted distance Mol* shows `radius` on the half of the narrow side.
+  const fittedHalfWidth = fitted.radius * (width / Math.min(width, height));
+  const neededHalfWidth = margin * Math.max(x.half, y.half * (width / height));
+  const distance = Vec3.distance(fitted.position, fitted.target) * (neededHalfWidth / fittedHalfWidth);
+  const radius = margin * Math.max(...extents.map(({ point, radius: r }) => Vec3.distance(point, target) + r));
+  return {
+    ...fitted,
+    target,
+    position: Vec3.sub(Vec3(), target, Vec3.scale(Vec3(), forward, distance)),
+    radius,
+    radiusMax: Math.max(fitted.radiusMax ?? 0, radius),
+  };
+}
 
 function centroid(atoms: number[][], indices?: number[]): Vec3Tuple {
   const selected = indices?.length ? indices : atoms.map((_, index) => index);
@@ -301,7 +356,10 @@ function arrowPrimitives(start: Vec3Tuple, vector: Vec3Tuple, color: Color): Res
   if (length < 0.001) return [];
   const unit = scaleVector(vector, 1 / length);
   const end = addVector(start, vector);
-  const headLength = Math.min(0.28, length * 0.3);
+  // The head scales down with a short arrow. At a fixed 0.1 radius on a 0.07 head, the
+  // shortest force arrows rendered as flat discs rather than arrows.
+  const headLength = Math.min(0.28, length * 0.4);
+  const headRadius = Math.min(0.1, headLength * 0.6);
   const headBase = addVector(end, scaleVector(unit, -headLength));
   return [
     {
@@ -322,7 +380,7 @@ function arrowPrimitives(start: Vec3Tuple, vector: Vec3Tuple, color: Color): Res
       start: headBase,
       end,
       radiusTop: 0,
-      radiusBottom: 0.1,
+      radiusBottom: headRadius,
       radialSegments: 16,
       color,
     },
@@ -521,14 +579,20 @@ function boundingRadius(atoms: number[][], center: Vec3Tuple): number {
 
 function buildDatasetLayers(data: MlffVisualData): ResearchLayerSpec[] {
   const center = centroid(data.molecule.atoms);
+  // One orientation for all five. Each row used to be turned to its own angle, so the eye
+  // compared rotations, which the next scene teaches leave the energy unchanged: the five
+  // rows read as one example drawn five times. Held at one angle, only the distortion
+  // differs. At the solved scale (about 0.18) the existing perturbation already moves atoms
+  // 0.4 to 0.6 Å, so it is not raised.
+  const rotate: Vec3Tuple = [0.34, -0.22, -0.08];
   const configs = [
-    { y: 5.1, rotate: [0.18, -0.42, -0.5] as Vec3Tuple, phase: 0.2 },
-    { y: 2.55, rotate: [-0.35, 0.28, 0.18] as Vec3Tuple, phase: 1.1 },
-    { y: 0, rotate: [0.48, -0.16, -0.08] as Vec3Tuple, phase: 2.2 },
-    { y: -2.55, rotate: [-0.22, -0.38, 0.46] as Vec3Tuple, phase: 3.1 },
-    { y: -5.1, rotate: [0.36, 0.32, -0.3] as Vec3Tuple, phase: 4.4 },
+    { y: 5.1, phase: 0.2 },
+    { y: 2.55, phase: 1.1 },
+    { y: 0, phase: 2.2 },
+    { y: -2.55, phase: 3.1 },
+    { y: -5.1, phase: 4.4 },
   ];
-  // Each configuration is rotated arbitrarily, so what has to fit inside a frame is
+  // The fit has to hold for any orientation, so what has to fit inside a frame is
   // the bounding SPHERE, not the vertical extent, and the radius has to be derived
   // from the molecule rather than assumed. With the scale fixed at 0.31 the rendered
   // radius exceeded the half-row, so atoms crossed the frame borders at every camera
@@ -542,8 +606,10 @@ function buildDatasetLayers(data: MlffVisualData): ResearchLayerSpec[] {
     moleculePrimitives(data.molecule, {
       center,
       scale,
-      rotate: config.rotate,
-      translate: [index % 2 === 0 ? -0.18 : 0.18, config.y, 0],
+      rotate,
+      // Right of centre, clear of the "example N" tag in each frame's top-left corner, which
+      // sat on the molecule at 1024. All five at one x, so the shapes line up for comparison.
+      translate: [1.05, config.y, 0],
       perturbation: 0.07 + index * 0.012,
       phase: config.phase,
     }),
@@ -755,48 +821,69 @@ function buildLocalLayers(data: MlffVisualData): ResearchLayerSpec[] {
   ];
 }
 
-function buildForceLayers(data: MlffVisualData): ResearchLayerSpec[] {
-  const center = centroid(data.molecule.atoms);
-  const transform: MoleculeTransform = {
-    center,
-    scale: 0.8,
-    rotate: [0.38, -0.25, 0.06],
-  };
-  const molecule = moleculePrimitives(data.molecule, transform);
-  // A force acts on every atom, so draw an arrow on every atom. Drawing only a
-  // subset would imply the model predicts forces for some atoms and not others.
-  const arrows = data.molecule.atoms.flatMap((_, index) => {
-    const start = transformAtom(data.molecule.atoms[index], index, transform);
-    const outward = [start[0], start[1], start[2]] as Vec3Tuple;
-    const length = Math.hypot(...outward) || 1;
-    const tangent: Vec3Tuple = [
-      outward[0] / length + Math.cos(index * 1.3) * 0.22,
-      outward[1] / length + Math.sin(index * 1.3) * 0.22,
-      outward[2] / length + 0.18,
-    ];
-    // Each force starts exactly at its atom center (same transform as the
-    // rendered atom).
-    return arrowPrimitives(start, scaleVector(tangent, 1.05), CYAN);
+// CYAN (#06b6d4) on the light canvas (#ededed) measures about 2:1, and the shortest arrows
+// beside the white hydrogens disappeared. Cyan-700 keeps the hue and holds about 4.6:1, but
+// only with the emissive turned down: at the dark theme's 0.72 it renders saturated to
+// (40,248,248), the same glow as plain CYAN.
+interface ForceArrowStyle {
+  color: Color;
+  emissive: number;
+}
+const FORCE_ARROWS_DARK: ForceArrowStyle = { color: CYAN, emissive: 0.72 };
+const FORCE_ARROWS_LIGHT: ForceArrowStyle = { color: Color.fromHexStyle("#0e7490"), emissive: 0.12 };
+
+function buildForceLayers(data: MlffVisualData, arrowStyle: ForceArrowStyle): ResearchLayerSpec[] {
+  // The same atoms, in the same orientation, as the neighbor-range panel two columns to
+  // the left. This panel used to switch to caffeine, so following the arrows across the
+  // scene a water shell turned into a different molecule.
+  const { system } = data;
+  const { selected, transform } = getLocalGraphGeometry(system);
+  const molecule = moleculePrimitives(system, transform, selected);
+  const balls = ballAndStick(
+    shortestHeavyBond(system.atoms.flat(), system.bonds as [number, number][], system.elements),
+    system.elements,
+  );
+  // A force acts on every atom, so draw an arrow on every atom, along that atom's force in
+  // system.json. These used to be an outward unit vector with a wobble and a constant z tilt:
+  // one length, all radial, adding up to a net push along z. Length follows
+  // sqrt(|F| / max|F|) on 0.3 to 1 Å, so the spread stays readable when one force is 70
+  // times another, and each arrow leaves its ball's surface so the shortest still shows.
+  const magnitude = (index: number) => Math.hypot(...(system.forces[index] as Vec3Tuple));
+  const maxForce = Math.max(...selected.map(magnitude)) || 1;
+  const arrows = selected.flatMap((index) => {
+    const force = magnitude(index);
+    if (force <= 0) return [];
+    const direction = rotatePoint(
+      scaleVector(system.forces[index] as Vec3Tuple, 1 / force),
+      transform.rotate ?? [0, 0, 0],
+    );
+    const length = (0.3 + 0.7 * Math.sqrt(force / maxForce)) * transform.scale;
+    const surface = balls.ball(system.elements[index]) * transform.scale;
+    const start = addVector(
+      transformAtom(system.atoms[index], index, transform),
+      scaleVector(direction, surface),
+    );
+    return arrowPrimitives(start, scaleVector(direction, length), arrowStyle.color);
   });
   return [
     {
-      label: "Molecular structure",
+      label: "Atoms inside the neighbor range",
       primitives: molecule,
       params: { emissive: 0.08, material: { metalness: 0.08, roughness: 0.36, bumpiness: 0 } },
     },
     {
       label: "Energy-consistent forces on every atom",
       primitives: arrows,
-      params: { emissive: 0.72 },
+      params: { emissive: arrowStyle.emissive },
     },
   ];
 }
 
-function buildLayers(variant: MlffViewportVariant, data: MlffVisualData) {
+function buildLayers(variant: MlffViewportVariant, data: MlffVisualData, forceArrows: ForceArrowStyle) {
   if (variant === "dataset") return buildDatasetLayers(data);
   if (variant === "pes") return buildPesLayers(data);
   if (variant === "local") return buildLocalLayers(data);
-  return buildForceLayers(data);
+  return buildForceLayers(data, forceArrows);
 }
 
 function MlffMolstarViewport({
@@ -831,7 +918,13 @@ function MlffMolstarViewport({
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [projectedLayout, setProjectedLayout] = useState<ProjectedLayout | null>(null);
-  const layers = useMemo(() => (data ? buildLayers(variant, data) : null), [data, variant]);
+  const { theme } = useTheme();
+  // Only the force panel depends on the theme, so only it rebuilds when the theme changes.
+  const forceArrows = variant === "forces" && theme === "light" ? FORCE_ARROWS_LIGHT : FORCE_ARROWS_DARK;
+  const layers = useMemo(
+    () => (data ? buildLayers(variant, data, forceArrows) : null),
+    [data, variant, forceArrows],
+  );
 
   useEffect(() => {
     canvasColorRef.current = canvasColor;
@@ -909,7 +1002,9 @@ function MlffMolstarViewport({
           // number (2.2, 1.9, 1.12, 1.02) because fitScene returned the camera from before
           // its own reset had been applied, so every panel was tuned against a different
           // wrong baseline.
-          const snapshot = scaleSnapshot(fitted, FIT_MARGIN);
+          const snapshot = variant === "forces"
+            ? fitToDrawnExtent(fitted, layers, container.clientWidth, container.clientHeight, FIT_MARGIN)
+            : scaleSnapshot(fitted, FIT_MARGIN);
           defaultSnapshotRef.current = snapshot;
           mounted.plugin.managers.camera.setSnapshot(snapshot, 0);
         }
@@ -1074,7 +1169,7 @@ function PanelHeader({
     // through the first card of the panel under it, with neither readable.
     <div className={`pointer-events-none relative z-10 shrink-0 p-3.5 ${align === "center" ? "text-center" : ""}`}>
       <h4 className={tone ? PANEL_TITLE_TONE[tone] : MULTISCALE_TYPE.schematicTitle}>{title}</h4>
-      {detail ? <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>{detail}</p> : null}
+      {detail ? <p className={`mt-1 text-balance ${MULTISCALE_TYPE.schematicCaption}`}>{detail}</p> : null}
     </div>
   );
 }
@@ -1138,6 +1233,31 @@ function ExactNeighborMessageOverlay({
   geometry: LocalGraphGeometry;
   ko: boolean;
 }) {
+  // The clearance search below used to run on assumed chip boxes (52x40 and 62x36) while the
+  // rendered chips measured about 152x34 and up to 140x46, so it cleared boxes nobody drew
+  // and the "center atom" chip landed on the atom it names. Search with the real sizes.
+  const centerLabelRef = useRef<HTMLSpanElement>(null);
+  const cutoffLabelRef = useRef<HTMLSpanElement>(null);
+  const [chips, setChips] = useState({ center: { w: 96, h: 24 }, cutoff: { w: 112, h: 24 } });
+  useLayoutEffect(() => {
+    const centerChip = centerLabelRef.current;
+    const cutoffChip = cutoffLabelRef.current;
+    if (!centerChip || !cutoffChip) return;
+    const measure = () =>
+      setChips((previous) => {
+        const next = {
+          center: { w: centerChip.offsetWidth, h: centerChip.offsetHeight },
+          cutoff: { w: cutoffChip.offsetWidth, h: cutoffChip.offsetHeight },
+        };
+        return JSON.stringify(next) === JSON.stringify(previous) ? previous : next;
+      });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(centerChip);
+    observer.observe(cutoffChip);
+    return () => observer.disconnect();
+  }, [layout, ko]);
+
   if (!layout || !layout.cutoffRadius || layout.cutoffBoundary.length < 3) return null;
   const center = layout.anchors.find(({ id }) => id === "center");
   if (!center) return null;
@@ -1158,77 +1278,100 @@ function ExactNeighborMessageOverlay({
   // constant offset knows nothing about what is drawn underneath it, which is how the
   // i chip came to sit on a neighbouring atom and how r_cut came to erase the arc it
   // labels. Place them by looking for room instead.
-  const CENTER_LABEL = { w: 52, h: 40 };
-  const CUTOFF_LABEL = { w: 62, h: 36 };
+  const CENTER_LABEL = chips.center;
+  const CUTOFF_LABEL = chips.cutoff;
+  type Box = { left: number; top: number; right: number; bottom: number };
+  const boxAround = (x: number, y: number, size: { w: number; h: number }): Box => ({
+    left: x - size.w / 2,
+    top: y - size.h / 2,
+    right: x + size.w / 2,
+    bottom: y + size.h / 2,
+  });
+  const pointToBox = (x: number, y: number, box: Box) =>
+    Math.hypot(Math.max(box.left - x, 0, x - box.right), Math.max(box.top - y, 0, y - box.bottom));
+  const boxesOverlap = (a: Box, b: Box) =>
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  // Candidates are scored where they will actually be drawn. Scoring the ideal box and
+  // clamping it afterwards let the two chips land on each other at 1024, where the cutoff
+  // circle fills the viewport and no spot outside it fits.
+  const clampBox = (box: Box): Box => {
+    const w = box.right - box.left;
+    const h = box.bottom - box.top;
+    const left = Math.min(layout.width - w - 4, Math.max(4, box.left));
+    const top = Math.min(layout.height - h - 4, Math.max(4, box.top));
+    return { left, top, right: left + w, bottom: top + h };
+  };
+  const shiftOf = (a: Box, b: Box) => Math.hypot(a.left - b.left, a.top - b.top);
 
-  const insideLayout = (x: number, y: number, box: { w: number; h: number }) =>
-    x - box.w / 2 >= 4 &&
-    y - box.h / 2 >= 4 &&
-    x + box.w / 2 <= layout.width - 4 &&
-    y + box.h / 2 <= layout.height - 4;
-
-  // Capped rather than Infinity: with no highlighted neighbours every candidate would
-  // score Infinity, and Infinity minus the off-canvas penalty is still Infinity, so the
-  // search would silently stop preferring positions that stay on the canvas.
-  const nearestNeighborDistance = (x: number, y: number) =>
+  // Distance from the chip's box, not its centre, to the nearest highlighted neighbour: a
+  // 100px chip whose centre is clear can still sit on an atom with its end. Capped, because
+  // past the anchor ring more room changes nothing.
+  const neighborClearance = (box: Box) =>
     neighbors.reduce(
-      (worst, neighbor) => Math.min(worst, Math.hypot(x - neighbor.anchor.x, y - neighbor.anchor.y)),
-      Math.max(layout.width, layout.height),
+      (worst, neighbor) => Math.min(worst, pointToBox(neighbor.anchor.x, neighbor.anchor.y, box)),
+      14,
     );
 
-  // Far enough out that the chip never covers the atom it points at, close enough that it
-  // still reads as attached to it. Whichever direction has the most room around it wins.
-  const CENTER_LABEL_RADIUS = 34;
-  let centerSpot = { x: center.x + CENTER_LABEL_RADIUS, y: center.y, score: -Infinity };
+  // The centre atom itself is an obstacle: its halo (r=24) plus a hair. In each direction the
+  // chip goes out exactly as far as it must to clear that circle, so it reads as attached to
+  // the atom without covering it, and among the directions the one that keeps the
+  // highlighted neighbours visible and stays closest wins.
+  const CENTER_CLEARANCE = 26;
+  let centerBox = boxAround(center.x, center.y - CENTER_CLEARANCE - CENTER_LABEL.h / 2, CENTER_LABEL);
+  let centerScore = -Infinity;
   for (let step = 0; step < 24; step++) {
     const angle = (step / 24) * Math.PI * 2;
-    const x = center.x + Math.cos(angle) * CENTER_LABEL_RADIUS;
-    const y = center.y + Math.sin(angle) * CENTER_LABEL_RADIUS;
+    let reach = CENTER_CLEARANCE;
+    let box = boxAround(center.x + Math.cos(angle) * reach, center.y + Math.sin(angle) * reach, CENTER_LABEL);
+    while (pointToBox(center.x, center.y, box) < CENTER_CLEARANCE) {
+      reach += 1;
+      box = boxAround(center.x + Math.cos(angle) * reach, center.y + Math.sin(angle) * reach, CENTER_LABEL);
+    }
+    const drawn = clampBox(box);
     const score =
-      nearestNeighborDistance(x, y) - (insideLayout(x, y, CENTER_LABEL) ? 0 : 1000);
-    if (score > centerSpot.score) centerSpot = { x, y, score };
+      (pointToBox(center.x, center.y, drawn) < CENTER_CLEARANCE ? -1000 : 0) +
+      neighborClearance(drawn) * 10 - reach - shiftOf(drawn, box) * 2;
+    if (score > centerScore) {
+      centerScore = score;
+      centerBox = drawn;
+    }
   }
 
-  // r_cut names the radius line, so it belongs beside the middle of that line rather than
-  // at its tip, where it was landing on the cutoff arc. Take whichever perpendicular side
-  // stays on the canvas and sits furthest from the i chip.
+  // "neighbor range" names the dashed outline, so it rests on that outline from outside:
+  // for each direction, the chip sits just past the boundary point, pushed out by its own
+  // extent along that direction so no corner reaches back inside. Prefer the direction of
+  // the radius line, and never the centre chip's spot.
   const radiusAngle = Math.atan2(cutoffEnd.y - center.y, cutoffEnd.x - center.x);
-  const radiusMid = {
-    x: (center.x + cutoffEnd.x) / 2,
-    y: (center.y + cutoffEnd.y) / 2,
-  };
-  // The offset has to clear the label's own half-extent along the normal, or the radius line
-  // it names runs inside the box by construction: at a -20 degree radius angle a 62x36 label
-  // reaches 31*sin20 + 18*cos20 = 27.4px along the normal, against the fixed 26 this used to
-  // use, so the leader entered one corner and left by the other. Plus a small gap.
-  const cutoffOffset = (angle: number) =>
-    Math.abs(Math.cos(angle)) * (CUTOFF_LABEL.w / 2) +
-    Math.abs(Math.sin(angle)) * (CUTOFF_LABEL.h / 2) + 8;
-  const cutoffSpot = [radiusAngle - Math.PI / 2, radiusAngle + Math.PI / 2]
-    .map((angle) => ({
-      x: radiusMid.x + Math.cos(angle) * cutoffOffset(radiusAngle),
-      y: radiusMid.y + Math.sin(angle) * cutoffOffset(radiusAngle),
-    }))
-    .map((spot) => ({
-      ...spot,
-      score:
-        (insideLayout(spot.x, spot.y, CUTOFF_LABEL) ? 0 : -1000) +
-        // Same term the i chip scores on, so the box also stops landing on the oxygens the
-        // caption counts. Without it two of the six highlighted O rings sat under this label.
-        nearestNeighborDistance(spot.x, spot.y) +
-        Math.hypot(spot.x - centerSpot.x, spot.y - centerSpot.y),
-    }))
-    .sort((a, b) => b.score - a.score)[0];
+  let cutoffBox = boxAround(cutoffEnd.x, cutoffEnd.y, CUTOFF_LABEL);
+  let cutoffScore = -Infinity;
+  for (let step = 0; step < 36; step++) {
+    const angle = (step / 36) * Math.PI * 2;
+    const direction = { x: Math.cos(angle), y: Math.sin(angle) };
+    const edge = rayPolygonIntersection(center, direction, layout.cutoffBoundary);
+    const push =
+      Math.abs(direction.x) * (CUTOFF_LABEL.w / 2) + Math.abs(direction.y) * (CUTOFF_LABEL.h / 2) + 4;
+    const box = boxAround(edge.x + direction.x * push, edge.y + direction.y * push, CUTOFF_LABEL);
+    const drawn = clampBox(box);
+    const turn = Math.abs(Math.atan2(Math.sin(angle - radiusAngle), Math.cos(angle - radiusAngle)));
+    // Every pixel the canvas edge pushes the chip back is a pixel it no longer rests on the
+    // outline, so a small push beats a large one; when none fits outside, the chip still
+    // keeps off the centre chip, the centre atom and the highlighted neighbours.
+    const score =
+      (boxesOverlap(drawn, centerBox) ? -500 : 0) +
+      (pointToBox(center.x, center.y, drawn) < CENTER_CLEARANCE ? -300 : 0) +
+      neighborClearance(drawn) * 5 -
+      shiftOf(drawn, box) * 3 -
+      turn * 10;
+    if (score > cutoffScore) {
+      cutoffScore = score;
+      cutoffBox = drawn;
+    }
+  }
 
-  const boxLeft = (x: number, box: { w: number; h: number }) =>
-    Math.min(layout.width - box.w - 4, Math.max(4, x - box.w / 2));
-  const boxTop = (y: number, box: { w: number; h: number }) =>
-    Math.min(layout.height - box.h - 4, Math.max(4, y - box.h / 2));
-
-  const centerLabelLeft = boxLeft(centerSpot.x, CENTER_LABEL);
-  const centerLabelTop = boxTop(centerSpot.y, CENTER_LABEL);
-  const cutoffLabelLeft = boxLeft(cutoffSpot.x, CUTOFF_LABEL);
-  const cutoffLabelTop = boxTop(cutoffSpot.y, CUTOFF_LABEL);
+  const centerLabelLeft = centerBox.left;
+  const centerLabelTop = centerBox.top;
+  const cutoffLabelLeft = cutoffBox.left;
+  const cutoffLabelTop = cutoffBox.top;
 
   return (
     <div
@@ -1329,16 +1472,20 @@ function ExactNeighborMessageOverlay({
           />
         </g>
       </svg>
+      {/* Panel-title register. At text-2xl and text-lg the two annotations outranked the
+          14px heading of the panel they sit in. */}
       <span
+        ref={centerLabelRef}
         data-mlff-center-atom-label
-        className="absolute border border-violet-700/45 bg-surface-raised/95 px-2 py-1 text-2xl font-semibold leading-none text-violet-900 dark:border-violet-300/45 dark:bg-violet-950/94 dark:text-violet-50"
+        className="absolute whitespace-nowrap border border-violet-700/45 bg-surface-raised/95 px-2 py-1 text-sm font-semibold leading-none text-violet-900 dark:border-violet-300/45 dark:bg-violet-950/94 dark:text-violet-50"
         style={{ left: centerLabelLeft, top: centerLabelTop }}
       >
         {ko ? "중심 원자" : "center atom"}
       </span>
       <span
+        ref={cutoffLabelRef}
         data-mlff-cutoff-label
-        className="absolute border border-cyan-700/40 bg-surface-raised/95 px-2 py-1 text-lg font-semibold leading-none text-cyan-900 dark:border-cyan-300/38 dark:text-cyan-50"
+        className="absolute whitespace-nowrap border border-cyan-700/40 bg-surface-raised/95 px-2 py-1 text-sm font-semibold leading-none text-cyan-900 dark:border-cyan-300/38 dark:text-cyan-50"
         style={{ left: cutoffLabelLeft, top: cutoffLabelTop }}
       >
         {ko ? "이웃 범위" : "neighbor range"}
@@ -1424,9 +1571,9 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
     // 1024 the first box printed straight over the panel's own header.
     <div className="flex h-full flex-col items-center gap-1 px-1.5 [justify-content:safe_center]">
       <div className={`w-full max-w-[15rem] border border-border bg-muted/30 px-2 py-2 text-center text-foreground ${stageClass}`} style={animate ? stageDelayStyle(0) : undefined}>
-        <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "가까운 원자들" : "Nearby atoms"}</p>
-        <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-          {ko ? "모형이 읽는 가까운 원자" : "nearby atoms used by the model"}
+        <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "원자 위치와 원소" : "Positions and elements"}</p>
+        <p className={`mt-1 text-balance ${MULTISCALE_TYPE.schematicMeta}`}>
+          {ko ? "이웃 범위 안의 모든 원자" : "of every atom inside the neighbor range"}
         </p>
       </div>
 
@@ -1441,21 +1588,20 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
               wrapped lines in the narrowest column on the page. */}
           <div className="text-center text-foreground">
             <p className={MULTISCALE_TYPE.schematicTitle}>{ko ? "일관된 주변 환경 표현" : "Consistent description of the neighborhood"}</p>
-            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-              {ko ? "옮기거나 돌리고 같은 원자를 바꿔도 같은 값" : "unchanged by moving, rotating, or swapping identical atoms"}
-            </p>
           </div>
           {/* Two descriptor families, told apart by colour alone. On the retired
               `cyan-800 dark:cyan-100` / `violet-800 dark:violet-100` pair the dark values were
               both near-white: dE between the families fell from 85.1 in light to 18.4 in dark,
               closer to each other than either was to plain body text at 21.0 and 19.5. The
               declared --sch-* pairs hold hue across modes, which is the rule the ramp classes
-              broke (DESIGN.md: "dark raises lightness one step"; 800 to 100 is seven). */}
+              broke (DESIGN.md: "dark raises lightness one step"; 800 to 100 is seven).
+              The meta preset is spelled out without its text-muted-foreground: carrying both
+              colour classes, the grey won and both lines rendered as plain meta text. */}
           <div className="mt-2.5 grid gap-1 border-t border-border pt-2.5 text-left">
-            <p className={`${MULTISCALE_TYPE.schematicMeta} text-[var(--sch-descriptor-invariant)]`}>
-              {ko ? "계를 옮기거나 돌려도 에너지는 같음" : "energy stays the same after moving or rotating"}
+            <p className="type-mono-meta text-balance text-xs leading-4 tracking-[0.06em] text-[var(--sch-descriptor-invariant)]">
+              {ko ? "계를 옮기거나 돌리거나 같은 원소끼리 바꿔도 에너지는 같음" : "energy stays the same after moving, rotating, or swapping identical atoms"}
             </p>
-            <p className={`${MULTISCALE_TYPE.schematicMeta} text-[var(--sch-descriptor-equivariant)]`}>
+            <p className="type-mono-meta text-balance text-xs leading-4 tracking-[0.06em] text-[var(--sch-descriptor-equivariant)]">
               {ko ? "계를 돌리면 힘의 방향도 함께 회전" : "force directions rotate with the system"}
             </p>
           </div>
@@ -1464,8 +1610,8 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
 
       <FlowConnector animate={animate} delay={1.55} />
       <div className={`w-full max-w-[15rem] border border-border-strong bg-card px-2 py-2 text-center text-foreground ${stageClass}`} style={animate ? stageDelayStyle(2.4) : undefined}>
-        <p className={MULTISCALE_TYPE.schematicCaption}>
-          {ko ? "원자별 기여를 더해 총에너지를 구한다" : "Add the contribution from each atom to obtain the total energy"}
+        <p className={`text-balance ${MULTISCALE_TYPE.schematicCaption}`}>
+          {ko ? "중심 원자의 에너지 기여" : "Energy contribution of the center atom"}
         </p>
       </div>
     </div>
@@ -1475,7 +1621,7 @@ function EquivariantInteractionCore({ ko, reducedMotion }: { ko: boolean; reduce
 function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | null; ko: boolean; className?: string }) {
   return (
     <section data-mlff-panel="dataset" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "양자 계산으로 만든 학습 자료" : "training data from quantum calculations"}>
-      <PanelHeader title={ko ? "양자 참조 자료" : "quantum reference data"} detail={ko ? "원자 배치마다 에너지와 힘을 계산" : "each atomic arrangement carries energy and force labels"} tone="dft" />
+      <PanelHeader title={ko ? "양자 참조 자료" : "quantum reference data"} detail={ko ? "원자 배치마다 양자 계산으로 얻은 에너지와 원자별 힘" : "each arrangement with its quantum energy and per-atom forces"} tone="dft" />
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-0">
           <MlffMolstarViewport
@@ -1496,9 +1642,6 @@ function DatasetPanel({ data, ko, className = "" }: { data: MlffVisualData | nul
             <span className="absolute left-1.5 top-1 bg-surface-raised/80 px-1.5 py-0.5 text-xs text-muted-foreground">
               {ko ? `예시 ${index + 1}` : `example ${index + 1}`}
             </span>
-            <span className="absolute bottom-1 right-1.5 bg-surface-raised/85 px-1.5 py-0.5 text-xs text-muted-foreground">
-              {ko ? "원자 위치 · 에너지 · 힘" : "positions · energy · forces"}
-            </span>
             </div>
           ))}
         </div>
@@ -1515,8 +1658,8 @@ function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMoti
       <div className={`h-[5.25rem] w-24 ${stageClass}`} style={animate ? stageDelayStyle(0) : undefined}>
         <LocalGraphGlyph ko={ko} />
       </div>
-      <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-        {ko ? "국소 기하" : "local geometry"}
+      <p className={`mt-1 text-center text-balance ${MULTISCALE_TYPE.schematicMeta}`}>
+        {ko ? "원자 하나의 주변" : "atoms around one atom"}
       </p>
 
       <FlowConnector animate={animate} delay={0.35} />
@@ -1526,23 +1669,17 @@ function CompactPotentialModel({ ko, reducedMotion }: { ko: boolean; reducedMoti
         <span className="absolute inset-x-1 top-1 h-full border border-border" />
         <div className="relative border border-border-strong bg-card p-2.5 text-center">
           <p className={MULTISCALE_TYPE.schematicTitle}>
-            {ko ? "변환에 일관된 표현" : "consistent local description"}
+            {ko ? "일관된 주변 환경 표현" : "consistent local description"}
           </p>
           <div className="mt-2 border-t border-border pt-2 text-foreground">
-            <p className={MULTISCALE_TYPE.schematicCaption}>{ko ? "같은 주변 환경은 같은 설명으로" : "same neighborhood, same description"}</p>
-            <p className={`mt-1 ${MULTISCALE_TYPE.schematicMeta}`}>
-              {ko ? "계를 옮기거나 돌려도 같음" : "same after moving or rotating the system"}
-            </p>
+            <p className={MULTISCALE_TYPE.schematicCaption}>{ko ? "계를 옮기거나 돌려도 같은 에너지" : "gives the same energy after moving or rotating the system"}</p>
           </div>
         </div>
       </div>
 
       <FlowConnector animate={animate} delay={1.55} />
       <div className={`w-full max-w-[11rem] border border-border-strong bg-card px-3 py-3 text-center ${stageClass}`} style={animate ? stageDelayStyle(2.4) : undefined}>
-        <p className={MULTISCALE_TYPE.schematicCaption}>{ko ? "원자별 에너지를 더해 총에너지로" : "atomic energies sum to a total"}</p>
-        <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>
-          {ko ? "학습한 모형" : "learned model"}
-        </p>
+        <p className={MULTISCALE_TYPE.schematicCaption}>{ko ? "원자별 에너지를 더해 총에너지를 계산" : "adds atomic energies into one total energy"}</p>
       </div>
     </div>
   );
@@ -1564,8 +1701,17 @@ const VALUE_VIEWBOX = { x: 38, y: 12, width: 292, height: 240 };
 function MlffValueSchematic({ ko }: { ko: boolean }) {
   // Accuracy (y) vs accessible time & scale (x). DFT/AIMD is accurate but short
   // and small; classical force fields reach long times and large systems but at
-  // low accuracy; the learned force field occupies the corner neither can — DFT
-  // accuracy together with beyond-nanosecond, large-scale sampling.
+  // low accuracy; the learned force field reaches the long, large side near the
+  // top. DFT is the ceiling: the MLFF is trained on it, so its box never rises
+  // above DFT's, and it reaches further down because its accuracy depends on how
+  // well the training data covers the chemistry.
+  // The MLFF box ends left of the classical one: each MLFF step costs more than evaluating
+  // fixed-form classical terms, so the same effort reaches shorter times and smaller systems.
+  // It starts inside DFT's range because it also runs at DFT-checkable sizes. Qualitative
+  // order only.
+  //
+  // At 1024 the panel renders about 0.7px per unit, so every label that only restated
+  // a box's position on the axes was cut: those were the words printing past the boxes.
   //
   // Every label is asked for in CSS pixels and converted to user units here. A font-size
   // inside a viewBox is in user units, so it is multiplied by whatever ratio the svg happens
@@ -1598,7 +1744,7 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
     >
       <defs>
         <clipPath id="mlff-val-clip">
-          <rect x="184" y="104" width="138" height="30" />
+          <rect x="160" y="104" width="138" height="30" />
         </clipPath>
       </defs>
 
@@ -1609,41 +1755,38 @@ function MlffValueSchematic({ ko }: { ko: boolean }) {
       <path d="M48 210 V30 M43 36 L48 30 L53 36" fill="none" stroke="var(--plot-axis)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
 
       <text x="42" y="24" fill="var(--plot-label)" fontSize={META} fontWeight="600">{ko ? "양자 자료와 일치 ↑" : "match to quantum data ↑"}</text>
-      <text x="92" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">{ko ? "짧은 시간" : "short times"}</text>
-      <text x="200" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">{ko ? "긴 시간" : "longer times"}</text>
-      <text x="316" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="end">{ko ? "더 많은 원자" : "more atoms"}</text>
+      <text x="112" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">{ko ? "짧은 시간 · 작은 계" : "short, small"}</text>
+      <text x="253" y="228" fill="var(--plot-text)" fontSize={META} textAnchor="middle">{ko ? "긴 시간 · 큰 계" : "long, large"}</text>
       <text x="185" y="247" fill="var(--plot-label)" fontSize={META} fontWeight="600" textAnchor="middle">{ko ? "시간 · 규모 →" : "time · scale →"}</text>
 
       <g>
-        <rect x="56" y="54" width="112" height="52" fill="var(--lv-dft-wash)" stroke="var(--lv-dft-line)" strokeWidth="1.2" />
-        <text x="112" y="78" fill="var(--lv-dft)" fontSize={TITLE} fontWeight="700" textAnchor="middle">DFT</text>
-        <text x="112" y="96" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "선택한 원자 배치" : "selected structures"}</text>
+        <rect x="56" y="32" width="96" height="58" fill="var(--lv-dft-wash)" stroke="var(--lv-dft-line)" strokeWidth="1.2" />
+        <text x="104" y="56" fill="var(--lv-dft)" fontSize={TITLE} fontWeight="700" textAnchor="middle">DFT</text>
+        <text x="104" y="76" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "기준" : "reference"}</text>
       </g>
 
       <g>
         <rect x="184" y="150" width="138" height="58" fill="var(--lv-aa-wash)" stroke="var(--lv-aa-line)" strokeWidth="1.2" />
-        <text x="253" y="170" fill="var(--muted-foreground)" fontSize={TITLE} fontWeight="700" textAnchor="middle">{ko ? "고전 역장" : "classical"}</text>
-        <text x="253" y="188" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "더 많은 원자" : "more atoms"}</text>
-        <text x="253" y="203" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "고정된 상호작용" : "fixed interactions"}</text>
+        <text x="253" y="174" fill="var(--muted-foreground)" fontSize={TITLE} fontWeight="700" textAnchor="middle">{ko ? "고전 역장" : "classical"}</text>
+        <text x="253" y="194" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "고정 규칙" : "fixed rules"}</text>
       </g>
 
       <g style={{ filter: "drop-shadow(0 0 9px var(--lv-mlff-line))" }}>
-        <rect x="184" y="32" width="138" height="102" fill="var(--lv-mlff-wash)" stroke="var(--lv-mlff-line)" strokeWidth="1.6" />
-        <text x="253" y="52" fill="var(--lv-mlff)" fontSize={LEAD} fontWeight="800" textAnchor="middle">MLFF</text>
-        <text x="253" y="70" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "양자 자료로 학습" : "quantum-trained"}</text>
-        <text x="253" y="86" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "원자 해상도" : "atom-level detail"}</text>
-        <text x="253" y="101" fill="var(--sch-stretch)" fontSize={META} fontWeight="700" textAnchor="middle">{ko ? "더 긴 시간" : "longer times"}</text>
+        <rect x="160" y="44" width="138" height="90" fill="var(--lv-mlff-wash)" stroke="var(--lv-mlff-line)" strokeWidth="1.6" />
+        <text x="229" y="68" fill="var(--lv-mlff)" fontSize={LEAD} fontWeight="800" textAnchor="middle">MLFF</text>
+        <text x="229" y="88" fill="var(--sch-muted)" fontSize={META} textAnchor="middle">{ko ? "양자 자료로 학습" : "quantum-trained"}</text>
         {/* A dense atom slab clipped by the box reads as a large system continuing
-            beyond the frame; the long weaving path is beyond-ns dynamics. */}
+            beyond the frame; the long weaving path is dynamics longer than DFT reaches,
+            shorter than classical. */}
         <g clipPath="url(#mlff-val-clip)">
           {Array.from({ length: 156 }, (_, index) => {
             const col = index % 26;
             const row = Math.floor(index / 26);
-            const cx = 184 + col * 5.6 + (row % 2) * 2.8;
+            const cx = 160 + col * 5.6 + (row % 2) * 2.8;
             const cy = 108 + row * 5.3 + Math.sin(col * 1.3) * 0.7;
             return <circle key={index} cx={cx} cy={cy} r="1.4" fill={clusterFills[(col + row) % clusterFills.length]} opacity="0.9" />;
           })}
-          <path d="M182 118 q14 -6 28 0 t28 0 t28 0 t28 0 t28 0 t28 0" fill="none" stroke="var(--sch-stretch)" strokeWidth="1.3" strokeLinecap="round" opacity="0.9" />
+          <path d="M158 118 q14 -6 28 0 t28 0 t28 0 t28 0 t28 0 t28 0" fill="none" stroke="var(--sch-stretch)" strokeWidth="1.3" strokeLinecap="round" opacity="0.9" />
         </g>
       </g>
     </svg>
@@ -1741,13 +1884,13 @@ function LocalGraphPanel({
         />
       </div>
       <div className="mx-3 mb-3 mt-2 shrink-0 border-t border-border pt-3 text-center">
-        <p className={`${MULTISCALE_TYPE.schematicTitle} text-foreground`}>
-          {ko ? "고른 이웃 범위 안의 원자를 사용" : "Use atoms inside the chosen neighbor range"}
+        <p className={`${MULTISCALE_TYPE.schematicTitle} text-balance text-foreground`}>
+          {ko ? "모형은 이웃 범위 안의 원자만 읽는다" : "The model reads only atoms inside the neighbor range"}
         </p>
-        <p className={`mt-1 ${MULTISCALE_TYPE.schematicCaption}`}>
+        <p className={`mt-1 text-balance ${MULTISCALE_TYPE.schematicCaption}`}>
           {ko
-            ? "고른 반경 안의 원자가 모두 중심 원자의 예측에 기여한다"
-            : "all atoms inside the chosen radius contribute to the center atom's prediction"}
+            ? "계가 커져도 원자 하나에 드는 계산량은 같다"
+            : "so the cost per atom stays the same as the system grows"}
         </p>
       </div>
     </section>
@@ -1757,7 +1900,7 @@ function LocalGraphPanel({
 function InteractionPanel({ ko, reducedMotion, className = "" }: { ko: boolean; reducedMotion: boolean; className?: string }) {
   return (
     <section data-mlff-panel="interaction" className={`relative flex min-h-0 flex-col overflow-hidden border border-border bg-surface-sunken ${className}`} aria-label={ko ? "원자 주변 환경을 일관된 에너지 표현으로 바꾸는 과정" : "turning an atomic neighborhood into a consistent energy description"}>
-      <PanelHeader title={ko ? "주변 환경을 읽는 법" : "reading the nearby environment"} detail={ko ? "계를 옮기거나 돌려도 같은 에너지를 내도록 표현" : "the description gives the same energy after moving or rotating the system"} tone="mlff" />
+      <PanelHeader title={ko ? "주변 환경을 읽는 법" : "reading the nearby environment"} detail={ko ? "이웃 원자의 위치를 에너지 계산의 입력값으로 바꿈" : "turns neighbor positions into inputs for the energy"} tone="mlff" />
       <div className="relative mx-1 mb-2 min-h-0 flex-1">
         <EquivariantInteractionCore ko={ko} reducedMotion={reducedMotion} />
       </div>
@@ -1781,15 +1924,15 @@ function EnergyForcePanel({
       <PanelHeader
         title={ko ? "총에너지와 힘" : "total energy and forces"}
         tone="mlff"
-        detail={ko ? "원자별 기여를 더하고 같은 에너지 변화에서 힘을 계산" : "sum atomic contributions, then obtain forces from changes in the same energy"}
+        detail={ko ? "모든 원자의 기여를 더한 총에너지" : "add every atom's contribution into one total energy"}
       />
       <div className="relative min-h-0 flex-1">
-        <MlffMolstarViewport ko={ko} variant="forces" data={data} label={ko ? "분자 구조와 각 원자에 예측된 힘" : "molecular structure and the force predicted on each atom"} actionsRef={actionsRef} />
+        <MlffMolstarViewport ko={ko} variant="forces" data={data} label={ko ? "이웃 범위 안의 원자와 각 원자에 작용하는 힘" : "the atoms inside the neighbor range and the force on each atom"} actionsRef={actionsRef} />
       </div>
       <div className="mx-1 mb-2 mt-2 shrink-0 border-t border-border bg-surface-sunken/90 pt-2.5 text-center">
         <div className="border border-lv-mlff-line bg-lv-mlff-wash px-1 py-2.5 text-foreground">
           <p className={MULTISCALE_TYPE.schematicCaption}>
-            {ko ? "원자별 기여를 더해 총에너지를 구하고 원자가 움직일 때의 에너지 변화로 힘을 구한다." : "Add atomic contributions to get the total energy, then use its change as atoms move to obtain the forces."}
+            {ko ? "각 원자에 작용하는 힘은 그 원자가 움직일 때 총에너지가 변하는 정도로 정해진다." : "The force on each atom comes from how the total energy changes when that atom moves."}
           </p>
         </div>
       </div>
@@ -1818,12 +1961,14 @@ function InsidePage({
     // the legibility floor at this width (DESIGN.md R11).
     <div className={isMobile ? "mlff-mobile-inside flex min-h-full flex-col gap-2" : "grid h-full min-h-0 grid-cols-[minmax(0,.86fr)_2rem_minmax(0,1.24fr)_2rem_minmax(0,1.04fr)] gap-2"}>
       <LocalGraphPanel data={data} ko={ko} className={isMobile ? "h-[430px] flex-none" : ""} />
-      <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} label={ko ? "인코딩" : "encode"} />
+      {/* At 52px, "encode" and "combine" printed across both borders of a 32px gutter. The
+          first arrow needs no word; the second names the step it draws. */}
+      <FlowArrow vertical={isMobile} reducedMotion={reducedMotion} />
       <InteractionPanel ko={ko} reducedMotion={reducedMotion} className={isMobile ? "h-[515px] flex-none" : ""} />
       <FlowArrow
         vertical={isMobile}
         reducedMotion={reducedMotion}
-        label={ko ? "합치기" : "combine"}
+        label={ko ? "합산" : "sum"}
       />
       <EnergyForcePanel data={data} ko={ko} actionsRef={actionsRef} className={isMobile ? "h-[420px] flex-none" : ""} />
     </div>
@@ -1843,6 +1988,30 @@ export function MlffSchematicStage({
   const canvasColor = useMultiscaleCanvasColor();
   const ko = lang === "ko";
   const inside = sceneKey === "L5_energy_force";
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [titleReach, setTitleReach] = useState<number | null>(null);
+
+  // On desktop the scene title card is drawn over the top-left of this stage, and its height
+  // follows the title: the English overview title wraps to three lines and the card ended
+  // 190px down, against a guessed 10rem reservation that hid the first panel's heading at
+  // every width (DESIGN.md R19). Measure how far the card reaches into the stage instead;
+  // a card laid out above the stage reaches 0.
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (isMobile || !stage) return;
+    const title = stage
+      .closest('[data-testid="multiscale-stage-shell"]')
+      ?.querySelector('[data-testid="multiscale-scene-title"]');
+    const measure = () =>
+      setTitleReach(
+        title ? Math.max(0, title.getBoundingClientRect().bottom - stage.getBoundingClientRect().top) : 0,
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (title) observer.observe(title);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [isMobile]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1869,13 +2038,19 @@ export function MlffSchematicStage({
 
   return (
     <div
+      ref={stageRef}
       className={`mlff-schematic-stage relative w-full overflow-hidden ${isMobile ? "" : "h-full"}`}
       style={{ backgroundColor: canvasColor, ...(isMobile ? { height: mobileSceneHeight } : {}) }}
       data-testid="multiscale-render-surface"
       data-scene={inside ? "inside" : "overview"}
     >
       <div className="mlff-stage-backdrop pointer-events-none absolute inset-0 opacity-45" />
-      <div className={`relative h-full ${isMobile ? "px-3 pb-4 pt-[8.6rem]" : "px-5 pb-5 pt-[10rem]"}`}>
+      {/* Phone: no title card is drawn over the stage there, and the status row above it
+          clears the stage once the shell carries pt-16 (MultiscalePinned). */}
+      <div
+        className={`relative h-full ${isMobile ? "px-3 pb-4 pt-3" : "px-5 pb-5 pt-[10rem]"}`}
+        style={!isMobile && titleReach !== null ? { paddingTop: Math.max(16, titleReach + 14) } : undefined}
+      >
         {loadError ? (
           <div className="grid h-full place-items-center border border-primary/30 bg-accent/30 px-8 text-center text-sm text-muted-foreground">
             {ko ? "MLFF 도식 데이터를 불러오지 못했습니다." : "The MLFF schematic data could not be loaded."}

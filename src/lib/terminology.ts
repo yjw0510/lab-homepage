@@ -10,12 +10,13 @@ const TERMS: readonly [string, string][] = [
   ["밀도범함수이론", "density functional theory"],
   ["결합 클러스터 이론", "coupled-cluster theory"],
   ["주기 경계 조건", "periodic boundary conditions"],
-  ["머신러닝 역장", "machine learning force field"],
+  ["머신러닝 역장", "machine-learning force field"],
   ["신경망 퍼텐셜", "neural network potential"],
   ["머신러닝 퍼텐셜", "machine-learned potential"],
   ["그래핀 액체 셀 전자현미경", "graphene liquid-cell electron microscopy"],
   ["공초점 현미경", "confocal microscopy"],
   ["강화 샘플링", "enhanced sampling"],
+  ["질서 변수", "order parameter"],
   ["전이 구조", "transition structure"],
   ["분산 상호작용", "dispersion interaction"],
   ["분자동역학", "molecular dynamics"],
@@ -57,10 +58,9 @@ const TERMS: readonly [string, string][] = [
   ["가교", "crosslink"],
   ["팽윤", "swelling"],
   ["겔화", "gelation"],
-  ["하이드로겔", "hydrogel"],
   ["미셀", "micelle"],
   ["배좌", "conformation"],
-  ["접합", "grafted"],
+  ["접합", "grafting"],
   ["주쇄", "backbone"],
   ["곁사슬", "side chain"],
   ["분지형", "branched"],
@@ -68,6 +68,8 @@ const TERMS: readonly [string, string][] = [
   // Solution Chemistry / Physical Chemistry
   ["수소결합 네트워크", "hydrogen bond network"],
   ["용매화 열역학", "solvation thermodynamics"],
+  ["용매화 껍질", "solvation shell"],
+  ["다체", "many-body"],
   ["초임계수", "supercritical water"],
   ["유전 완화", "dielectric relaxation"],
   ["배위 껍질", "coordination shell"],
@@ -135,6 +137,9 @@ export function wrapKoreanTerms(
 
   const [ko, en] = bestEntry;
   usedTerms.add(ko);
+  // A gloss on "능동 미시유변학" already tells the reader what "미시유변학" is, so the shorter
+  // term inside it counts as introduced and is not glossed a second time further on.
+  for (const [k] of TERMS) if (k !== ko && ko.includes(k)) usedTerms.add(k);
 
   const before = text.slice(0, bestIdx);
   const after = text.slice(bestIdx + ko.length);

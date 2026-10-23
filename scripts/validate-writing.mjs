@@ -98,9 +98,10 @@ expectRange("Multiscale page subtitle", en.multiscale.subtitle, 12, 30);
 
 const topicTargets = {
   "self-assembly": [215, 255],
+  "polymer-simulation": [140, 180],
   "aqueous-solution": [205, 240],
+  "reaction-mlff": [120, 160],
   glass: [150, 185],
-  "colloidal-dynamics": [220, 260],
   hydrogel: [130, 165],
   misc: [65, 90],
   future: [125, 160],
@@ -226,8 +227,11 @@ for (const [name, required] of Object.entries(multiscaleContinuity)) {
 }
 
 const levelDataSource = read("src/components/multiscale/levelData.ts");
-if (!levelDataSource.includes("metal-free phthalocyanine") || !levelDataSource.includes("프탈로시아닌")) {
-  fail("Multiscale DFT visualization must name its molecular system in both locales");
+// Both DFT steps render PO-T2T (public/data/multiscale/dft/molecule.json), so each step's
+// en and ko systemCaption must name it. The source writes the hyphen as "-\u2060" (an ASCII
+// hyphen held to "T2T" by a word joiner); the older non-breaking hyphen ‑ is still accepted.
+if ((levelDataSource.match(/PO(?:-(?:\\u2060|\u2060)?|\\u2011|‑)T2T/g) ?? []).length < 4) {
+  fail("Multiscale DFT visualization must name its molecular system (PO-T2T) in both locales of both steps");
 }
 
 for (const match of levelDataSource.matchAll(/\b(en|ko):\s*("(?:\\.|[^"\\])*")/g)) {
@@ -251,6 +255,6 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Writing validation passed: 7 research topics, ${publicationFiles.length} bilingual publication summaries, ` +
+  `Writing validation passed: ${Object.keys(topicTargets).length} research topics, ${publicationFiles.length} bilingual publication summaries, ` +
     `${multiscaleFiles.length} bilingual method overviews, and matching locale keys.`,
 );

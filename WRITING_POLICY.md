@@ -74,10 +74,11 @@ Delete claims such as “X is important” unless the sentence states what X cha
 
 | Topic | English target |
 | --- | ---: |
-| Polymer-directed self-assembly | 215–255 words |
+| Self-assembly of nanoparticles and colloids | 215–255 words |
+| Molecular simulation of polymers | 140–180 words |
 | Aqueous chemistry with ML force fields | 205–240 words |
+| Chemical reaction simulation (ab initio and MLFF) | 120–160 words |
 | Glass dynamics and microrheology | 150–185 words |
-| Colloidal structure, transport, and optics | 220–260 words |
 | Multiscale modeling of hydrogels | 130–165 words |
 | Collaborative projects | 65–90 words |
 | Research directions under development | 125–160 words |

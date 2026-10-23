@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PIProfile } from "@/components/people/PIProfile";
 import { MemberGrid } from "@/components/people/MemberGrid";
 import { pi, members } from "../../../../data/people";
-import { education, experience, awards, skills, professional } from "../../../../data/cv";
+import { education, experience, awards, professional } from "../../../../data/cv";
 import { getDictionary, hasLocale } from "../dictionaries";
 import type { Locale } from "../dictionaries";
 
@@ -151,22 +151,6 @@ export default async function PeoplePage({
                 ))}
               </CVSection>
 
-              <CVSection title={dict.cv.skills}>
-                {skills[loc].map((sk, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col gap-1 border-t border-border py-3 sm:flex-row sm:gap-6"
-                  >
-                    <span className="text-sm font-[600] text-foreground sm:w-52 sm:shrink-0">
-                      {sk.category}
-                    </span>
-                    <span className="text-sm leading-relaxed text-muted-foreground">
-                      {sk.items}
-                    </span>
-                  </div>
-                ))}
-              </CVSection>
-
               <CVSection title={dict.cv.professional}>
                 <ul>
                   {professional[loc].map((org, i) => (
@@ -191,7 +175,12 @@ export default async function PeoplePage({
             </h2>
           </div>
           <div className="mt-8">
-            <MemberGrid members={members} noMembersText={dict.people.noMembers} lang={lang} />
+            <MemberGrid
+              members={members}
+              noMembersText={dict.people.noMembers}
+              joinLinkText={dict.people.joinLink}
+              lang={lang}
+            />
           </div>
         </section>
       </div>

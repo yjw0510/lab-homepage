@@ -102,8 +102,10 @@ export function AllAtomCoordinationPlot({
         // 76 % bar had to be pushed inside it, where it read as a different kind of annotation
         // from the others and crowded the bar's own end.
         const labelFor = (count: number) => {
-          const value = share(count);
           const band = BANDS[bandOf(count)];
+          const value = band.label === count
+            ? counts.filter((c) => bandOf(c) === bandOf(count)).reduce((sum, c) => sum + share(c), 0)
+            : share(count);
           const name = band.label === count ? band.name : null;
           return [value >= 0.01 ? `${Math.round(value * 100)}%` : null, name].filter(Boolean).join("  ");
         };

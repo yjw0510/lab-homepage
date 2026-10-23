@@ -26,10 +26,6 @@ export default async function FundingPage({
   const dict = await getDictionary(lang);
   const activeGrants = grants.filter((g) => g.status === "active");
   const completedGrants = grants.filter((g) => g.status === "completed");
-  const statusLabels = {
-    active: dict.funding.active,
-    completed: dict.funding.completed,
-  };
 
   return (
     <div className="py-20 sm:py-28">
@@ -74,7 +70,6 @@ export default async function FundingPage({
                   key={grant.id}
                   grant={grant}
                   lang={lang}
-                  statusLabels={statusLabels}
                 />
               ))}
             </div>
@@ -94,7 +89,6 @@ export default async function FundingPage({
                   key={grant.id}
                   grant={grant}
                   lang={lang}
-                  statusLabels={statusLabels}
                 />
               ))}
             </div>

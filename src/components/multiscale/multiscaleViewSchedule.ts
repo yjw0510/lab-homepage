@@ -111,7 +111,8 @@ export const MULTISCALE_VIEW_SCHEDULE: Record<ScheduledLevelId, LevelSchedule> =
       targetOffset: [0, 0, 0],
       // The melt is a dense 8,000-bead box; framed to its own bounds at 1.35 it still
       // reached all four canvas edges at every viewport and theme. Measured clear at
-      // 1.85 by probe-canvas-fit.mjs.
+      // 1.85 by probe-canvas-fit.mjs. It frames the wrapped box only until Page6Settle reports
+      // the unwrapped bounds it draws; MesoStage then frames those at MESO_COLLECTIVE_PADDING.
       padding: 1.85,
       nearFactor: 0.05,
       farFactor: 12,

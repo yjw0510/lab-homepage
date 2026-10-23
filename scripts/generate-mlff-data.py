@@ -49,7 +49,8 @@ def build_leap_script() -> str:
     return "\n".join(
         [
             "source leaprc.water.tip3p",
-            "sys = Na+",
+            # copy: an alias makes addionsrand insert each ion into the already-solvated unit, duplicating the box.
+            "sys = copy Na+",
             "solvatebox sys TIP3PBOX 12.0",
             "addionsrand sys Na+ 2 Cl- 3",
             "saveamberparm sys sys.prmtop sys.inpcrd",
@@ -135,6 +136,69 @@ def extract_local_neighborhood(system: dict, focus_index: int, cutoff: float, fo
         "bonds": local_bonds,
         "forces": local_forces,
     }
+
+
+def check_mlff_structure(system: dict, local: dict, potential_energy_kj_mol: float) -> dict:
+    """Structure checks for the MLFF scene, measured on what is written. Raises SystemExit on failure."""
+    atoms = np.asarray(local["atoms"], dtype=np.float64)
+    elements = local["elements"]
+    residues = list(zip(local["residueNames"], local["residueIds"]))
+    oxygens = [index for index, element in enumerate(elements) if element == "O"]
+    hydrogens = [index for index, element in enumerate(elements) if element == "H"]
+
+    oo = np.linalg.norm(atoms[oxygens][:, None, :] - atoms[oxygens][None, :, :], axis=2)
+    oo_pairs = oo[np.triu_indices(len(oxygens), k=1)]
+    oo_min = float(oo_pairs.min())
+    oo_short = int(np.sum(oo_pairs < 2.50))
+
+    ho_min = float("inf")
+    for h in hydrogens:
+        for o in oxygens:
+            if residues[h] != residues[o]:
+                ho_min = min(ho_min, float(np.linalg.norm(atoms[h] - atoms[o])))
+
+    focus = atoms[local["focusIndex"]]
+    na_o = np.sort(np.linalg.norm(atoms[oxygens] - focus, axis=1))
+    na_o_nearest = float(na_o[0])
+    na_o_within_31 = int(np.sum(na_o <= 3.1))
+    na_o_within_50 = int(np.sum(na_o <= 5.0))
+
+    total = len(system["atoms"])
+    waters = len({key for key in zip(system["residueNames"], system["residueIds"]) if key[0] in ("HOH", "WAT")})
+    ions = sum(1 for element in system["elements"] if element in ("Na", "Cl"))
+    energy_per_water = potential_energy_kj_mol / max(1, waters)
+
+    measured = {
+        "ooMin": round(oo_min, 4),
+        "ooPairsBelow2p50": oo_short,
+        "interMolecularHOMin": round(ho_min, 4),
+        "focusNaNearestO": round(na_o_nearest, 4),
+        "focusNaOWithin3p1": na_o_within_31,
+        "focusNaOWithin5p0": na_o_within_50,
+        "sourceAtomCount": total,
+        "waterCount": waters,
+        "ionCount": ions,
+        "potentialEnergyKjMol": round(potential_energy_kj_mol, 2),
+        "potentialEnergyPerWaterKjMol": round(energy_per_water, 3),
+    }
+    failures = []
+    if oo_short > 0 or oo_min < 2.50:
+        failures.append("(a) local O-O minimum below 2.50 A")
+    if ho_min < 1.5:
+        failures.append("(b) intermolecular H...O minimum below 1.5 A")
+    if not 2.2 <= na_o_nearest <= 2.6:
+        failures.append("(c) focus Na nearest O outside 2.2-2.6 A")
+    if not 4 <= na_o_within_31 <= 7:
+        failures.append("(d) focus Na O count within 3.1 A outside 4-7")
+    if na_o_within_50 > 25:
+        failures.append("(e) focus Na O count within 5.0 A above 25")
+    if not (total < 2000 and total == 3 * waters + ions):
+        failures.append("(f) atom count not < 2000 or not 3 x waters + ions")
+    if not energy_per_water < -40.0:
+        failures.append("(g) potential energy per water not below -40 kJ/mol")
+    if failures:
+        raise SystemExit(f"MLFF structure checks failed: {failures}; measured {json.dumps(measured)}")
+    return measured
 
 
 def build_predictions(forces: np.ndarray) -> dict:
@@ -265,6 +329,8 @@ def main():
         ensure_validation_passed(validation)
 
         local = extract_local_neighborhood(system, focus_index, LOCAL_CUTOFF, final_forces)
+        structure = check_mlff_structure(system, local, relaxation.potential_energy_kj_mol)
+        print(f"  structure checks: {json.dumps(structure)}")
         local_atom_count = len(local["atoms"])
         subsets, anchors = build_subset_indices(local, GRAPH_CUTOFF_ANGSTROM)
         force_display_selection = select_force_display_indices(local)

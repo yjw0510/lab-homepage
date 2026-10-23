@@ -30,7 +30,6 @@ export function TopicsPageClient({
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [hoveredPubSlug, setHoveredPubSlug] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
   const hasSidebar = useMediaQuery("(min-width: 1024px)");
 
   return (
@@ -51,6 +50,16 @@ export function TopicsPageClient({
           <div className="mt-8 h-[3px] border-y border-border-strong" />
         </header>
 
+        <TopicIndex
+          topics={topics}
+          paperCounts={paperCounts}
+          lang={lang}
+          activeTopicId={activeTopicId}
+          onTopicClick={setActiveTopicId}
+        />
+
+        {/* The sidebar sits beside the paper list only, where it is the hover-curve
+            target. Beside the index it repeated the same titles as a second contents list. */}
         <div
           ref={containerRef}
           className={cn("relative", hasSidebar && "grid grid-cols-12 gap-x-8")}
@@ -70,14 +79,6 @@ export function TopicsPageClient({
           )}
 
           <div className={cn(hasSidebar && "col-span-9")}>
-            <TopicIndex
-              topics={topics}
-              paperCounts={paperCounts}
-              lang={lang}
-              activeTopicId={activeTopicId}
-              onTopicClick={setActiveTopicId}
-            />
-
             <PaperOverview
               publications={publications}
               topics={topics}
@@ -87,7 +88,7 @@ export function TopicsPageClient({
             />
           </div>
 
-          {isDesktop && (
+          {hasSidebar && (
             <BezierOverlay
               containerRef={containerRef}
               hoveredPubSlug={hoveredPubSlug}

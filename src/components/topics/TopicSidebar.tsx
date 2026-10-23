@@ -43,7 +43,7 @@ export function TopicSidebar({
             data-topic-sidebar={topic.id}
             onClick={() => onTopicClick(topic.id)}
             className={cn(
-              "type-mono-meta flex min-h-11 w-full cursor-pointer items-center border-t border-border text-left text-[12px] leading-snug transition-colors",
+              "type-mono-meta flex min-h-11 w-full cursor-pointer items-center border-t border-border py-2 text-left text-[12px] leading-snug transition-colors",
               isActive
                 ? "text-foreground underline decoration-primary decoration-2 underline-offset-4"
                 : "text-muted-foreground hover:text-foreground",

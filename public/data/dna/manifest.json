@@ -40,14 +40,18 @@
     },
     "cg_trajectory": {
       "path": "cg/trajectory.bin",
-      "dtype": "float32",
+      "dtype": "uint16",
       "shape": [
-        500,
+        250,
         8000,
         3
       ],
-      "byteLength": 48000000,
-      "unit": "nm"
+      "byteLength": 12000000,
+      "unit": "nm",
+      "quantization": {
+        "offsetNm": -12.4,
+        "scaleNm": 0.00037842374303807125
+      }
     },
     "rdf": {
       "path": "rdf/rdf.bin",

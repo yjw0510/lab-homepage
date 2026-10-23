@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { newsCategoryLabel, type NewsItem } from "@/types/news";
 
@@ -20,9 +21,18 @@ export function NewsCard({ item, lang }: { item: NewsItem; lang?: string }) {
       </div>
       <div className="col-span-12 md:col-span-9">
         <h2 className="type-heading break-keep text-[16.5px] leading-snug text-foreground">
-          {title}
+          {item.link ? (
+            <Link
+              href={`/${lang}${item.link}`}
+              className="text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
+            >
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
         </h2>
-        <p className="mt-2 break-keep text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2 max-w-[34rem] break-keep text-sm leading-relaxed text-muted-foreground">
           {summary}
         </p>
       </div>

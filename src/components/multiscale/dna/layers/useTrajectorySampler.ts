@@ -109,8 +109,10 @@ export function useTrajectorySampler(
     mode,
   ]);
 
+  // The clock starts with the trajectory, so playback opens on frame 0, the configuration the
+  // still frame drawn during the download already shows.
   useFrame((_, delta) => {
-    if (!paused) clockRef.current += delta;
+    if (!paused && unwrappedTrajectory) clockRef.current += delta;
   });
 
   return { sampleCurrentFrame, clockRef };

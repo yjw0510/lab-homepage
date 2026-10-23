@@ -78,7 +78,6 @@ export default async function MultiscaleDetailPage({
   const nextLevel = currentLevelIndex >= 0 && currentLevelIndex < LEVELS.length - 1
     ? LEVELS[currentLevelIndex + 1]
     : null;
-  const localizedTitle = lang === "ko" && area.titleKo ? area.titleKo : area.title;
   const interactiveHref = currentLevelIndex >= 0
     ? `/${lang}/multiscale?step=${globalStepFromLevel(currentLevelIndex, 0)}`
     : `/${lang}/multiscale`;
@@ -86,14 +85,12 @@ export default async function MultiscaleDetailPage({
     ? {
         label: "멀티스케일 연결",
         sequence: "전자 → 학습한 힘 → 원자 운동 → 집단 운동",
-        returnTo: "대화형 개요로 돌아가기",
         previous: "이전 방법",
         next: "다음 방법",
       }
     : {
         label: "ACROSS SCALES",
         sequence: "electrons → learned forces → atom-level motion → collective motion",
-        returnTo: "Back to the interactive overview",
         previous: "Previous method",
         next: "Next method",
       };
@@ -101,8 +98,10 @@ export default async function MultiscaleDetailPage({
   return (
     <div className="py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-6 sm:px-8">
+        {/* The one way back, and it lands on this tier's own step of the instrument. A second
+            link in the handoff block below went to the same place under a different name. */}
         <Link
-          href={`/${lang}/multiscale`}
+          href={interactiveHref}
           className="inline-flex items-center gap-1.5 py-2 text-sm text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
@@ -128,17 +127,9 @@ export default async function MultiscaleDetailPage({
           className="mt-8 border-y border-border py-4"
           aria-label={lang === "ko" ? "멀티스케일 방법 연결" : "Multiscale method handoff"}
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-            <div>
-              <p className={`type-mono-meta text-[11px] ${tierInk}`}>{handoff.label}</p>
-              <p className="mt-1 text-sm text-foreground">{handoff.sequence}</p>
-            </div>
-            <Link
-              href={interactiveHref}
-              className="type-mono-meta inline-flex min-h-6 items-center text-xs text-accent-ink underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary"
-            >
-              {handoff.returnTo}: {localizedTitle}
-            </Link>
+          <div>
+            <p className={`type-mono-meta text-[11px] ${tierInk}`}>{handoff.label}</p>
+            <p className="mt-1 text-sm text-foreground">{handoff.sequence}</p>
           </div>
           {(previousLevel || nextLevel) && (
             <div className="mt-4 grid gap-2 border-t border-border pt-3 sm:grid-cols-2 sm:gap-6">
@@ -176,21 +167,29 @@ export default async function MultiscaleDetailPage({
         <div className="mt-6">
           {(() => {
             const usedTerms = lang === "ko" ? new Set<string>() : undefined;
-            return sections.map((section, i) => (
-              <section
-                key={section.title}
-                className={`grid grid-cols-1 gap-x-6 gap-y-3 py-10 md:grid-cols-12 ${
-                  i > 0 ? "border-t border-border" : ""
-                }`}
-              >
-                <h2 className="type-heading text-lg text-foreground md:col-span-3">
-                  {section.title}
-                </h2>
-                <div className="max-w-[42rem] break-keep leading-relaxed text-muted-foreground md:col-span-9">
-                  {renderMarkdownBody(section.body, lang, usedTerms)}
-                </div>
-              </section>
-            ));
+            return sections.map((section, i) => {
+              // Citation lines are bibliographic records, so they carry no term glosses.
+              const isReferences = /^(Related Publications|관련 논문)$/.test(section.title);
+              return (
+                <section
+                  key={section.title}
+                  className={`grid grid-cols-1 gap-x-6 gap-y-3 py-10 md:grid-cols-12 ${
+                    i > 0 ? "border-t border-border" : ""
+                  }`}
+                >
+                  <h2 className="type-heading text-lg text-foreground md:col-span-3">
+                    {section.title}
+                  </h2>
+                  <div className={`${lang === "ko" ? "max-w-[34rem]" : "max-w-[65ch]"} break-keep leading-relaxed text-muted-foreground md:col-span-9`}>
+                    {renderMarkdownBody(
+                      section.body,
+                      isReferences ? undefined : lang,
+                      isReferences ? undefined : usedTerms,
+                    )}
+                  </div>
+                </section>
+              );
+            });
           })()}
         </div>
       </div>

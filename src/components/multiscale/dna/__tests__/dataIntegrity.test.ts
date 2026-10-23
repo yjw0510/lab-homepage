@@ -31,7 +31,17 @@ describe("manifest.json", () => {
 
   it("declares CG trajectory with correct byte length", () => {
     const asset = manifest.assets.cg_trajectory;
-    expect(asset.byteLength).toBe(asset.shape[0] * asset.shape[1] * asset.shape[2] * 4);
+    // uint16 on a fixed grid since the trajectory was quantized; float32 before that.
+    const bytes = asset.dtype === "uint16" ? 2 : 4;
+    expect(asset.byteLength).toBe(asset.shape[0] * asset.shape[1] * asset.shape[2] * bytes);
+    if (asset.dtype === "uint16") {
+      expect(asset.quantization.scaleNm).toBeGreaterThan(0);
+      // The grid has to cover the periodic box the coordinates are wrapped into.
+      const box = manifest.system.box_dimensions;
+      expect(asset.quantization.offsetNm).toBeLessThanOrEqual(-Math.max(...box) / 2);
+      expect(asset.quantization.offsetNm + 65535 * asset.quantization.scaleNm)
+        .toBeGreaterThanOrEqual(Math.max(...box) / 2);
+    }
   });
 
   it("declares RDF with correct byte length", () => {

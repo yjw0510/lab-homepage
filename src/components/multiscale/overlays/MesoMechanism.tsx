@@ -36,12 +36,6 @@ const COPY = {
   },
 } as const;
 
-// Legacy color key; the selected state uses the 메조 level triad (lv-meso).
-const tone = {
-  amber: "border-lv-meso-line bg-lv-meso-wash text-lv-meso",
-  neutral: "border-border bg-muted/40 text-foreground",
-} as const;
-
 function MappingDiagram({ ko }: { ko: boolean }) {
   return (
     <svg viewBox="0 0 460 180" className="h-44 w-full" role="img" aria-label={ko ? "여러 원자를 묶어 세 개의 비드로 바꾸는 과정" : "Several atoms are grouped into each of three beads"}>
@@ -72,68 +66,27 @@ function MappingDiagram({ ko }: { ko: boolean }) {
   );
 }
 
-function M2Mapping({ ko, isMobile }: { ko: boolean; isMobile: boolean }) {
-  const speedupFactors = [
-    {
-      label: ko ? "입자 수 감소" : "Fewer particles",
-      note: ko ? "여러 원자가 비드 하나로" : "several atoms per bead",
-    },
-    {
-      label: ko ? "단순해진 운동" : "Smoother motion",
-      note: ko ? "빠른 내부 운동을 평균화" : "fast internal motion is averaged",
-    },
-    {
-      label: ko ? "넓은 도달" : "Wider reach",
-      note: ko ? "더 큰 계, 더 긴 유효 시간" : "bigger systems, longer effective time",
-    },
-  ];
+// On a phone this band sits between the scene and the rail, so it carries only what the rail
+// does not: the mapping drawn, and what the mapping keeps against what it averages. The bead
+// placement sentence and the "why it gets faster" box restated the rail's concept, and the
+// collective step's four word tiles were styled as metrics with no data in them.
+function M2Mapping({ ko }: { ko: boolean }) {
   return (
-    <div className="grid gap-4 p-5">
-      <div className="grid gap-4 lg:grid-cols-[minmax(18rem,1fr)_minmax(0,1fr)] lg:items-center">
-        <MappingDiagram ko={ko} />
-        <div className="grid gap-4">
-          <div className={`border border-lv-meso-line bg-lv-meso-wash p-4 ${isMobile ? MULTISCALE_TYPE.description : MULTISCALE_TYPE.body}`}>
-            {ko
-              ? "비드의 위치는 함께 묶은 원자들의 전체 위치를 대표한다."
-              : "Each bead is placed to represent the atoms grouped into it."}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="border-t border-lv-meso-line pt-4">
-              <p className={MULTISCALE_TYPE.semititle}>{ko ? "보존" : "Retained"}</p>
-              <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
-                {ko ? "사슬의 전체 모양, 연결 관계, 고른 구조 특징" : "overall chain shape, connections, and selected structural features"}
-              </p>
-            </div>
-            <div className="border-t border-lv-aa-line pt-4">
-              <p className={MULTISCALE_TYPE.semititle}>{ko ? "평균화" : "Averaged"}</p>
-              <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
-                {ko ? "원자별 위치와 빠른 내부 운동을 통계적으로 표현" : "atomic positions and fast internal motion represented statistically"}
-              </p>
-            </div>
-          </div>
+    <div className="grid gap-4 p-5 lg:grid-cols-[minmax(18rem,1fr)_minmax(0,1fr)] lg:items-center">
+      <MappingDiagram ko={ko} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="border-t border-lv-meso-line pt-4">
+          <p className={MULTISCALE_TYPE.semititle}>{ko ? "보존" : "Retained"}</p>
+          <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
+            {ko ? "사슬의 전체 모양, 연결 관계, 고른 구조 특징" : "overall chain shape, connections, and selected structural features"}
+          </p>
         </div>
-      </div>
-      <div className="border border-lv-meso-line bg-lv-meso-wash p-4">
-        <p className={MULTISCALE_TYPE.semititle}>{ko ? "빨라지는 이유" : "Why it gets faster"}</p>
-        {/* Three columns break "여러 원자가 비드 하나로" across four lines at 390px, and
-            three stacked boxes cost more height than either. One hairline row each is the
-            shortest arrangement that still reads. */}
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {speedupFactors.map((factor) => (
-            <div
-              key={factor.label}
-              className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 border border-border bg-muted/30 p-3 sm:block"
-            >
-              <p className={`${MULTISCALE_TYPE.panelTitle} whitespace-nowrap text-lv-meso`}>{factor.label}</p>
-              <p className={`${MULTISCALE_TYPE.description} sm:mt-1`}>{factor.note}</p>
-            </div>
-          ))}
+        <div className="border-t border-lv-aa-line pt-4">
+          <p className={MULTISCALE_TYPE.semititle}>{ko ? "평균화" : "Averaged"}</p>
+          <p className={`mt-1 ${MULTISCALE_TYPE.description}`}>
+            {ko ? "원자별 위치와 빠른 내부 운동을 통계적으로 표현" : "atomic positions and fast internal motion represented statistically"}
+          </p>
         </div>
-        <p className={`mt-3 ${MULTISCALE_TYPE.description}`}>
-          {ko
-            ? "세 변화가 함께 작용해 더 큰 계와 느린 집단 운동을 따라갈 수 있다. 얼마나 범위가 넓어지는지는 원자를 묶는 방식에 따라 달라진다."
-            : "Together, these changes let the model follow larger systems and slower collective motion. The gain depends on how the atoms are grouped."}
-        </p>
       </div>
     </div>
   );
@@ -141,31 +94,16 @@ function M2Mapping({ ko, isMobile }: { ko: boolean; isMobile: boolean }) {
 
 function M5Collective({ ko }: { ko: boolean }) {
   return (
-    <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,.8fr)] lg:items-center">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[
-          [ko ? "다수" : "many", ko ? "고분자 사슬" : "polymer chains"],
-          [ko ? "비드" : "beads", ko ? "단순화한 단위" : "simplified units"],
-          [ko ? "형태" : "shape", ko ? "보존하는 정보" : "information retained"],
-          [ko ? "운동" : "motion", ko ? "집단 거동" : "collective behavior"],
-        ].map(([value, label], index) => (
-          <div key={label} className={`border p-4 ${index === 2 ? tone.amber : tone.neutral}`}>
-            <p className="type-quiet text-3xl">{value}</p>
-            <p className={`mt-2 ${MULTISCALE_TYPE.description}`}>{label}</p>
-          </div>
-        ))}
-      </div>
-      <div className="border-t border-lv-meso-line pt-4">
-        <p className={MULTISCALE_TYPE.semititle}>{ko ? "여러 가닥이 만드는 배열" : "The arrangement many chains make"}</p>
-        <p className={`mt-2 ${MULTISCALE_TYPE.body}`}>
-          {ko
-            ? "여러 가닥이 얽히고 풀리며 만드는 배열은 재료가 얼마나 단단한지, 분자가 얼마나 쉽게 통과하는지를 좌우한다. 실험에서도 이 배열을 확인한다."
-            : "The arrangement formed as many chains entangle and release affects how stiff the material is and how easily molecules pass through it. Experiments can test the same arrangement."}
-        </p>
-        <p className={`mt-3 ${MULTISCALE_TYPE.metadata}`}>
-          {ko ? "학습용 궤적이며 실제 시간과의 대응은 모형에 따라 달라진다" : "Teaching trajectory; correspondence to physical time depends on the model"}
-        </p>
-      </div>
+    <div className="p-5">
+      <p className={MULTISCALE_TYPE.semititle}>{ko ? "여러 가닥이 만드는 배열" : "The arrangement many chains make"}</p>
+      <p className={`mt-2 ${MULTISCALE_TYPE.body}`}>
+        {ko
+          ? "여러 가닥이 얽히고 풀리며 만드는 배열은 재료가 얼마나 단단한지, 분자가 얼마나 쉽게 통과하는지를 좌우한다. 실험에서도 이 배열을 확인한다."
+          : "The arrangement formed as many chains entangle and release affects how stiff the material is and how easily molecules pass through it. Experiments can test the same arrangement."}
+      </p>
+      <p className={`mt-3 ${MULTISCALE_TYPE.metadata}`}>
+        {ko ? "학습용 궤적이며 실제 시간과의 대응은 모형에 따라 달라진다" : "Teaching trajectory; correspondence to physical time depends on the model"}
+      </p>
     </div>
   );
 }
@@ -173,13 +111,11 @@ function M5Collective({ ko }: { ko: boolean }) {
 function SceneContent({
   sceneKey,
   ko,
-  isMobile,
 }: {
   sceneKey: string;
   ko: boolean;
-  isMobile: boolean;
 }) {
-  if (sceneKey === "M2_mapping") return <M2Mapping ko={ko} isMobile={isMobile} />;
+  if (sceneKey === "M2_mapping") return <M2Mapping ko={ko} />;
   if (sceneKey === "M5_collective") return <M5Collective ko={ko} />;
   return null;
 }
@@ -206,7 +142,7 @@ export function MesoMechanism({
           description={copy.description}
           aside={isMobile ? undefined : <span className={MULTISCALE_TYPE.metadata}>{ko ? "메조스케일" : "MESOSCALE"}</span>}
         />
-        <SceneContent sceneKey={sceneKey} ko={ko} isMobile={isMobile} />
+        <SceneContent sceneKey={sceneKey} ko={ko} />
       </MechanismPanel>
     </div>
   );

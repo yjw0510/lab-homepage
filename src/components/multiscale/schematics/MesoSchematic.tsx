@@ -134,8 +134,9 @@ export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: bo
       </g>
 
       {/* ═══ CG arrow (diagonal, all-atom → CG) ═══ */}
+      {/* The shaft starts below the label's descenders; from (250,150) it ran through "group". */}
       <g className={fade} style={{ animationDelay: "0.42s" }}>
-        <line x1="250" y1="150" x2="326" y2="176" stroke="var(--sch-amber-bright)" strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
+        <line x1="246" y1="160" x2="326" y2="176" stroke="var(--sch-amber-bright)" strokeWidth="3" strokeOpacity="0.72" strokeLinecap="round" />
         <polygon points="326,169 340,178 324,183" fill="var(--sch-amber-bright)" fillOpacity="0.72" />
         <text x="278" y="150" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="700" className="fill-foreground">{ko ? "원자 묶기" : "group atoms"}</text>
       </g>
@@ -156,7 +157,7 @@ export function MesoSchematic({ active, ko = false }: { active: boolean; ko?: bo
 
       {/* labels */}
       <text x="150" y="206" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.25s" }}>{ko ? "전원자" : "All-atom"}</text>
-      <text x="410" y="244" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.85s" }}>{ko ? "묶은 비드" : "Grouped beads"}</text>
+      <text x="440" y="244" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.85s" }}>{ko ? "묶은 비드" : "Grouped beads"}</text>
       </AtomPaintProvider>
     </svg>
   );

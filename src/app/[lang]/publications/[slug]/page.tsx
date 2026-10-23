@@ -9,6 +9,8 @@ import {
   renderMarkdownBody,
 } from "@/lib/markdown";
 import { AuthorList } from "@/components/publications/AuthorList";
+import { keepCompounds } from "@/components/publications/keepCompounds";
+import { getTopicsForPublication } from "@/lib/topics";
 import { getDictionary, hasLocale, locales } from "../../dictionaries";
 
 export function generateStaticParams() {
@@ -37,11 +39,6 @@ export async function generateMetadata({
   };
 }
 
-/** Section headings the site owns, as opposed to the paper's own prose. */
-const SECTION_TITLE_KO: Record<string, string> = { Abstract: "초록" };
-const sectionTitleFor = (lang: string) => (title: string) =>
-  lang === "ko" ? SECTION_TITLE_KO[title] ?? title : title;
-
 export default async function PublicationDetailPage({
   params,
 }: {
@@ -54,7 +51,15 @@ export default async function PublicationDetailPage({
   const pub = getPublication(slug);
   if (!pub) notFound();
 
-  const sectionTitle = sectionTitleFor(lang);
+  // "## Abstract" holds the site's own short summary, so it is headed as one: a reader who
+  // follows the DOI finds a different, longer official abstract.
+  const sectionTitle = (title: string) =>
+    title === "Abstract" ? dict.publications.summaryHeading : title;
+
+  const topicLabels: Record<string, string> = dict.publications.topicLabels;
+  const topicNames = getTopicsForPublication(pub).map(
+    (t) => topicLabels[t.id] ?? (lang === "ko" ? t.titleKo : t.title),
+  );
 
   const sections = parseMarkdownSections(pub.content || "").map((section) =>
     lang === "ko" && section.title === "Abstract" && pub.abstractKo
@@ -75,7 +80,7 @@ export default async function PublicationDetailPage({
           </Link>
 
           <h1 className="type-display mt-6 text-[26px] text-foreground sm:text-4xl">
-            {pub.title}
+            {keepCompounds(pub.title)}
           </h1>
 
           <p className="mt-5 leading-relaxed text-muted-foreground">
@@ -111,9 +116,9 @@ export default async function PublicationDetailPage({
                 </ExternalLink>
               )}
             </p>
-            {pub.tags.length > 0 && (
+            {topicNames.length > 0 && (
               <p className="type-mono-meta mt-2 text-[11px] text-muted-foreground">
-                {pub.tags.map((tag) => `[${tag}]`).join(" ")}
+                {topicNames.map((topic) => `[${topic}]`).join(" ")}
               </p>
             )}
           </div>
@@ -129,7 +134,9 @@ export default async function PublicationDetailPage({
                     lang === "ko" ? "max-w-[36rem]" : "max-w-[65ch]"
                   }`}
                 >
-                  {renderMarkdownBody(section.body, lang)}
+                  {/* No term glosses: the two-sentence summaries already define their terms
+                      inline, and a gloss on top stacked up to four labels on one term. */}
+                  {renderMarkdownBody(section.body)}
                 </div>
               </section>
             ))}

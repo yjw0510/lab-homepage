@@ -246,14 +246,26 @@ export function MLFFSchematic({ active, ko = false }: { active: boolean; ko?: bo
       <line x1="322" y1="140" x2="360" y2="140" stroke="#06b6d4" strokeWidth="2" strokeOpacity="0.75"
         markerEnd="url(#mlff-arrow)" className={fade} style={{ animationDelay: "0.7s" }} />
 
-      {/* ═══ Col 3: Output — forces + atoms ═══ */}
+      {/* ═══ Col 3: Output — the same molecule, bonds and all, with a force on every atom ═══ */}
       <g transform="translate(-235.7,36.8) scale(1.35)">
         <g className={fade} style={{ animationDelay: "0.8s" }}>
+          {atomBonds.map(([a, b], i) => {
+            const s = trimSegment(outputAtoms[a].cx, outputAtoms[a].cy, outputAtoms[a].r, outputAtoms[b].cx, outputAtoms[b].cy, outputAtoms[b].r, 0.8);
+            return <line key={`ob-${i}`} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+              stroke="var(--sch-bond)" strokeWidth="1.5" strokeOpacity="0.55" strokeLinecap="round" />;
+          })}
+        </g>
+        <g className={fade} style={{ animationDelay: "0.82s" }}>
+          {outputAtoms.map((a, i) => <AtomSphere key={`out-${i}`} cx={a.cx} cy={a.cy} r={a.r} grad={gradOf(a.color)} />)}
+        </g>
+        {/* Drawn over the atoms and measured from each atom's surface, length proportional to
+            the force. From the centre at 0.6, the spheres hid most of every arrow. */}
+        <g className={fade} style={{ animationDelay: "0.85s" }}>
           {outputAtoms.map((a, i) => {
-            const FS = 0.6; // illustrative arrow length — trimmed so tips clear the E labels
+            const FS = 0.55; // illustrative length; tips clear the E labels above and below
             const mag = Math.hypot(a.dx, a.dy), ux = a.dx / mag, uy = a.dy / mag;
             const sx = a.cx + ux * (a.r + 0.5), sy = a.cy + uy * (a.r + 0.5);
-            const tx = a.cx + a.dx * FS, ty = a.cy + a.dy * FS, hl = 4.5, hw = 2.8;
+            const tx = sx + a.dx * FS, ty = sy + a.dy * FS, hl = 4.5, hw = 2.8;
             return (
               <g key={`force-${i}`}>
                 <line x1={sx} y1={sy} x2={tx - (hl - 1) * ux} y2={ty - (hl - 1) * uy} stroke={a.fc} strokeWidth="1.8" strokeLinecap="round" />
@@ -262,16 +274,14 @@ export function MLFFSchematic({ active, ko = false }: { active: boolean; ko?: bo
             );
           })}
         </g>
-        <g className={fade} style={{ animationDelay: "0.82s" }}>
-          {outputAtoms.map((a, i) => <AtomSphere key={`out-${i}`} cx={a.cx} cy={a.cy} r={a.r} grad={gradOf(a.color)} />)}
-        </g>
       </g>
 
       {/* labels */}
       <text x="98" y="242" textAnchor="middle" fontSize={TZ.labelLg} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.15s" }}>{ko ? "원자" : "Atoms"}</text>
       <text x="265" y="40" textAnchor="middle" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "가까운 원자" : "Nearby atoms"}</text>
-      <text x="308" y="200" textAnchor="start" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "연결 관계" : "Connections"}</text>
-      <text x="265" y="250" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="600" className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.58s" }}>{ko ? "학습용 설명" : "Learned description"}</text>
+      {/* Left of the graph, where nothing is drawn; to its right it ran into the output atoms. */}
+      <text x="234" y="200" textAnchor="end" fontSize={TZ.labelMd} className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.55s" }}>{ko ? "연결 관계" : "Connections"}</text>
+      <text x="265" y="250" textAnchor="middle" fontSize={TZ.labelLg} fontWeight="600" className={`fill-muted-foreground ${fade}`} style={{ animationDelay: "0.58s" }}>{ko ? "학습된 표현" : "Learned description"}</text>
 
       <g className={fade} style={{ animationDelay: "0.78s" }}><Fx k="eglobal" xc={440} yb={40} /></g>
       <g className={fade} style={{ animationDelay: "0.85s" }}><Fx k="ei_fi" xc={440} yb={248} /></g>

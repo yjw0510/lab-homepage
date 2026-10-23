@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import type { ResearchTopic } from "@/types/topic";
@@ -7,6 +8,7 @@ import type { Publication } from "@/types/publication";
 import { getPublicationsForTopic, getTopicsForPublication } from "@/lib/topics";
 import { renderMarkdownBody } from "@/lib/markdown";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { keepCompounds } from "@/components/publications/keepCompounds";
 
 interface Props {
   topic: ResearchTopic;
@@ -81,7 +83,9 @@ export function TopicDrawerContent({
             <div className="mt-3">
               {years.map((year) =>
                 byYear.get(year)!.map((pub, i) => {
-                  const pubTopics = getTopicsForPublication(pub, topics);
+                  const otherTopics = getTopicsForPublication(pub, topics).filter(
+                    (t) => t.id !== topic.id,
+                  );
 
                   return (
                     <div
@@ -92,20 +96,12 @@ export function TopicDrawerContent({
                         {i === 0 ? pub.year : ""}
                       </span>
                       <div className="col-span-10">
-                        {pub.doi ? (
-                          <a
-                            href={`https://doi.org/${pub.doi}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm font-[600] leading-snug text-foreground decoration-[1px] underline-offset-[3px] transition-colors hover:text-accent-ink hover:underline"
-                          >
-                            {pub.title}
-                          </a>
-                        ) : (
-                          <p className="text-sm font-[600] leading-snug text-foreground">
-                            {pub.title}
-                          </p>
-                        )}
+                        <Link
+                          href={`/${lang}/publications/${pub.slug}`}
+                          className="block text-sm font-[600] leading-snug text-foreground decoration-[1px] underline-offset-[3px] transition-colors hover:text-accent-ink hover:underline"
+                        >
+                          {keepCompounds(pub.title)}
+                        </Link>
                         <p className="mt-1 text-[12.5px] text-muted-foreground">
                           {pub.authors[0]}
                           {pub.authors.length > 1
@@ -119,23 +115,12 @@ export function TopicDrawerContent({
                           </span>
                         </p>
 
-                        {/* Topic labels; other topics switch the drawer */}
-                        {pubTopics.length > 0 && (
+                        {/* Other topics this paper belongs to switch the drawer; the
+                            current topic is the drawer heading and is not repeated. */}
+                        {otherTopics.length > 0 && (
                           <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-                            {pubTopics.map((t) => {
-                              const isCurrent = t.id === topic.id;
+                            {otherTopics.map((t) => {
                               const label = lang === "ko" ? t.titleKo : t.title;
-
-                              if (isCurrent) {
-                                return (
-                                  <span
-                                    key={t.id}
-                                    className="type-mono-meta text-[11.5px] text-muted-foreground"
-                                  >
-                                    [{label}]
-                                  </span>
-                                );
-                              }
 
                               return (
                                 <button

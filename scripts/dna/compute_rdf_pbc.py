@@ -89,9 +89,16 @@ def main():
     box = np.array(box_dims, dtype=np.float64)
     print(f"  Box: {box} nm")
 
-    shape = manifest["assets"]["cg_trajectory"]["shape"]
-    n_frames, n_beads = shape[0], shape[1]
-    traj = np.fromfile(str(DATA / "cg" / "trajectory.bin"), dtype=np.float32).reshape(n_frames, n_beads, 3)
+    entry = manifest["assets"]["cg_trajectory"]
+    n_frames, n_beads = entry["shape"][0], entry["shape"][1]
+    path = DATA / entry["path"]
+    if entry["dtype"] == "uint16":
+        # Stored on a fixed grid: position_nm = offsetNm + value * scaleNm.
+        q = entry["quantization"]
+        traj = q["offsetNm"] + np.fromfile(str(path), dtype="<u2").astype(np.float64) * q["scaleNm"]
+    else:
+        traj = np.fromfile(str(path), dtype=np.float32)
+    traj = traj.reshape(n_frames, n_beads, 3)
     print(f"  Trajectory: {traj.shape} ({traj.nbytes / 1024 / 1024:.0f} MB)")
 
     ref_idx = manifest["camera"]["referenceBeadIndex"]

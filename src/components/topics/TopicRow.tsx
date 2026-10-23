@@ -33,7 +33,19 @@ export function TopicRow({ topic, paperCount, lang, isOpen, onClick }: Props) {
           isOpen ? "text-accent-foreground" : "text-accent-ink",
         )}
       >
-        {topic.kind === "future" ? "" : paperCount}
+        {/* Paper count with its unit; a bare numeral read as a rank or an index. */}
+        {topic.kind === "future" ? (
+          ""
+        ) : lang === "ko" ? (
+          `${paperCount}편`
+        ) : (
+          <>
+            {paperCount}
+            <span className="block text-[11px] tracking-normal">
+              {paperCount === 1 ? "paper" : "papers"}
+            </span>
+          </>
+        )}
       </span>
       <span className="col-span-10 sm:col-span-11">
         <span

@@ -1,8 +1,9 @@
 """Export the multiscale teaching assets as binary data + JSON manifest.
 
-Binary format: raw little-endian Float32, no headers.
-Shape information is in the manifest. This enables zero-copy
-`new Float32Array(arrayBuffer)` on the frontend.
+Binary format: raw little-endian Float32, no headers, except the CG melt
+trajectory, which is little-endian uint16 on a fixed nm grid (see
+CG_TRAJECTORY_*). Shape, dtype and quantization are in the manifest, so the
+frontend decodes each file from its manifest entry.
 """
 
 from __future__ import annotations
@@ -15,11 +16,42 @@ from typing import Any
 import numpy as np
 
 
+# The browser streams the melt trajectory after the still first frame is drawn, so it ships
+# compact: every 2nd frame, stored as uint16 on a fixed grid (max error 0.0002 nm).
+# position_nm = offsetNm + value * scaleNm. Wrapped coordinates span about +-12.33 nm.
+CG_TRAJECTORY_STRIDE = 2
+CG_TRAJECTORY_OFFSET_NM = -12.4
+CG_TRAJECTORY_SCALE_NM = 24.8 / 65535
+
+
 def write_float32_bin(data: np.ndarray, path: Path) -> int:
     """Write array as raw Float32 binary. Returns byte count."""
     flat = data.astype(np.float32).ravel()
     flat.tofile(str(path))
     return flat.nbytes
+
+
+def write_quantized_uint16_bin(
+    data: np.ndarray, path: Path, offset_nm: float, scale_nm: float
+) -> int:
+    """Write array as little-endian uint16 on the grid offset + value * scale. Returns byte count."""
+    grid = np.rint((np.asarray(data, dtype=np.float64) - offset_nm) / scale_nm)
+    if grid.min() < 0 or grid.max() > 65535:
+        raise ValueError(
+            f"{path.name}: values fall outside the uint16 grid starting at {offset_nm} nm"
+        )
+    flat = grid.astype("<u2").ravel()
+    flat.tofile(str(path))
+    return flat.nbytes
+
+
+def read_asset_values(path: Path, asset: dict) -> np.ndarray:
+    """Decode an exported binary asset to a flat array of values in its declared unit."""
+    if asset["dtype"] == "uint16":
+        q = asset["quantization"]
+        raw = np.fromfile(str(path), dtype="<u2")
+        return q["offsetNm"] + raw.astype(np.float64) * q["scaleNm"]
+    return np.fromfile(str(path), dtype=np.float32)
 
 
 def export_all(
@@ -41,8 +73,12 @@ def export_all(
 
     n_atoms = len(aa_data["positions"])
     n_beads = len(cg_melt["positions"])
-    n_frames = cg_trajectory.shape[0]
+    exported_trajectory = cg_trajectory[::CG_TRAJECTORY_STRIDE]
+    n_frames = exported_trajectory.shape[0]
     trajectory_metadata = trajectory_metadata or {}
+    saved_interval_ps = trajectory_metadata.get("saved_interval_ps")
+    if saved_interval_ps is not None:
+        saved_interval_ps *= CG_TRAJECTORY_STRIDE
 
     # run_pipeline.py exports the coordinate/topology assets first, then runs
     # compute_rdf_pbc.py against the written trajectory. An empty RDF asset
@@ -80,7 +116,9 @@ def export_all(
     (aa_dir / "topology.json").write_text(json.dumps(aa_topology))
 
     # --- CG assets ---
-    cg_pos_bytes = write_float32_bin(cg_melt["positions"], cg_dir / "positions.bin")
+    # The still frame is trajectory frame 0, so the hand-off to playback does not move any
+    # chain. cg_melt["positions"] wraps some chain roots into a different periodic image.
+    cg_pos_bytes = write_float32_bin(cg_trajectory[0], cg_dir / "positions.bin")
     assets["cg_positions"] = {
         "path": "cg/positions.bin",
         "dtype": "float32",
@@ -89,13 +127,22 @@ def export_all(
         "unit": "nm",
     }
 
-    cg_traj_bytes = write_float32_bin(cg_trajectory, cg_dir / "trajectory.bin")
+    cg_traj_bytes = write_quantized_uint16_bin(
+        exported_trajectory,
+        cg_dir / "trajectory.bin",
+        CG_TRAJECTORY_OFFSET_NM,
+        CG_TRAJECTORY_SCALE_NM,
+    )
     assets["cg_trajectory"] = {
         "path": "cg/trajectory.bin",
-        "dtype": "float32",
+        "dtype": "uint16",
         "shape": [n_frames, n_beads, 3],
         "byteLength": cg_traj_bytes,
         "unit": "nm",
+        "quantization": {
+            "offsetNm": CG_TRAJECTORY_OFFSET_NM,
+            "scaleNm": CG_TRAJECTORY_SCALE_NM,
+        },
     }
 
     cg_topology = {
@@ -187,7 +234,7 @@ def export_all(
         "trajectory": {
             "frame_count": n_frames,
             "nominal_duration_ns": trajectory_metadata.get("nominal_duration_ns"),
-            "saved_interval_ps": trajectory_metadata.get("saved_interval_ps"),
+            "saved_interval_ps": saved_interval_ps,
             "integrator": trajectory_metadata.get(
                 "integrator", "LangevinMiddleIntegrator"
             ),
@@ -229,11 +276,11 @@ def verify_assets(out_dir: Path, manifest: dict) -> None:
             f"{name}: expected {expected_size} bytes, got {actual_size}"
         )
         # Round-trip check
-        data = np.fromfile(str(path), dtype=np.float32)
+        data = read_asset_values(path, asset)
         expected_count = 1
         for dim in asset["shape"]:
             expected_count *= dim
         assert len(data) == expected_count, (
-            f"{name}: expected {expected_count} floats, got {len(data)}"
+            f"{name}: expected {expected_count} values, got {len(data)}"
         )
     print("  All asset integrity checks passed.")

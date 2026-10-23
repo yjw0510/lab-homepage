@@ -8,11 +8,9 @@ function plainDashes(s: string) {
 export function FundingCard({
   grant,
   lang,
-  statusLabels,
 }: {
   grant: FundingGrant;
   lang: string;
-  statusLabels: { active: string; completed: string };
 }) {
   const ko = lang === "ko";
   const title = ko && grant.titleKo ? grant.titleKo : grant.title;
@@ -22,9 +20,15 @@ export function FundingCard({
     ? {
         PI: "연구책임자",
         "Co-PI": "공동연구책임자",
+        "Co-I": "공동연구자",
         Participant: "참여연구자",
       }[grant.role]
-    : grant.role;
+    : {
+        PI: "Principal Investigator",
+        "Co-PI": "Co-Principal Investigator",
+        "Co-I": "Co-Investigator",
+        Participant: "Participating Researcher",
+      }[grant.role];
 
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-border py-5 md:grid-cols-12">
@@ -35,7 +39,7 @@ export function FundingCard({
         <h3 className="type-heading leading-relaxed text-foreground">{title}</h3>
         <p className="mt-1 text-sm text-muted-foreground">{agency}</p>
         <p className="type-mono-meta mt-2 text-[12px] text-muted-foreground">
-          {role} · {statusLabels[grant.status]}
+          {role}
         </p>
         {grant.amount && (
           <p className="type-mono-meta mt-1 text-[12px] text-muted-foreground">

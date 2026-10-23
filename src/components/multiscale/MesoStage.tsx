@@ -7,8 +7,9 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, N8AO } from "@react-three/postprocessing";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { withBasePath } from "@/lib/basePath";
 import { DNAPageRouter } from "./dna/DNAPageRouter";
+import { cachedJson } from "./dna/useDNAAssets";
+import type { CollectiveBounds } from "./dna/pages/Page6Settle";
 import type { ScrollState } from "./scrollState";
 import type { ResearchCameraActions } from "./molstar/shared";
 import { CHOREOGRAPHY } from "./levelData";
@@ -43,7 +44,11 @@ interface MesoScheduleSource {
 // still reports 187-198px of empty canvas below the content at 1024x768 and 390x844
 // while the left and right margins are 0-1px. The fix is the override's center, which
 // needs the motif's real bounds rather than another radius guess.
-const MESO_MORPH_RADIUS = 5.2;
+//
+// Raised to 5.6 with the horizontal offset below: at 5.2 the chain's right end sat on the
+// canvas edge at every viewport (margins L 71 / R 0 px on the 870px desktop canvas, L 36 / R 3
+// on a phone), so the last base pair was cut.
+const MESO_MORPH_RADIUS = 5.6;
 // Measured, not guessed, which is what the note above asked for. Screenshotting the canvas with
 // every chrome overlay hidden and taking the bbox of what is actually painted put the motif's
 // centre 98-117px above the canvas centre at 1024x768 and 1440x900, leaving 228-266px of dead
@@ -58,23 +63,24 @@ const MESO_MORPH_RADIUS = 5.2;
 // no centring defect; there is a small residual, and this is it. Converted through the framed
 // extent (2 x radius x padding over canvas height) it is a fifth of a world unit, and the same
 // number lands on all three viewports.
-const MESO_MORPH_CENTER: [number, number, number] = [0, 0.2, 0];
+//
+// The horizontal residual was never measured and is not small: the chain drew about 35px right
+// of centre on desktop and 16px on a phone, both about half a world unit. The camera looks
+// from azimuth 28 degrees, so screen-right is (cos 28, 0, -sin 28) in world space, and the
+// centre moves 0.5 along it.
+const MESO_MORPH_CENTER: [number, number, number] = [0.44, 0.2, -0.23];
 
-const jsonFetchCache = new Map<string, Promise<unknown>>();
-function cachedJsonFetch<T>(url: string): Promise<T> {
-  let promise = jsonFetchCache.get(url);
-  if (!promise) {
-    const resolvedUrl = withBasePath(url);
-    promise = fetch(resolvedUrl).then((response) => {
-      if (!response.ok) {
-        throw new Error(`Failed to load ${resolvedUrl}: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    });
-    jsonFetchCache.set(url, promise);
-  }
-  return promise as Promise<T>;
-}
+/**
+ * The collective page is framed on what it paints: the unwrapped, recentred first frame that
+ * Page6Settle draws and reports. The manifest's camera positions are the wrapped +-12.3 nm box,
+ * while the drawn chains are unwrapped into a cloud about 70 nm across, so framing the box let
+ * them run off the top edge and under the title card.
+ *
+ * The schedule's 1.85 padding for this step was measured against those wrapped bounds; against
+ * the real ones it would frame the cloud at about 60% of the canvas. This padding goes with the measured
+ * bounds and is passed as the scene's own camera metadata, which the placement reads first.
+ */
+const MESO_COLLECTIVE_PADDING = 1.1;
 
 function normalizeMesoScheduleData(source: MesoScheduleSource): MesoScheduleData {
   if (!Array.isArray(source.beadPositions) || source.beadPositions.length === 0) {
@@ -91,10 +97,12 @@ function MesoStageCamera({
   scrollState,
   isMobile,
   actionsRef,
+  collectiveBounds,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
+  collectiveBounds: CollectiveBounds | null;
 }) {
   const { camera, size } = useThree();
   const orbitRef = useRef<OrbitControlsImpl | null>(null);
@@ -104,7 +112,7 @@ function MesoStageCamera({
 
   useEffect(() => {
     let cancelled = false;
-    cachedJsonFetch<{ camera: MesoScheduleSource }>("/data/dna/manifest.json")
+    cachedJson<{ camera: MesoScheduleSource }>("/data/dna/manifest.json")
       .then((manifest) => {
         if (!cancelled) setScheduleData(normalizeMesoScheduleData(manifest.camera));
       })
@@ -123,16 +131,21 @@ function MesoStageCamera({
     (zoomLevel = zoomIndex) => {
       if (!scheduleData || scheduleData.points.length === 0) return;
       const stepScene = CHOREOGRAPHY.meso.steps[scrollState.step]?.sceneKey;
+      const collective = stepScene === "M5_collective" && collectiveBounds;
       const boundsOverride =
         stepScene === "M2_mapping"
           ? { center: MESO_MORPH_CENTER, radius: MESO_MORPH_RADIUS }
-          : undefined;
+          : collective
+            ? collectiveBounds
+            : undefined;
       const placement = computeScheduledPlacement({
         level: "meso",
         step: scrollState.step,
         stepProgress: scrollState.stepProgress,
         stepCount,
-        meta: scheduleData,
+        meta: collective
+          ? { ...scheduleData, camera: { padding: MESO_COLLECTIVE_PADDING } }
+          : scheduleData,
         points: scheduleData.points,
         aspect: size.width / Math.max(1, size.height),
         isMobile,
@@ -145,7 +158,7 @@ function MesoStageCamera({
         placement,
       });
     },
-    [camera, isMobile, scheduleData, scrollState.step, scrollState.stepProgress, size.height, size.width, stepCount, zoomIndex],
+    [camera, collectiveBounds, isMobile, scheduleData, scrollState.step, scrollState.stepProgress, size.height, size.width, stepCount, zoomIndex],
   );
 
   useEffect(() => {
@@ -213,6 +226,9 @@ export function MesoStage({
 }) {
   const canvasColor = useMultiscaleCanvasColor();
   const separateMobileMechanism = isMobile && Boolean(sceneKey);
+  const [collectiveBounds, setCollectiveBounds] = useState<CollectiveBounds | null>(null);
+  const [trajectoryPending, setTrajectoryPending] = useState(false);
+  const ko = lang.toLowerCase().startsWith("ko");
 
   return (
     <div
@@ -258,9 +274,25 @@ export function MesoStage({
             scrollState={scrollState}
             isMobile={isMobile}
             actionsRef={actionsRef}
+            collectiveBounds={collectiveBounds}
           />
-          <DNAPageRouter scrollState={scrollState} reducedMotion={reducedMotion} />
+          <DNAPageRouter
+            scrollState={scrollState}
+            reducedMotion={reducedMotion}
+            onCollectiveBounds={setCollectiveBounds}
+            onTrajectoryPending={setTrajectoryPending}
+          />
         </Canvas>
+        {/* The collective page shows a still frame while its trajectory downloads; this says
+            the motion is still coming rather than leaving a frozen cloud unexplained. */}
+        {trajectoryPending ? (
+          <p
+            role="status"
+            className="type-mono-meta pointer-events-none absolute inset-x-0 bottom-4 z-[2] text-center text-xs text-muted-foreground"
+          >
+            {ko ? "궤적 불러오는 중" : "Loading trajectory"}
+          </p>
+        ) : null}
         {!separateMobileMechanism && !hideMechanism && sceneKey && (
           <MesoMechanism sceneKey={sceneKey} lang={lang} />
         )}

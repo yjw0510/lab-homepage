@@ -7,6 +7,7 @@ import { MesoSchematic } from "@/components/multiscale/schematics/MesoSchematic"
 import { AllAtomSchematic } from "@/components/multiscale/schematics/AllAtomSchematic";
 import { MLFFSchematic } from "@/components/multiscale/schematics/MLFFSchematic";
 import { DFTSchematic } from "@/components/multiscale/schematics/DFTSchematic";
+import { TIER_LABEL, type SpecimenTier } from "@/lib/renderSpecimens";
 import type { MultiscaleArea } from "@/types/multiscale";
 
 const schematicMap: Record<
@@ -24,6 +25,25 @@ const levelTextMap: Record<string, string> = {
   mlff: "text-lv-mlff-text",
   allatom: "text-lv-aa",
   meso: "text-lv-meso",
+};
+
+/* Bars are rules, so they take the mark ink; the labels above them keep the text grade
+   (DESIGN.md §2: in dark mode MLFF text is #E8705F, its mark stays #D14D41). */
+const levelBarMap: Record<string, string> = {
+  dft: "bg-lv-dft",
+  mlff: "bg-lv-mlff",
+  allatom: "bg-lv-aa",
+  meso: "bg-lv-meso",
+};
+
+/* The ruler is a log axis from 0.1 nm to 1 µm, one decade per quarter. Each span is the
+   area's `scale` front matter (content/multiscale/*.mdx) as percentages of that axis. */
+const rulerLabels = ["0.1 nm", "1 nm", "10 nm", "100 nm", "1 µm"];
+const rulerSpan: Record<SpecimenTier, [number, number]> = {
+  dft: [0, 25], // 0.1-1 nm
+  mlff: [25, 50], // 1-10 nm
+  allatom: [25, 75], // 1-100 nm
+  meso: [50, 100], // 10 nm - 1 µm
 };
 
 export function MultiscaleHighlights({
@@ -70,12 +90,47 @@ export function MultiscaleHighlights({
           subtitle={dict.multiscale.subtitle}
         />
 
-        {/* Scale-ruler spine (signature system, DESIGN.md §7) */}
-        <div className="scale-ruler" aria-hidden="true" />
-        <div className="type-mono-meta mt-2 flex justify-between text-[12px] text-muted-foreground">
-          <span>Å</span>
-          <span>nm</span>
-          <span>µm</span>
+        {/* Scale-ruler spine (signature system, DESIGN.md §7): each method's range above
+            the log axis. Hidden from assistive tech because every row states its range. */}
+        <div aria-hidden="true">
+          <div className="space-y-1.5 pb-2">
+            {areas.map((area) => {
+              const tier = area.slug as SpecimenTier;
+              const span = rulerSpan[tier];
+              if (!span) return null;
+              return (
+                <div
+                  key={area.slug}
+                  className={`relative h-[22px] ${levelTextMap[area.slug] ?? "text-muted-foreground"}`}
+                >
+                  <span
+                    className="type-mono-meta absolute top-0 whitespace-nowrap text-[11px] leading-4"
+                    style={{ left: `${span[0]}%` }}
+                  >
+                    {TIER_LABEL[tier][lang === "ko" ? "ko" : "en"]}
+                  </span>
+                  <span
+                    className={`absolute bottom-0 h-[2px] ${levelBarMap[area.slug] ?? "bg-current"}`}
+                    style={{ left: `${span[0]}%`, width: `${span[1] - span[0]}%` }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div className="scale-ruler scale-ruler-log" />
+          <div className="type-mono-meta relative mt-2 h-4 text-[12px] text-muted-foreground">
+            {rulerLabels.map((label, i) => (
+              <span
+                key={label}
+                className={`absolute whitespace-nowrap ${
+                  i === 0 ? "left-0" : i === rulerLabels.length - 1 ? "right-0" : "-translate-x-1/2"
+                }`}
+                style={i > 0 && i < rulerLabels.length - 1 ? { left: `${i * 25}%` } : undefined}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="mt-12">

@@ -7,17 +7,19 @@
     "news": "소식",
     "funding": "연구비",
     "contact": "연락처",
-    "topics": "연구 주제"
+    "topics": "연구 주제",
+    "mainLabel": "주 메뉴",
+    "skipToContent": "본문 바로가기"
   },
   "topics": {
     "title": "연구 주제",
-    "subtitle": "분자의 움직임과 배열이 소금물, 고분자 코팅 나노입자, 유리, 겔의 성질로 이어지는 과정을 분자 시뮬레이션과 이론, 머신러닝으로 연구합니다."
+    "subtitle": "분자 시뮬레이션과 이론, 머신러닝으로 화학 반응을 추적하고, 분자의 움직임과 배열이 나노 입자, 고분자, 수용액, 유리, 겔의 성질을 어떻게 정하는지 연구합니다."
   },
   "home": {
-    "exploreMultiscale": "연구 분야 보기",
-    "joinLab": "연구실 지원",
+    "exploreMultiscale": "연구 주제 보기",
+    "joinLab": "연구실 참여",
     "recentPublications": "최근 논문",
-    "recentPublicationsSubtitle": "",
+    "recentPublicationsSubtitle": "밑줄은 제1저자, 별표(*)는 교신저자입니다.",
     "viewAllPublications": "전체 논문 보기",
     "labNews": "연구실 소식",
     "labNewsSubtitle": "",
@@ -25,24 +27,36 @@
   },
   "multiscale": {
     "title": "멀티스케일",
-    "subtitle": "반응 중 전자의 변화부터 재료의 형태를 만드는 집단 운동까지, 연구 질문에 맞는 계산 해상도를 선택합니다.",
+    "subtitle": "반응 중에 일어나는 전자의 변화부터 재료의 성질을 좌우하는 집단 운동까지, 연구 질문에 맞는 계산 해상도를 고릅니다.",
     "learnMore": "자세히 보기"
   },
   "publications": {
     "title": "논문",
     "subtitle": "분자 모델링과 연성물질, 용액 화학에 관한 논문과 리뷰입니다.",
     "filterByYear": "연도 선택",
-    "filterByTag": "태그 선택",
+    "filterByTag": "주제 선택",
     "allYears": "전체 연도",
-    "allTags": "전체 태그",
+    "allTags": "전체 주제",
     "noResults": "선택한 필터에 맞는 논문이 없습니다.",
     "preprint": "프리프린트",
+    "authorKey": "밑줄은 제1저자, 별표(*)는 교신저자입니다.",
+    "summaryHeading": "요약",
+    "publishedTitle": "게재 논문",
+    "topicLabels": {
+      "self-assembly": "자기조립",
+      "polymer-simulation": "고분자 분자 모사",
+      "aqueous-solution": "수용액 화학",
+      "reaction-mlff": "화학 반응",
+      "glass": "유리 동역학",
+      "hydrogel": "하이드로겔",
+      "misc": "공동 연구"
+    },
     "manuscripts": {
-      "title": "진행 중인 원고",
+      "title": "진행 중인 연구",
       "workingTitle": "가제",
       "status": {
         "underReview": "심사 중",
-        "submitted": "투고",
+        "submitted": "투고 완료",
         "inPreparation": "준비 중"
       }
     }
@@ -52,7 +66,8 @@
     "subtitle": "Yu Lab에서 분자 모델링을 연구하는 사람들을 소개합니다.",
     "pi": "연구책임자",
     "labMembers": "연구실 구성원",
-    "noMembers": "새 구성원은 합류하는 대로 이곳에 소개합니다."
+    "noMembers": "연구실은 2026년 3월에 문을 열었으며 대학원생과 학부 연구생을 모집하고 있습니다.",
+    "joinLink": "연구실 참여"
   },
   "news": {
     "title": "소식",
@@ -61,7 +76,7 @@
   },
   "funding": {
     "title": "연구비",
-    "subtitle": "분자 모델링과 재료 화학 연구를 지원하는 연구 과제입니다.",
+    "subtitle": "연구실 연구를 지원하는 과제입니다.",
     "active": "진행 중",
     "completed": "완료",
     "noGrants": "연구비 정보를 곧 업데이트할 예정입니다."
@@ -78,40 +93,38 @@
     "subtitle": "학력 및 경력 사항",
     "education": "학력",
     "experience": "경력",
-    "awards": "주요 선정 및 수상",
+    "awards": "수상 및 선정",
     "publications": "주요 논문",
-    "skills": "사용 기술",
     "professional": "학회 활동"
   },
   "recruitment": {
     "title": "연구실 참여 안내",
     "msPhdLabel": "석·박사과정",
-    "msPhdStatus": "곧 모집 예정",
+    "msPhdStatus": "모집 중",
     "postdocLabel": "박사후연구원",
     "postdocStatus": "곧 모집 예정",
     "undergradLabel": "학부 연구생",
     "undergradStatus": "상시 지원 환영",
     "howToApply": "지원 방법",
-    "howToApplyText": "CV와 관심 있는 연구 질문을 짧게 적어 보내 주세요. 연구실 논문 중 그 질문과 맞닿은 논문이 있다면 함께 알려 주세요. 전산화학 입문자도 환영합니다.",
+    "howToApplyText": "CV에 관심 있는 연구 질문을 짧게 덧붙여 보내 주세요. 그 질문과 맞닿은 연구실 논문이 있다면 함께 알려 주세요. 전산화학 입문자도 환영합니다.",
     "undergradApplyText": "간단한 자기소개와 배우거나 연구해 보고 싶은 내용을 보내 주세요. 면담에서 시작하기 좋은 프로젝트를 함께 찾습니다. 시뮬레이션과 코딩 입문자도 환영합니다.",
     "fields": "관련 전공",
-    "fieldsText": "화학, 화학공학, 물리학, 재료과학, 컴퓨터과학 및 관련 분야"
+    "fieldsText": "화학, 화학공학, 물리학, 재료과학, 컴퓨터과학 등"
   },
   "footer": {
     "quickLinks": "바로가기",
-    "contact": "연락처",
-    "allRights": "모든 권리를 보유합니다."
+    "contact": "연락처"
   },
   "common": {
     "backTo": "돌아가기",
     "backToPublications": "논문 목록으로",
-    "backToMultiscale": "멀티스케일 개요로"
+    "backToMultiscale": "멀티스케일로"
   },
   "site": {
     "name": "Yu Lab",
     "fullName": "멀티스케일 분자 전산화학 연구실",
     "university": "아주대학교",
     "departments": "프런티어과학학부 · 화학과",
-    "description": "분자 움직임이 여러 규모에서 액체, 고분자, 나노소재의 성질로 이어지는 과정을 설명하는 계산 모형과 머신러닝 도구를 개발합니다."
+    "description": "계산 모형과 머신러닝 도구를 만들어, 분자의 움직임이 액체, 고분자, 나노소재의 성질을 어떻게 좌우하는지 여러 규모에서 설명합니다."
   }
 }

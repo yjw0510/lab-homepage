@@ -5,7 +5,7 @@ import { MultiscaleHighlights } from "@/components/home/MultiscaleHighlights";
 import { RecentPublications } from "@/components/home/RecentPublications";
 import { LabNews } from "@/components/home/LabNews";
 import { getAllMultiscaleAreas } from "@/lib/multiscale";
-import { getFeaturedPublications } from "@/lib/publications";
+import { getRecentPublications } from "@/lib/publications";
 import { getRecentNews } from "@/lib/news";
 import { getDictionary, hasLocale } from "./dictionaries";
 
@@ -45,14 +45,14 @@ export default async function HomePage({
 
   const dict = await getDictionary(lang);
   const multiscaleAreas = getAllMultiscaleAreas();
-  const featuredPubs = getFeaturedPublications();
+  const recentPubs = getRecentPublications(3);
   const recentNews = getRecentNews(4);
 
   return (
     <>
       <HeroSection lang={lang} dict={dict} />
       <MultiscaleHighlights areas={multiscaleAreas} lang={lang} dict={dict} />
-      <RecentPublications publications={featuredPubs} lang={lang} dict={dict} />
+      <RecentPublications publications={recentPubs} lang={lang} dict={dict} />
       <LabNews news={recentNews} lang={lang} dict={dict} />
     </>
   );

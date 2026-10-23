@@ -37,8 +37,17 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {dict.site.fullName}
               </p>
+              {/* Korean puts the university first, as the hero does. The English name is kept
+                  whole so the line cannot end on "Ajou". */}
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                {dict.site.departments}, {dict.site.university}
+                {lang === "ko" ? (
+                  `${dict.site.university} ${dict.site.departments}`
+                ) : (
+                  <>
+                    {dict.site.departments},{" "}
+                    <span className="whitespace-nowrap">{dict.site.university}</span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -46,18 +55,36 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
             <div className="md:col-span-4">
               <h3 className="sr-only">{dict.footer.contact}</h3>
               <div className="type-mono-meta space-y-1 text-[12px] leading-relaxed text-muted-foreground">
-                <p>{siteConfig.email}</p>
                 <p>
-                  {lang === "ko" && siteConfig.location.addressKo
-                    ? siteConfig.location.addressKo
-                    : siteConfig.location.address}
+                  <a
+                    href={`mailto:${siteConfig.email}`}
+                    className="inline-flex min-h-6 items-center transition-colors hover:text-foreground"
+                  >
+                    {siteConfig.email}
+                  </a>
                 </p>
+                {/* English breaks fall only between address parts, never inside one
+                    ("Gyeonggi-|do"). The Korean address has no commas, so it wraps at its
+                    spaces (break-keep) instead of becoming one unbreakable span. */}
+                {lang === "ko" && siteConfig.location.addressKo ? (
+                  <p className="break-keep">{siteConfig.location.addressKo}</p>
+                ) : (
+                  <p>
+                    {siteConfig.location.address.split(", ").map((part, i) => (
+                      <span key={part}>
+                        {i > 0 && ", "}
+                        <span className="whitespace-nowrap">{part}</span>
+                      </span>
+                    ))}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Inline link row (gaps only: separators dangle when the row wraps) */}
+            {/* Link block, 2×2 so no link is left alone on a wrapped line. One column at md,
+                where the 3-column cell (152px at 768) is narrower than the English 2×2. */}
             <nav aria-label={dict.footer.quickLinks} className="md:col-span-3">
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <div className="grid grid-cols-[repeat(2,max-content)] gap-x-4 gap-y-2 text-sm md:grid-cols-1 lg:grid-cols-[repeat(2,max-content)]">
                 {[
                   { label: dict.nav.multiscale, href: "/multiscale" },
                   { label: dict.nav.publications, href: "/publications" },
@@ -99,8 +126,7 @@ export function Footer({ lang, dict }: { lang: string; dict: Dictionary }) {
 
           {/* Copyright */}
           <p className="type-mono-meta mt-10 text-[11px] text-muted-foreground">
-            &copy; {new Date().getFullYear()} {dict.site.fullName}.{" "}
-            <span className="whitespace-nowrap">{dict.footer.allRights}</span>
+            &copy; {new Date().getFullYear()} {dict.site.fullName}
           </p>
         </div>
       </div>

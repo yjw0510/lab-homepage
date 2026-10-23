@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -49,6 +49,7 @@ function NavLinks({
             key={item.href}
             href={localizedHref}
             onClick={onNavigate}
+            aria-current={isActive ? "page" : undefined}
             className={cn(
               variant === "desktop"
                 ? "px-3 py-2 text-[13.5px] font-[500] transition-colors"
@@ -69,10 +70,31 @@ function NavLinks({
 export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background">
-      <div className="mx-auto max-w-6xl px-6 sm:px-8">
+    <nav aria-label={dict.nav.mainLabel} className="sticky top-0 z-50 border-b border-border bg-background">
+      <div className="relative mx-auto max-w-6xl px-6 sm:px-8">
+        {/* Skip link starts at the wordmark's left edge so, when focused, it covers the
+            wordmark whole instead of half of it. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-5 focus:top-3 focus:z-[60] focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:text-foreground sm:focus:left-7"
+        >
+          {dict.nav.skipToContent}
+        </a>
         {/* Wraps rather than overflows. The icon buttons are sized in rem, so at a
             200% text-resize setting three of them plus the brand ran 81px past a
             390px viewport and the menu button left the screen entirely: no way to
@@ -112,6 +134,7 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
             <LanguageToggle lang={lang} />
             <ThemeToggle lang={lang} />
             <button
+              ref={buttonRef}
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex h-11 w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               aria-label={
@@ -136,11 +159,21 @@ export function Navbar({ lang, dict }: { lang: string; dict: Dictionary }) {
         </div>
       </div>
 
-      {/* Mobile sheet below the masthead */}
+      {/* Mobile sheet below the masthead, over a scrim that closes it on an outside tap and
+          gives the sheet an edge in dark mode, where no shadow shows on the warm black. The
+          scrim does the separating, so the sheet carries no shadow: one that projected upward
+          tinted the masthead in light mode. Dark elevation is the lighter surface (DESIGN.md §6). */}
+      {mobileOpen && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-full h-[calc(100dvh-100%)] bg-[rgba(16,15,15,0.45)] lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
       {mobileOpen && (
         <div
           id="mobile-nav-sheet"
-          className="absolute inset-x-0 top-full border-b border-border bg-background shadow-[0_8px_32px_rgba(16,15,15,0.24)] lg:hidden"
+          className="absolute inset-x-0 top-full border-b border-border bg-background dark:bg-surface-raised lg:hidden"
         >
           <div className="divide-y divide-border">
             <NavLinks

@@ -36,7 +36,8 @@ across modes; color appears through fixed roles, several of them broad-area:
 - **Signal red** (적 `#C3272B` / Flexoki red `#D14D41`): active nav underline,
   focus rings, square heading anchors, scale-ruler origin tick, PI name
   highlight, and the **primary button fill** (light `#C3272B`+`#F5F5F5` text,
-  dark `#D14D41`+`#FFFCF0` text).
+  dark Flexoki red-500 `#C03E35`+`#FFFCF0` text, token `--primary-fill`;
+  red-400 `#D14D41` on paper is 4.21:1, under AA).
 - **Link blue** (청 `#1E4C9A` / Flexoki blue `#4385BE`): links, ledger
   year/date numerals in margin columns.
 - **Highlight yellow** (황 wash `#F6EFD3` / Flexoki yellow tint `#2F2610`):
@@ -64,6 +65,7 @@ across modes; color appears through fixed roles, several of them broad-area:
   --foreground:        #1A1A1A;  /* 흑 — ink, 16:1 */
   --primary:           #C3272B;  /* 적 — signal red (marks) 5.3:1 */
   --accent-ink:        #1E4C9A;  /* 청 — link blue 7.5:1 */
+  --primary-fill:      #C3272B;  /* button fill */
   --primary-foreground: #F5F5F5;
   --card:              #FCFCFC;  /* raised surface (rare; prefer rules) */
   --muted:             #E9E9E9;  /* recessed fills */
@@ -84,7 +86,8 @@ across modes; color appears through fixed roles, several of them broad-area:
   color-scheme: dark;
   --background:        #100F0F;  /* Flexoki black — warm, not pure */
   --foreground:        #CECDC3;  /* tx (base-200) 11.9:1 */
-  --primary:           #D14D41;  /* red-400 — signal marks, button fill */
+  --primary:           #D14D41;  /* red-400 — signal marks */
+  --primary-fill:      #C03E35;  /* red-500 — button fill, paper label 5.13:1 */
   --accent-ink:        #4385BE;  /* blue-400 — links 4.8:1 */
   --primary-foreground: #FFFCF0;  /* paper label on red fill */
   --card:              #1C1B1A;  /* base-950 */
@@ -143,7 +146,7 @@ Existing Tailwind semantic names (`bg-background`, `text-foreground`,
 `bg-muted`, `bg-accent`, `text-accent-foreground`, `bg-surface-raised`,
 `bg-surface-sunken`) are KEPT and re-pointed at these values, so the multiscale
 engine re-skins without engine edits. New utilities: `text-accent-ink`,
-`border-border-strong`.
+`border-border-strong`, `bg-primary-fill`.
 
 ## 2. Typography — one family, one weight ladder, a register not a second face
 
@@ -378,9 +381,9 @@ to element geometry, so each rule below names the measurement that does see it.
   name, mono address/email block, inline link row; beneath it the **scale
   ruler**: a full-width hairline with tick marks and mono labels
   `Å · nm · µm` linking DFT → MLFF → all-atom → meso pages; mono copyright line.
-- **Buttons**: primary = signal-red fill (`bg-primary text-primary-foreground`
-  with light `#F5F5F5` / dark `#FFFCF0` label), sharp, `px-6 py-3`, weight
-  600, label ≤ 3 words; hover = translateY(-1px) + `bg-primary/90`; active =
+- **Buttons**: primary = signal-red fill (`bg-primary-fill text-primary-foreground`,
+  light `#C3272B`+`#F5F5F5`, dark `#C03E35`+`#FFFCF0`), sharp, `px-6 py-3`, weight
+  600, label ≤ 3 words; hover = translateY(-1px) + `bg-primary-fill/90`; active =
   translateY(0). Secondary = 1px `border-strong` hairline, transparent bg;
   hover = `bg-muted`. Focus (all interactives): 2px signal-red ring, 2px
   offset, instant.
@@ -461,16 +464,17 @@ to element geometry, so each rule below names the measurement that does see it.
 
 Flat + hairlines. No box-shadows in light mode (rules carry structure). Dark
 mode: elevation via surface lightness steps only. The single permitted shadow:
-the mobile nav sheet and the topic drawer may use
-`0 8px 32px rgba(16, 15, 15, 0.24)`; the drawer scrim is
-`rgba(16, 15, 15, 0.45)`.
+the topic drawer may use `0 8px 32px rgba(16, 15, 15, 0.24)`. The drawer and
+mobile nav scrim is `rgba(16, 15, 15, 0.45)`; the mobile nav sheet sits on that
+scrim with no shadow, on `--surface-raised` in dark mode.
 
 ## 7. Signature system — the scale ruler
 
 The lab's identity is multiscale. The ruler motif encodes it with real data:
 a hairline with tick marks and mono labels of real length scales. Used in
 exactly three places: (a) home research-scale index (section spine),
-(b) footer colophon, (c) multiscale overview header. It is the site's single
+drawn as a four-decade log axis, 0.1 nm to 1 µm (`.scale-ruler-log`), with one
+span per method, (b) footer colophon, (c) multiscale overview header. It is the site's single
 "named brand system"; no other decorative rules/crosshairs allowed.
 
 **Mono-label budget** (eyebrow discipline): ≤ 1 uppercase/mono section label

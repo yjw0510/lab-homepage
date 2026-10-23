@@ -74,7 +74,7 @@ function MathNotation({
 }
 
 interface ScfConvergenceData {
-  trajectory: Array<{ iteration: number; deltaE: number }>;
+  trajectory: Array<{ iteration: number; deltaE: number | null }>;
   threshold: number;
 }
 
@@ -88,7 +88,7 @@ interface ScfConvergenceData {
  */
 const SCF_FALLBACK: ScfConvergenceData = {
   trajectory: [
-    { iteration: 1, deltaE: 1275.8398222322 },
+    { iteration: 1, deltaE: null },
     { iteration: 2, deltaE: 1275.8398222322 },
     { iteration: 4, deltaE: 380.8553959527 },
     { iteration: 6, deltaE: 151.0666257163 },
@@ -100,7 +100,7 @@ const SCF_FALLBACK: ScfConvergenceData = {
     { iteration: 45, deltaE: 2.262e-7 },
     { iteration: 59, deltaE: 1.6e-9 },
   ],
-  threshold: 1e-5,
+  threshold: 1e-8,
 };
 
 function D4Scf({
@@ -121,6 +121,10 @@ function D4Scf({
       .then((next) => {
         if (
           Array.isArray(next?.trajectory) &&
+          next.trajectory.every(
+            (point: { deltaE?: unknown }) =>
+              point?.deltaE === null || typeof point?.deltaE === "number",
+          ) &&
           typeof next?.threshold === "number"
         ) {
           setScf({
@@ -152,30 +156,35 @@ function D4Scf({
   // it printed 1275.840 Ha for a dot on the 1 Ha row. The 0/-10 window fitted SCF_FALLBACK,
   // whose largest delta is 0.588.
   const logMax = Math.max(0, Math.ceil(Math.log10(
-    Math.max(...scf.trajectory.map((point) => point.deltaE), 1))));
+    Math.max(...scf.trajectory.flatMap((point) => (point.deltaE === null ? [] : [point.deltaE])), 1))));
   const logMin = -10;
   // One label every two decades, as before, but generated so the rows follow the window.
   const decades = [];
   for (let exponent = logMax; exponent >= logMin; exponent -= 2) decades.push(exponent);
+  // x stays on the trajectory index so every point lines up with its slider position. Iteration
+  // 1 has no prior energy, so its deltaE is null: it keeps its x and is not drawn.
   const pointCoordinates = scf.trajectory.map((point, index) => {
     const x =
       chartLeft +
       (index / Math.max(1, scf.trajectory.length - 1)) *
         (chartRight - chartLeft);
+    if (point.deltaE === null) return { ...point, index, x, y: null };
     const logValue = Math.max(logMin, Math.min(logMax, Math.log10(point.deltaE)));
     const y =
       chartTop +
       ((logMax - logValue) / (logMax - logMin)) * (chartBottom - chartTop);
-    return { ...point, x, y };
+    return { ...point, index, x, y };
   });
+  const drawnPoints = pointCoordinates.flatMap((point) =>
+    point.y === null ? [] : [{ ...point, y: point.y }]);
   const thresholdLog = Math.log10(scf.threshold);
   const thresholdY =
     chartTop +
     ((logMax - thresholdLog) / (logMax - logMin)) *
       (chartBottom - chartTop);
   const activeCoordinate = pointCoordinates[activeIndex] ?? pointCoordinates[0];
-  const activeDelta = activePoint?.deltaE ?? 0;
-  const converged = activeDelta < scf.threshold;
+  const activeDelta = typeof activePoint?.deltaE === "number" ? activePoint.deltaE : null;
+  const converged = activeDelta !== null && activeDelta < scf.threshold;
   const convergenceChart = (
     <svg
       ref={chartSvgRef}
@@ -225,17 +234,17 @@ function D4Scf({
         fill="var(--sch-amber-label)"
         fontSize="12"
       >
-        {ko ? "계산 종료 기준" : "stopping target"}
+        {ko ? "계산 종료 기준" : "stopping threshold"}
       </text>
       <polyline
-        points={pointCoordinates.map(({ x, y }) => `${x},${y}`).join(" ")}
+        points={drawnPoints.map(({ x, y }) => `${x},${y}`).join(" ")}
         fill="none"
         stroke="rgba(251,191,36,.22)"
         strokeWidth="3"
       />
       <polyline
-        points={pointCoordinates
-          .slice(0, activeIndex + 1)
+        points={drawnPoints
+          .filter((point) => point.index <= activeIndex)
           .map(({ x, y }) => `${x},${y}`)
           .join(" ")}
         fill="none"
@@ -244,14 +253,14 @@ function D4Scf({
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {pointCoordinates.map((point, index) => (
+      {drawnPoints.map((point) => (
         <circle
-          key={`${point.iteration}-${index}`}
+          key={`${point.iteration}-${point.index}`}
           cx={point.x}
           cy={point.y}
-          r={index === activeIndex ? 6 : 3}
-          fill={index <= activeIndex ? "var(--sch-amber-bright)" : "var(--plot-dim)"}
-          stroke={index === activeIndex ? "var(--sch-ink)" : "none"}
+          r={point.index === activeIndex ? 6 : 3}
+          fill={point.index <= activeIndex ? "var(--sch-amber-bright)" : "var(--plot-dim)"}
+          stroke={point.index === activeIndex ? "var(--sch-ink)" : "none"}
           strokeWidth="2"
         />
       ))}
@@ -283,7 +292,7 @@ function D4Scf({
             </p>
           </div>
           <p className="type-quiet shrink-0 text-sm font-semibold text-foreground">
-            {converged ? (ko ? "기준 도달" : "target reached") : ko ? "계산 중" : "calculating"}
+            {converged ? (ko ? "기준 도달" : "threshold reached") : ko ? "계산 중" : "calculating"}
           </p>
         </div>
 
@@ -291,23 +300,12 @@ function D4Scf({
             the plot 184px for the run's 59-point log curve, which is both too tight to read the
             curve and the reason its labels were painting at 4.25px. */}
         <div className="border-b border-border px-4 py-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {ko ? "에너지 변화" : "Energy change"}
-              <span className="ml-2 text-base font-semibold text-lv-dft-text">
-                {converged ? (ko ? "작음" : "small") : ko ? "차이 큼" : "large difference"}
-              </span>
-            </p>
-            <p className={`text-sm font-semibold ${converged ? "text-lv-dft-text" : "text-muted-foreground"}`}>
-              {converged
-                ? ko
-                  ? "수렴"
-                  : "converged"
-                : ko
-                  ? "계산 중"
-                  : "iterating"}
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            {ko ? "에너지 변화" : "Energy change"}
+            <span className="ml-2 text-base font-semibold text-lv-dft-text">
+              {converged ? (ko ? "작음" : "small") : ko ? "차이가 남음" : "difference remains"}
+            </span>
+          </p>
           <div className="mt-2 h-[8.5rem]">{convergenceChart}</div>
         </div>
 
@@ -341,7 +339,7 @@ function D4Scf({
         }
         aside={
           <span className={MULTISCALE_TYPE.description}>
-            {converged ? (ko ? "기준 도달" : "TARGET REACHED") : ko ? "계산 중" : "CALCULATING"}
+            {converged ? (ko ? "기준 도달" : "THRESHOLD REACHED") : ko ? "계산 중" : "CALCULATING"}
           </span>
         }
       />
@@ -492,7 +490,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             <button
               type="button"
               key={row.id}
-              className={`pointer-events-auto px-3 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "bg-lv-dft-wash opacity-100" : "bg-surface-sunken opacity-40"}`}
+              aria-pressed={mode === row.id}
+              className={`pointer-events-auto px-3 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "bg-lv-dft-wash" : "bg-surface-sunken"}`}
               onMouseEnter={() => data.onOutputModeChange?.(row.id)}
               onFocus={() => data.onOutputModeChange?.(row.id)}
               onClick={() => data.onOutputModeChange?.(row.id)}
@@ -501,7 +500,7 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
                 latex={row.symbol}
                 className={`text-xl ${mode === row.id ? "text-lv-dft" : "text-muted-foreground"}`}
               />
-              <p className="mt-2 text-sm font-semibold text-foreground">{row.label}</p>
+              <p className={`mt-2 text-sm font-semibold ${mode === row.id ? "text-foreground" : "text-muted-foreground"}`}>{row.label}</p>
             </button>
           ))}
         </div>
@@ -540,11 +539,13 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
             )}
           </div>
         </div>
-        <p className="border-t border-border px-4 py-2.5 text-sm leading-5 text-muted-foreground">
-          {ko
-            ? "표시한 오비탈 간격은 채워진 준위와 빈 준위의 관계를 정성적으로 비교하는 계산값이다."
-            : "The displayed orbital gap is a calculated value for qualitative comparison of filled and empty boundary levels."}
-        </p>
+        {hasOrbitalLevels ? (
+          <p className="border-t border-border px-4 py-2.5 text-sm leading-5 text-muted-foreground">
+            {ko
+              ? "표시한 오비탈 간격은 채워진 준위와 빈 준위의 관계를 정성적으로 비교하는 계산값이다."
+              : "The displayed orbital gap is a calculated value for qualitative comparison of filled and empty boundary levels."}
+          </p>
+        ) : null}
       </MechanismPanel>
     );
   }
@@ -575,7 +576,8 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
               <button
                 type="button"
                 key={row.id}
-                className={`pointer-events-auto px-4 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "bg-lv-dft-wash opacity-100" : "bg-surface-sunken opacity-38"}`}
+                aria-pressed={mode === row.id}
+                className={`pointer-events-auto px-4 py-3 text-left ${MULTISCALE_MOTION.stateTransition} ${mode === row.id ? "bg-lv-dft-wash" : "bg-surface-sunken"}`}
                 onMouseEnter={() => data.onOutputModeChange?.(row.id)}
                 onFocus={() => data.onOutputModeChange?.(row.id)}
                 onClick={() => data.onOutputModeChange?.(row.id)}
@@ -587,7 +589,7 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
                   />
                   <span className={`h-px w-8 ${mode === row.id ? "bg-lv-dft" : "bg-border-strong"}`} />
                 </div>
-                <p className="mt-2 text-base font-semibold text-foreground">{row.label}</p>
+                <p className={`mt-2 text-base font-semibold ${mode === row.id ? "text-foreground" : "text-muted-foreground"}`}>{row.label}</p>
               </button>
             ))}
           </div>
@@ -625,12 +627,14 @@ function D6Outputs({ lang, isMobile }: { lang: string; isMobile: boolean }) {
       </div>
 
       <div className="flex items-center justify-between gap-5 border-t border-border px-5 py-3">
-        <p className="text-sm leading-5 text-muted-foreground">
-          {ko
-            ? "표시한 오비탈 간격은 채워진 준위와 빈 준위의 관계를 정성적으로 비교하는 계산값이다."
-            : "The displayed orbital gap is a calculated value for qualitative comparison of filled and empty boundary levels."}
-        </p>
-        <span className="shrink-0 text-sm font-semibold text-lv-dft">
+        {hasOrbitalLevels ? (
+          <p className="text-sm leading-5 text-muted-foreground">
+            {ko
+              ? "표시한 오비탈 간격은 채워진 준위와 빈 준위의 관계를 정성적으로 비교하는 계산값이다."
+              : "The displayed orbital gap is a calculated value for qualitative comparison of filled and empty boundary levels."}
+          </p>
+        ) : null}
+        <span className="ml-auto shrink-0 text-sm font-semibold text-lv-dft">
           {mode === "density" ? (ko ? "전자 밀도" : "DENSITY") : mode.toUpperCase()}
         </span>
       </div>

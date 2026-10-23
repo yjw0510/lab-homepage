@@ -22,4 +22,17 @@ describe("SCF snapshot numbering", () => {
     expect(scf.snapshots.map((s) => s.iteration)).toEqual(density.snapshots.map((s) => s.iteration));
     expect(scf.trajectory.map((t) => t.iteration)).toEqual(density.snapshots.map((s) => s.iteration));
   });
+
+  it("stops at ORCA's energy tolerance, which only the final update meets", () => {
+    expect(scf.threshold).toBe(1e-8);
+    const firstBelow = scf.trajectory.findIndex(
+      (t) => typeof t.deltaE === "number" && t.deltaE < scf.threshold,
+    );
+    expect(firstBelow).toBe(scf.trajectory.length - 1);
+  });
+
+  it("has no energy change for iteration 1, which has no prior energy", () => {
+    expect(scf.trajectory[0].deltaE).toBeNull();
+    expect(scf.trajectory.slice(1).every((t) => typeof t.deltaE === "number")).toBe(true);
+  });
 });

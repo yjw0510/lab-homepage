@@ -152,15 +152,15 @@ function percentileAbs(values: ArrayLike<number> | undefined, q: number) {
 //
 // Across frames: only `amp` moves, on one run-wide signed-log envelope (knee ENVELOPE_KNEE with
 // a coarse second term at 0.3 for the top decades), so a frame's loudness still says how far
-// from convergence it is: 1.0 at iteration 2, 0.69 at 12, 0.32 at 30. AMP_FLOOR keeps the last
-// dozen frames two bands wide instead of collapsing onto the zero colour - their p95 is 8e-5
-// and on the raw envelope they'd paint at 0.10. Frames 2-3 keep a pile at the low end and 59 is
-// exactly zero; both are the data (40% of early vertices really sit in 0.15 decade of "far
-// below", and 59 is the reference itself).
+// from convergence it is: 1.0 at iteration 2, 0.69 at 12, 0.32 at 30, 0.19 at 41, 0.11-0.14 from
+// 43 on, where the energy change is below 1e-5 Eh but meets the run's TolE (1e-8 Eh) only at 59.
+// There is no floor. One at 0.2 held iterations 41-58 at the same loudness, so the late frames
+// looked as far off as iteration 41 and the surface then jumped to flat at 59. Frames 2-3 keep a
+// pile at the low end and 59 is exactly zero; both are the data (40% of early vertices really
+// sit in 0.15 decade of "far below", and 59 is the reference itself).
 const SHAPE_SPREAD = 20;
 /** Decades below the run's largest departure where the envelope's fine knee sits. */
 const ENVELOPE_DECADES = 5;
-const AMP_FLOOR = 0.2;
 const ENVELOPE_COARSE_KNEE = 0.3;
 const ENVELOPE_COARSE_WEIGHT = 2;
 /** Departures are clipped here by scripts/isosurface_remesh.py; the envelope tops out at it. */
@@ -180,7 +180,7 @@ function frameScales(snapshots: { mesh: IsosurfaceMesh }[]): ValueScale[] {
     return {
       knee,
       norm: Math.asinh(p99 / knee),
-      amp: Math.max(AMP_FLOOR, Math.min(1, envelope(p95) / envelope(DEPARTURE_CLIP))),
+      amp: Math.min(1, envelope(p95) / envelope(DEPARTURE_CLIP)),
     };
   });
 }
@@ -250,10 +250,14 @@ function getDftVisuals(sceneKey: DftSceneKey, outputMode: DftOutputMode): DftVis
     finalDensityOpacity: showFinalDensity ? 0.46 : 0,
     showDensityEvolution,
     densityEvolutionOpacity: showDensityEvolution ? 0.7 : 0,
+    // Opaque, so the lobes are depth-tested. Translucent, they went through the canvas's
+    // weighted-blended transparency, which averages the stacked + and - lobes above and below a
+    // ring plane without depth order: the LUMO's sign pattern read as one lavender with red and
+    // blue rims.
     showHOMO,
-    homoOpacity: showHOMO ? 0.96 : 0,
+    homoOpacity: showHOMO ? 1 : 0,
     showLUMO,
-    lumoOpacity: showLUMO ? 0.94 : 0,
+    lumoOpacity: showLUMO ? 1 : 0,
     atomOpacity: showFrontierOrbital ? 0.62 : showDensityEvolution || showFinalDensity ? 0.88 : 1,
     bondOpacity: showFrontierOrbital ? 0.52 : showDensityEvolution || showFinalDensity ? 0.7 : 0.9,
   };
@@ -572,8 +576,8 @@ export function MolstarDftStage({
   mobileSceneHeight,
   onStatusChange,
   onScfIndexChange,
-  cyclePaused = false,
   scfPlaying = true,
+  outputModeOverride = null,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
@@ -583,10 +587,10 @@ export function MolstarDftStage({
   onStatusChange?: (status: string) => void;
   /** Which SCF iteration is on screen, including the ones playback advanced to by itself. */
   onScfIndexChange?: (index: number) => void;
-  /** Hold the outputs page on whichever surface is up instead of cycling through the three. */
-  cyclePaused?: boolean;
   /** Run the SCF sequence. False holds it wherever it is, including where the reader dropped it. */
   scfPlaying?: boolean;
+  /** The surface the reader picked on the outputs page. Set, it is shown and the cycle stops. */
+  outputModeOverride?: DftOutputMode | null;
   sceneKey?: string;
   reducedMotion?: boolean;
   lang?: string;
@@ -608,6 +612,10 @@ export function MolstarDftStage({
   const sceneKeyRef = useRef("");
   const [isReady, setIsReady] = useState(false);
   const [mountError, setMountError] = useState<string | null>(null);
+  // A failed frontier-orbital fetch only affects the orbital scene. Sharing mountError covered
+  // the whole DFT level with "3D view unavailable." and kept it there after the reader went
+  // back to the density scene, which was still drawing correctly behind it.
+  const [frontierError, setFrontierError] = useState<string | null>(null);
   const [activeSnapshotIndex, setActiveSnapshotIndex] = useState(0);
   const [outputMode, setOutputMode] = useState<DftOutputMode>("density");
   const [orbitalEnergies, setOrbitalEnergies] = useState<Pick<
@@ -642,9 +650,11 @@ export function MolstarDftStage({
 
   const paintedBoundsRef = useRef<{ center: [number, number, number]; radius: number } | null>(null);
   const framedSceneRef = useRef("");
+  // Set by Fit and the zoom buttons for the camera effect below, which they reach through state.
+  const keepRotationRef = useRef(false);
 
   const applyScheduledCamera = useCallback(
-    (durationMs = 160, zoomLevel = zoomIndex) => {
+    (durationMs = 160, zoomLevel = zoomIndex, keepRotation = false) => {
       const plugin = pluginRef.current;
       const data = dataRef.current;
       if (!plugin || !data) return;
@@ -666,6 +676,29 @@ export function MolstarDftStage({
         zoomIndex: zoomLevel,
         boundsOverride: paintedBoundsRef.current ?? undefined,
       });
+      // Fit and zoom keep the direction the reader has turned the molecule to and only re-frame
+      // and re-scale; Reset is the one that also restores the scheduled direction. Every button
+      // used to restore it, so zooming after a drag snapped the molecule back and Fit did exactly
+      // what Reset did.
+      const current = keepRotation ? plugin.canvas3d?.camera.getSnapshot() : undefined;
+      if (current) {
+        const view = [0, 1, 2].map((axis) => current.position[axis] - current.target[axis]);
+        const viewLength = Math.hypot(view[0], view[1], view[2]);
+        const distance = Math.hypot(
+          placement.position[0] - placement.target[0],
+          placement.position[1] - placement.target[1],
+          placement.position[2] - placement.target[2],
+        );
+        if (viewLength > 0) {
+          applyMolstarPlacement(plugin, {
+            ...placement,
+            position: [0, 1, 2].map(
+              (axis) => placement.target[axis] + (view[axis] / viewLength) * distance,
+            ) as [number, number, number],
+          }, durationMs);
+          return;
+        }
+      }
       defaultSnapshotRef.current = applyMolstarPlacement(plugin, placement, durationMs);
     },
     [
@@ -743,6 +776,7 @@ export function MolstarDftStage({
   }, [rebuildScene]);
 
   useEffect(() => {
+    keepRotationRef.current = false;
     setZoomIndex(BASE_ZOOM_INDEX);
     setViewRevision((value) => value + 1);
   }, [scrollState.level]);
@@ -886,9 +920,14 @@ export function MolstarDftStage({
     setOutputMode("density");
   }, [resolvedSceneKey]);
 
-  // Cycle output surfaces when the explanatory panel is hidden.
+  // After the reset above, so a pick survives the scene key settling.
   useEffect(() => {
-    if (!hideMechanism || reducedMotion || cyclePaused) return;
+    if (outputModeOverride && resolvedSceneKey === "D6_outputs") setOutputMode(outputModeOverride);
+  }, [outputModeOverride, resolvedSceneKey]);
+
+  // Cycle output surfaces when the explanatory panel is hidden, until the reader picks one.
+  useEffect(() => {
+    if (!hideMechanism || reducedMotion || outputModeOverride) return;
     if (resolvedSceneKey !== "D6_outputs" || !isReady) return;
     const modes: DftOutputMode[] = ["density", "homo", "lumo"];
     let index = 0;
@@ -897,7 +936,7 @@ export function MolstarDftStage({
       setOutputMode(modes[index]);
     }, MULTISCALE_MOTION.outputCycleMs);
     return () => window.clearInterval(id);
-  }, [cyclePaused, hideMechanism, reducedMotion, resolvedSceneKey, isReady]);
+  }, [hideMechanism, outputModeOverride, reducedMotion, resolvedSceneKey, isReady]);
 
   useEffect(() => {
     const plugin = pluginRef.current;
@@ -934,30 +973,44 @@ export function MolstarDftStage({
           homoEV: frontier.orbitalEnergies.homoEV,
           lumoEV: frontier.orbitalEnergies.lumoEV,
         });
+        setFrontierError(null);
         sceneKeyRef.current = "";
         void rebuildSceneRef.current?.();
       })
       .catch((error) => {
         frontierRequestedRef.current = false;
-        setMountError(error instanceof Error ? error.message : "Failed to load frontier orbital data.");
+        setFrontierError(error instanceof Error ? error.message : "Failed to load frontier orbital data.");
       });
   }, [isReady, resolvedSceneKey]);
 
   useEffect(() => {
     if (!isReady) return;
-    applyScheduledCameraRef.current(150);
+    const keepRotation = keepRotationRef.current;
+    keepRotationRef.current = false;
+    applyScheduledCameraRef.current(150, undefined, keepRotation);
   }, [isReady, viewRevision, zoomIndex]);
 
   useEffect(() => {
     if (!actionsRef) return;
+    const keepRotation = () => {
+      keepRotationRef.current = true;
+    };
     actionsRef.current = {
-      zoomIn: () => setZoomIndex((current) => Math.max(0, current - 1)),
-      zoomOut: () => setZoomIndex((current) => Math.min(MAX_ZOOM_INDEX, current + 1)),
+      zoomIn: () => {
+        keepRotation();
+        setZoomIndex((current) => Math.max(0, current - 1));
+      },
+      zoomOut: () => {
+        keepRotation();
+        setZoomIndex((current) => Math.min(MAX_ZOOM_INDEX, current + 1));
+      },
       fit: () => {
+        keepRotation();
         setZoomIndex(BASE_ZOOM_INDEX);
         setViewRevision((value) => value + 1);
       },
       reset: () => {
+        keepRotationRef.current = false;
         setZoomIndex(BASE_ZOOM_INDEX);
         setViewRevision((value) => value + 1);
       },
@@ -968,21 +1021,24 @@ export function MolstarDftStage({
     };
   }, [actionsRef]);
 
-  // The SCF page names the iteration it is on; the outputs page names which field is drawn,
-  // because the surface alone does not say whether it is the density or a frontier orbital.
+  // The SCF page names the update it is on, in the slider's and the chart's word, out of how
+  // many; the outputs page names which field is drawn, because the surface alone does not say
+  // whether it is the density or a frontier orbital.
   useEffect(() => {
     if (resolvedSceneKey === "D4_scf") {
-      const snapshotLabel =
-        dataRef.current?.densityEvolution.snapshots[activeSnapshotIndex]?.label ?? "";
+      const snapshots = dataRef.current?.densityEvolution.snapshots ?? [];
+      const snapshotLabel = snapshots[activeSnapshotIndex]?.label ?? "";
       onStatusChange?.(
-        isKorean ? snapshotLabel.replace("Iter ", "반복 ") : snapshotLabel,
+        snapshotLabel
+          ? `${snapshotLabel.replace("Iter ", isKorean ? "갱신 " : "Update ")} / ${snapshots.length}`
+          : "",
       );
       return;
     }
     onStatusChange?.(
       outputMode === "homo" ? "HOMO"
         : outputMode === "lumo" ? "LUMO"
-        : isKorean ? "전자밀도" : "Electron density",
+        : isKorean ? "전자 밀도" : "Electron density",
     );
   }, [activeSnapshotIndex, isKorean, isReady, onStatusChange, outputMode, resolvedSceneKey]);
 
@@ -996,6 +1052,7 @@ export function MolstarDftStage({
     [activeSnapshotIndex, orbitalEnergies, outputMode],
   );
   const separateMobileMechanism = isMobile;
+  const viewError = mountError ?? (resolvedSceneKey === "D6_outputs" ? frontierError : null);
 
   return (
     <div
@@ -1011,7 +1068,7 @@ export function MolstarDftStage({
         className={separateMobileMechanism ? "relative min-h-0 w-full" : "relative h-full w-full"}
         style={separateMobileMechanism ? { height: mobileSceneHeight } : undefined}
       />
-      {isReady && !mountError ? (
+      {isReady && !viewError ? (
         separateMobileMechanism ? (
           <div className="relative w-full flex-shrink-0 border-t border-border bg-surface-sunken">
             <DftMechanismDataProvider value={mechanismData}>
@@ -1034,7 +1091,7 @@ export function MolstarDftStage({
           </DftMechanismDataProvider>
         )
       ) : null}
-      {!isReady && !mountError && (
+      {!isReady && !viewError && (
         <div
           className="pointer-events-none absolute inset-0 flex items-center justify-center p-8 text-center"
           role="status"
@@ -1051,16 +1108,20 @@ export function MolstarDftStage({
           </div>
         </div>
       )}
-      {mountError && (
+      {viewError && (
         <div className="absolute inset-0 flex items-center justify-center p-8 text-center text-sm text-muted-foreground">
           <div className="max-w-md border border-border bg-surface-raised/95 px-6 py-5">
             <p className="font-semibold text-foreground">
-              {isKorean ? "3D 뷰를 불러올 수 없습니다." : "3D view unavailable."}
+              {/* Only the orbital file failing leaves the molecule drawn behind this card. */}
+              {mountError
+                ? isKorean ? "3D 뷰를 불러올 수 없습니다." : "3D view unavailable."
+                : isKorean ? "오비탈 표면을 불러올 수 없습니다." : "Orbital surfaces unavailable."}
             </p>
             <p className="mt-2 leading-6 text-muted-foreground">
+              {/* Not "and chart": on a phone the SCF chart is drawn in the band this card replaces. */}
               {isKorean
-                ? "설명과 그래프는 계속 볼 수 있습니다. 뷰를 다시 불러와 보세요."
-                : "The explanation and chart remain available. Reload the viewer to try again."}
+                ? "설명은 계속 볼 수 있습니다. 뷰를 다시 불러와 보세요."
+                : "The explanation remains available. Reload the viewer to try again."}
             </p>
             <button
               type="button"
@@ -1069,7 +1130,7 @@ export function MolstarDftStage({
             >
               {isKorean ? "3D 뷰 다시 불러오기" : "Reload 3D view"}
             </button>
-            <p className="sr-only">{mountError}</p>
+            <p className="sr-only">{viewError}</p>
           </div>
         </div>
       )}

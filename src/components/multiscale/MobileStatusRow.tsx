@@ -83,7 +83,7 @@ export function MobileStatusRow({
       {/* What the tier resolves. The desktop rail prints this beside the level label;
           the tab strip above carries only the short name, so without this line a phone
           reader never learns which variables the level actually works in. */}
-      <p className="type-mono-meta px-3 pt-0.5 text-[0.625rem] leading-tight text-muted-foreground">
+      <p className="type-mono-meta px-3 pt-0.5 text-[0.6875rem] leading-tight text-muted-foreground">
         {level.scale[lang as "en" | "ko"] ?? level.scale.en}
       </p>
 
@@ -121,10 +121,12 @@ export function MobileStatusRow({
             >
               <span
                 className="h-[2px] w-full transition-colors"
+                // The tier's own ink, as on the tab above it. Signal red is MLFF's colour, so the
+                // all-atom and meso pages showed an MLFF-red segment under their own tab.
                 style={{
                   backgroundColor:
                     i === scrollState.step
-                      ? "var(--primary)"
+                      ? `var(--lv-${scrollState.level === "allatom" ? "aa" : scrollState.level})`
                       : i < scrollState.step
                         ? "var(--border-strong)"
                         : "var(--border)",

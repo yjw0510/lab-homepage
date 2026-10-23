@@ -27,16 +27,22 @@ export function MultiscaleOverview({
   if (areas.length === 0) return null;
 
   return (
-    <section className="border-t border-border bg-background">
+    <section id="methods" className="scroll-mt-16 border-t border-border bg-background">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:px-8 sm:py-28">
         {/* Masthead */}
         <header className="max-w-3xl">
-          <h2 className="type-title text-4xl text-foreground sm:text-5xl">
+          {/* This title wraps at phone width; the anchor centres on its first line, not
+              between the two (same variant as TopicIndex). */}
+          <h2 className="type-title flex items-baseline gap-3 text-4xl text-foreground sm:text-5xl">
+            <span
+              aria-hidden="true"
+              className="mt-[calc(0.5lh-5px)] inline-block h-2.5 w-2.5 shrink-0 self-start bg-primary"
+            />
             {lang === "ko" ? "방법별로 살펴보기" : "Explore each method"}
           </h2>
           <p className="mt-5 break-keep leading-relaxed text-muted-foreground">
             {lang === "ko"
-              ? "각 페이지에서 한 가지 방법을 다룬다. 무엇을 구분해 내고 그 해상도에 어떤 비용이 따르는지, 연구실은 어떤 질문에 쓰며 결과가 다음 규모로 어떻게 이어지는지 설명한다."
+              ? "각 페이지에서는 방법 하나를 두고, 무엇을 볼 수 있고 그 해상도에 어떤 계산 비용이 드는지, 연구실이 어떤 질문에 쓰는지, 결과가 다음 규모로 어떻게 이어지는지 설명한다."
               : "Each page explains what one method can resolve, what that resolution costs, which questions we study with it, and how its results support the next scale."}
           </p>
         </header>
@@ -70,9 +76,9 @@ export function MultiscaleOverview({
                 {lang === "ko" && area.scaleKo ? area.scaleKo : area.scale}
               </div>
               <div className="md:col-span-9">
-                <h2 className="type-title text-xl text-foreground sm:text-2xl">
+                <h3 className="type-heading text-xl text-foreground sm:text-2xl">
                   {lang === "ko" && area.titleKo ? area.titleKo : area.title}
-                </h2>
+                </h3>
                 <p className="mt-2 max-w-[42rem] break-keep text-sm leading-relaxed text-muted-foreground">
                   {lang === "ko" && area.shortDescriptionKo
                     ? area.shortDescriptionKo

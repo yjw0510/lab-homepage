@@ -26,6 +26,7 @@ export function getAllNews(): NewsItem[] {
         titleKo: data.titleKo || "",
         summaryKo: data.summaryKo || "",
         image: data.image,
+        link: data.link,
         content,
       } as NewsItem;
     })

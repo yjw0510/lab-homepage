@@ -1,55 +1,36 @@
 "use client";
 
-import {
-  type AllAtomForceFieldTerm,
-  type AllAtomReadoutId,
-  type AllAtomSceneKey,
-} from "../allatom/allAtomConfig";
+import { type AllAtomForceFieldTerm } from "../allatom/allAtomConfig";
 import { MechanismHeader, MechanismPanel } from "../MechanismPanel";
 import { MULTISCALE_PANEL, MULTISCALE_TYPE } from "../visualRules";
-import { ObservableTrace } from "./allatom/ObservableTrace";
 
+/**
+ * The force-field step's term picker.
+ *
+ * The observables step has no band. Its readout used to be a caffeine-in-water trace
+ * (metrics.json: water contacts, alignment, neighbours) drawn under the LiPF6 / EC / EMC cell,
+ * with tabs for measures this system never computed. The rail's coordination histogram is the
+ * step's measurement.
+ */
 export interface AllAtomMechanismProps {
-  sceneKey: AllAtomSceneKey;
   lang: string;
-  reducedMotion?: boolean;
   isMobile?: boolean;
   activeTerm?: AllAtomForceFieldTerm | null;
-  activeReadout?: AllAtomReadoutId | null;
   onTermChange?: (term: AllAtomForceFieldTerm) => void;
-  onReadoutChange?: (readout: AllAtomReadoutId) => void;
 }
 
-const COPY: Record<
-  AllAtomSceneKey,
-  {
-    en: { title: string; description: string };
-    ko: { title: string; description: string };
-  }
-> = {
-  A3_forcefield: {
-    en: {
-      title: "Questions answered by fixed interaction rules",
-      description:
-        "Separate terms set molecular shape and intermolecular contacts. The model covers shape and solubility for systems with a fixed bonding pattern; bond changes use a reactive model.",
-    },
-    ko: {
-      title: "고정된 상호작용으로 답할 수 있는 범위",
-      description:
-        "각 항은 분자 모양과 분자 사이 접촉을 정한다. 고정된 결합 구조의 형태와 용해도를 계산하며 결합 변화에는 반응형 모형을 적용한다.",
-    },
+// The step's prose already says bond changes need a reactive model, twice; the band names the
+// five tiles below it and stops.
+const COPY = {
+  en: {
+    title: "Five terms in a classical force field",
+    description:
+      "Bond, angle, and bond-rotation terms hold each molecule's shape. Short-range and electrostatic terms set contacts between atoms.",
   },
-  A6_observables: {
-    en: {
-      title: "Turning a trajectory into something measurable",
-      description:
-        "The number of nearby solvent molecules or the lifetime of a contact comes from many frames, producing values that experiments can test.",
-    },
-    ko: {
-      title: "궤적을 측정 가능한 값으로 바꾸기",
-      description:
-        "주변 용매 분자 수나 접촉이 이어지는 시간은 여러 프레임에서 구한다. 같은 종류의 실험값과 비교한다.",
-    },
+  ko: {
+    title: "고전 역장을 이루는 다섯 항",
+    description:
+      "결합, 결합각, 결합 회전 항은 분자 모양을 유지하고, 단거리 힘과 정전기 항은 원자 사이 접촉을 정한다.",
   },
 };
 
@@ -132,11 +113,13 @@ function A3ForceField({
               onMouseEnter={() => onTermChange?.(term)}
               onFocus={() => onTermChange?.(term)}
               onClick={() => onTermChange?.(term)}
-              className={`grid min-h-12 grid-cols-[1fr_auto] items-center border px-3 text-left transition-colors ${
+              // Label over family tag. Side by side, a two-column grid at 390px pushed
+              // "contacts" past the tile edge and wrapped "Short-range forces" to three lines.
+              className={`grid min-h-12 content-center gap-0.5 border px-3 py-2 text-left transition-colors ${
                 selectedNow ? tone[item.color] : tone.neutral
               }`}
             >
-              <span className="font-semibold">{item.label[ko ? "ko" : "en"]}</span>
+              <span className="font-semibold leading-snug">{item.label[ko ? "ko" : "en"]}</span>
               <span className={MULTISCALE_TYPE.metadata}>{item.family[ko ? "ko" : "en"]}</span>
             </button>
           );
@@ -150,120 +133,14 @@ function A3ForceField({
   );
 }
 
-const READOUTS: Record<
-  AllAtomReadoutId,
-  { en: [string, string]; ko: [string, string] }
-> = {
-  orientation: {
-    en: ["Orientation", "How molecular axes align relative to neighbors or an interface."],
-    ko: ["방향성", "분자 축이 이웃 분자나 계면에 대해 어떻게 정렬되는지 계산한다."],
-  },
-  packing: {
-    en: ["Packing", "How close molecular centers and aromatic planes approach one another."],
-    ko: ["분자 배치", "분자 중심과 방향족 평면이 서로 얼마나 가깝게 배치되는지 계산한다."],
-  },
-  motif: {
-    en: ["Repeated contacts", "Count contact patterns that recur between nearby molecules."],
-    ko: ["반복 접촉", "가까운 분자 사이에서 되풀이되는 접촉 형태를 센다."],
-  },
-};
-
-function A6Observables({
-  ko,
-  reducedMotion,
-  activeReadout,
-  onReadoutChange,
-  lang,
-}: {
-  ko: boolean;
-  reducedMotion: boolean;
-  activeReadout: AllAtomReadoutId;
-  onReadoutChange?: (readout: AllAtomReadoutId) => void;
-  lang: string;
-}) {
-  const selected = READOUTS[activeReadout][ko ? "ko" : "en"];
-  return (
-    <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(17rem,.7fr)]">
-      <div className="border border-border bg-muted/30 p-3">
-        <ObservableTrace lang={lang} reducedMotion={reducedMotion} />
-      </div>
-      <div className="grid content-start gap-2">
-        <div className="grid grid-cols-3 gap-2 lg:grid-cols-1" role="tablist" aria-label={ko ? "궤적에서 얻는 측정값" : "measurements from the trajectory"}>
-          {(Object.keys(READOUTS) as AllAtomReadoutId[]).map((readout) => {
-            const [label] = READOUTS[readout][ko ? "ko" : "en"];
-            const selectedNow = activeReadout === readout;
-            return (
-              <button
-                key={readout}
-                type="button"
-                role="tab"
-                aria-selected={selectedNow}
-                onMouseEnter={() => onReadoutChange?.(readout)}
-                onFocus={() => onReadoutChange?.(readout)}
-                onClick={() => onReadoutChange?.(readout)}
-                className={`min-h-12 border px-3 text-left text-sm font-semibold transition-colors ${
-                  selectedNow ? tone.cyan : tone.neutral
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-        <div className="mt-2 border-t border-lv-aa-line pt-4">
-          <p className={MULTISCALE_TYPE.semititle}>{selected[0]}</p>
-          <p className={`mt-2 ${MULTISCALE_TYPE.description}`}>{selected[1]}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SceneContent({
-  sceneKey,
-  lang,
-  reducedMotion,
-  activeTerm,
-  activeReadout,
-  onTermChange,
-  onReadoutChange,
-}: {
-  sceneKey: AllAtomSceneKey;
-  lang: string;
-  reducedMotion: boolean;
-  activeTerm: AllAtomForceFieldTerm;
-  activeReadout: AllAtomReadoutId;
-  onTermChange?: (term: AllAtomForceFieldTerm) => void;
-  onReadoutChange?: (readout: AllAtomReadoutId) => void;
-}) {
-  const ko = lang.toLowerCase().startsWith("ko");
-  if (sceneKey === "A3_forcefield") {
-    return <A3ForceField ko={ko} activeTerm={activeTerm} onTermChange={onTermChange} />;
-  }
-
-  return (
-    <A6Observables
-      ko={ko}
-      reducedMotion={reducedMotion}
-      activeReadout={activeReadout}
-      onReadoutChange={onReadoutChange}
-      lang={lang}
-    />
-  );
-}
-
 export function AllAtomMechanism({
-  sceneKey,
   lang,
-  reducedMotion = false,
   isMobile = false,
   activeTerm = "Ubond",
-  activeReadout = "orientation",
   onTermChange,
-  onReadoutChange,
 }: AllAtomMechanismProps) {
   const ko = lang.toLowerCase().startsWith("ko");
-  const copy = COPY[sceneKey][ko ? "ko" : "en"];
+  const copy = COPY[ko ? "ko" : "en"];
 
   return (
     <div className={`allatom-mechanism z-[3] ${isMobile ? "relative" : "pointer-events-none absolute inset-0"}`}>
@@ -282,15 +159,7 @@ export function AllAtomMechanism({
             </span>
           }
         />
-        <SceneContent
-          sceneKey={sceneKey}
-          lang={lang}
-          reducedMotion={reducedMotion}
-          activeTerm={activeTerm ?? "Ubond"}
-          activeReadout={activeReadout ?? "orientation"}
-          onTermChange={onTermChange}
-          onReadoutChange={onReadoutChange}
-        />
+        <A3ForceField ko={ko} activeTerm={activeTerm ?? "Ubond"} onTermChange={onTermChange} />
       </MechanismPanel>
     </div>
   );

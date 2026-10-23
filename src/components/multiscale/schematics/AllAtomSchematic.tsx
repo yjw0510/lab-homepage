@@ -31,12 +31,16 @@ const S = {
 };
 
 // Five long display equations share this compact local scale so their leader
-// lines remain inside the schematic viewBox.
+// lines remain inside the schematic viewBox. The svg is width-bound at every breakpoint
+// (308px wide on a 390px phone, about 0.36px per unit), so `sub` and the formula em are set
+// to clear the 9px floor there. The formulas grow less than `sub`: at 1.3x the LJ block runs
+// into the non-bonded label and the torsion block leaves the viewBox.
 const T = {
   atom: u(23 * 1.4),
   term: u(18 * 1.4),
   var: u(24),
-  sub: u(12 * 1.4),
+  sub: u(12 * 1.4 * 1.3),
+  formulaEm: u(12 * 1.4 * 1.12 * 1.12),
   delta: u(16 * 1.4),
   desc: u(14 * 1.4),
 };
@@ -87,28 +91,29 @@ function bline(a: typeof Ca, b: typeof Ca) {
   };
 }
 
-/** S-shaped cubic Bézier leader line. */
-function makeCurve(x1: number, y1: number, x2: number, y2: number, tension = 0.75) {
-  const dx = x2 - x1;
-  return `M ${R(x1)} ${R(y1)} C ${R(x1 + dx * tension)} ${R(y1)}, ${R(x2 - dx * tension)} ${R(y2)}, ${R(x2)} ${R(y2)}`;
-}
-
 /** C-shaped cubic Bézier (single-arc, no inflection). bulge = perpendicular offset. */
 function makeCCurve(x1: number, y1: number, x2: number, y2: number, bulge: number) {
   const mx = (x1 + x2) / 2 + bulge;
   return `M ${R(x1)} ${R(y1)} C ${R(mx)} ${R(y1)}, ${R(mx)} ${R(y2)}, ${R(x2)} ${R(y2)}`;
 }
 
+// Non-bonded label anchor (left edge and baseline), shared by the label and its leader.
+const NB_LABEL_X = u(240);
+const NB_LABEL_Y = u(47);
+// Centre of the Coulomb-coloured word ("charges" / "전하 힘") from the label's left edge, measured
+// in Pretendard (EN 460-556, KO 414-489 user units). The Coulomb leader starts under that word;
+// started at the label's left edge it ran out from under LJ's closing bracket and read as LJ's.
+const NB_CHARGES_DX = { en: 220, ko: 163 };
+
 // ═══ Label stack helper ═══
 
-function LabelStack({ x, y, term, variable, sub, vColor }: {
-  x: number; y: number; term: string; variable: string; sub?: string; vColor: string;
+function LabelStack({ x, y, term, variable, vColor }: {
+  x: number; y: number; term: string; variable: string; vColor: string;
 }) {
   return (
     <text x={x} y={y} textAnchor="middle">
       <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{term}</tspan>
       <tspan x={x} dy={u(26)} fill={vColor} fontSize={T.var} fontWeight="700" fontStyle="italic">{variable}</tspan>
-      {sub && <tspan x={x} dy={u(18)} fill={C.muted} fontSize={T.sub}>{sub}</tspan>}
     </text>
   );
 }
@@ -238,8 +243,11 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
   // group is translated -40, so its left edge lands at -70 in viewBox units and the viewport
   // cropped the leading U of U_LJ and U_Coul. Widening the box moves nothing relative to anything
   // else; it only stops the crop.
+  // The box is the drawn extent (LJ block -69, angle leader 776, label top 8, torsion bottom
+  // 469) plus 6 units, and the height follows the width. A fixed h-64 letterboxed the
+  // width-bound drawing and left this row 90px taller than the other three.
   return (
-    <svg viewBox="-78 0 878 480" className="w-full h-52 sm:h-64" style={{ shapeRendering: "geometricPrecision" }}
+    <svg viewBox="-76 2 858 474" className="w-full h-auto" style={{ shapeRendering: "geometricPrecision" }}
       role="img" aria-label={ko
         ? "결합의 길이와 각도, 결합 주위 회전, 가까운 원자 사이 힘을 합쳐 분자의 에너지를 계산한다"
         : "Molecular energy combines bond lengths and angles, rotation around bonds, and forces between nearby atoms"}>
@@ -289,7 +297,7 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
           { a: Hm1, grad: "atomg-h" }, { a: Hm2, grad: "atomg-h" }, { a: Hm3, grad: "atomg-h" },
         ] as const).map((item, i) => (
           <AtomSphere key={`n${i}`} cx={item.a.cx} cy={item.a.cy} r={item.a.r} grad={item.grad}
-            label={"label" in item ? item.label : undefined} fs={u(20)} shadow={false} />
+            label={"label" in item ? item.label : undefined} fs={u(22)} shadow={false} />
         ))}
       </g>
 
@@ -390,9 +398,11 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
 
       {/* ═══ L6: Labels ═══ */}
       <g {...anim(1.0)}>
-        <text x={u(328)} y={u(72)} textAnchor="middle">
-          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "떨어진 원자 사이" : "atoms farther apart"}</tspan>
-          <tspan x={u(328)} dy={u(18)} fontSize={T.sub} fontWeight="500">
+        {/* Flush left at a fixed x so the leader start does not depend on the language, and
+            raised so the wider sub-label clears the O shell below it and the LJ block beside it. */}
+        <text x={NB_LABEL_X} y={NB_LABEL_Y}>
+          <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "비결합 원자 사이" : "non-bonded atoms"}</tspan>
+          <tspan x={NB_LABEL_X} dy={u(22)} fontSize={T.sub} fontWeight="500">
             <tspan fill={C.lj}>{ko ? "단거리 힘" : "short-range"}</tspan>
             <tspan fill={C.muted}> + </tspan>
             <tspan fill={C.coulomb}>{ko ? "전하 힘" : "charges"}</tspan>
@@ -404,12 +414,11 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
           <tspan fill={C.stretch} fontSize={T.var} fontWeight="700" fontStyle="italic" dx={u(8)}>r</tspan>
         </text>
 
-        <LabelStack x={angleLabelX} y={angleLabelY} term={ko ? "각 굽힘" : "angle bend"} variable="θ" sub="O-C′-Cα" vColor={C.angle} />
+        <LabelStack x={angleLabelX} y={angleLabelY} term={ko ? "각 굽힘" : "angle bend"} variable="θ" vColor={C.angle} />
 
         <text x={colCx + u(12)} y={colCy + u(64)} textAnchor="middle">
           <tspan fill={C.ink} fontSize={T.term} fontWeight="600">{ko ? "결합 회전" : "bond rotation"}</tspan>
           <tspan x={colCx + u(12)} dy={u(26)} fill={C.torsion} fontSize={T.var} fontWeight="700" fontStyle="italic">φ</tspan>
-          <tspan x={colCx + u(12)} dy={u(22)} fill={C.muted} fontSize={T.sub}>Hα-Cα-C′-O</tspan>
         </text>
 
         <text x={Ha.cx - u(28) - 25} y={Ha.cy - u(16) + 25} textAnchor="middle"
@@ -423,7 +432,7 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
         // MathJax SVG uses 1000 internal units per em (documented).
         // targetEm: the em-size we want in parent SVG user units.
         // width = vbW × targetEm / 1000, height = vbH × targetEm / 1000
-        const FORMULA_EM = T.sub * 1.12;
+        const FORMULA_EM = T.formulaEm;
 
         const formulaBox = (key: string) => {
           const [, , vbW, vbH] = MATH_SVG[key].viewBox.split(/\s+/).map(Number);
@@ -435,23 +444,25 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
 
         // ─── Formula positions ───
         // LJ + Coulomb: left-aligned, pushed left. Phantom in LJ aligns "=" with Coulomb.
+        // LJ sits level with the non-bonded label it ends beside, so it needs no leader of its
+        // own; Coulomb is stacked close under it so its leader can pass below LJ's last bracket.
         const ljLx  = u(-25);
-        const ljY   = u(52);
-        const coulY = ljY + lj.h + u(2) + 55;
+        const ljY   = u(27);
+        const coulY = ljY + lj.h + u(2) + 20;
 
         const bndLx = u(55);
         const bndY  = u(365) + 15;
 
-        const angLx = u(460);
+        const angLx = u(481);
         const angY  = u(58) - 10;
 
-        const dihLx = u(436) + 15;
+        const dihLx = u(410);
         const dihY  = u(365);
 
         // ─── Leader line start: mean y of label, with gap from text ───
         const gap = u(5); // small gap between text edge and curve start
-        const nbStartX = u(230) - gap;
-        const nbStartY = u(72); // mean y of "1-4 nonbonded" only
+        const nbStartX = NB_LABEL_X + NB_CHARGES_DX[ko ? "ko" : "en"];
+        const nbStartY = NB_LABEL_Y + u(22) + u(8); // below the sub-label's descenders
 
         const bsStartX = u(60) - gap;
         const bsStartY = u(253);
@@ -459,14 +470,14 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
         const abStartX = R(angleLabelX + u(75) + gap);
         const abStartY = angleLabelY;
 
-        const dhStartX = R(colCx + u(60));
-        const dhStartY = R(colCy + u(60));
+        // Under the φ, which is centred on the label at either language. The old start sat
+        // inside the label's span, above its baseline, so the leader grew out of "rotation".
+        const dhStartX = R(colCx + u(12));
+        const dhStartY = R(colCy + u(64) + u(26) + u(8));
 
         // ─── Leader line endpoints at formula edges ───
-        const ljEndX   = R(ljLx + lj.w + u(3)); // right side of LJ + gap
-        const ljEndY   = R(ljY + lj.h / 2);
         const coulEndX = R(ljLx + coul.w + u(3)); // right side of Coulomb + gap
-        const coulEndY = R(coulY + coul.h * 0.4);
+        const coulEndY = R(coulY + coul.h * 0.25); // level with the numerator, so the leader clears the H shell
         const bndEndX  = bndLx - u(4);            // left side of Bond + gap
         const bndEndY  = R(bndY + bnd.h / 2);
         const angEndX  = R(angLx + ang.w + u(4)); // right side of Angle + gap
@@ -477,10 +488,8 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
         return (
           <g {...anim(1.2)}>
             <g strokeWidth={u(1.5)} strokeOpacity="0.5" strokeLinecap="round" fill="none">
-              {/* S-curves from "1-4 nonbonded" → LJ and Coulomb */}
-              <path d={makeCurve(nbStartX, nbStartY, ljEndX, ljEndY)} stroke={C.lj} />
-              <circle cx={ljEndX} cy={ljEndY} r={u(2)} fill={C.lj} />
-              <path d={`M ${R(nbStartX)} ${R(nbStartY)} C ${R(nbStartX - u(15))} ${R(nbStartY)}, ${R(coulEndX + u(60))} ${R(coulEndY)}, ${R(coulEndX)} ${R(coulEndY)}`} stroke={C.coulomb} />
+              {/* "charges" → Coulomb: drops first, then sweeps left under LJ */}
+              <path d={`M ${R(nbStartX)} ${R(nbStartY)} C ${R(nbStartX)} ${R(nbStartY + u(30))}, ${R(coulEndX + u(30))} ${R(coulEndY)}, ${R(coulEndX)} ${R(coulEndY)}`} stroke={C.coulomb} />
               <circle cx={coulEndX} cy={coulEndY} r={u(2)} fill={C.coulomb} />
 
               {/* C-curve: bond stretch → bond formula (bows left) */}
@@ -491,8 +500,8 @@ export function AllAtomSchematic({ active, ko = false }: { active: boolean; ko?:
               <path d={makeCCurve(abStartX, abStartY, angEndX, angEndY, u(50))} stroke={C.angle} />
               <circle cx={angEndX} cy={angEndY} r={u(2)} fill={C.angle} />
 
-              {/* S-curve: dihedral collar → dihedral formula */}
-              <path d={makeCurve(dhStartX, dhStartY, dihEndX, dihEndY)} stroke={C.torsion} />
+              {/* φ → dihedral formula: drops first, then sweeps right into the formula */}
+              <path d={`M ${dhStartX} ${dhStartY} C ${dhStartX} ${R(dhStartY + u(30))}, ${R(dihEndX - u(30))} ${dihEndY}, ${dihEndX} ${dihEndY}`} stroke={C.torsion} />
               <circle cx={dihEndX} cy={dihEndY} r={u(2)} fill={C.torsion} />
             </g>
 

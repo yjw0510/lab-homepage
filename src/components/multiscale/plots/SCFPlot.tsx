@@ -14,7 +14,7 @@ interface ScfSnapshotMeta {
 
 interface ScfData {
   deltaE: number[];
-  trajectory?: { iteration: number; deltaE: number }[];
+  trajectory?: { iteration: number; deltaE: number | null }[];
   snapshots?: ScfSnapshotMeta[];
   threshold: number;
 }
@@ -27,9 +27,9 @@ interface ScfData {
  * contradicted the comment forty lines below asserting the run reaches 1275.84 Ha.
  */
 const FALLBACK: ScfData = {
-  deltaE: [1275.8398222322, 1275.8398222322, 380.8553959527, 151.0666257163, 77.1386560472, 54.5315939654, 26.8227314605, 8.817025638, 1.3175500041, 2.262e-07, 1.6e-09],
+  deltaE: [1275.8398222322, 380.8553959527, 151.0666257163, 77.1386560472, 54.5315939654, 26.8227314605, 8.817025638, 1.3175500041, 2.262e-07, 1.6e-09],
   trajectory: [
-    { iteration: 1, deltaE: 1275.8398222322 },
+    { iteration: 1, deltaE: null },
     { iteration: 2, deltaE: 1275.8398222322 },
     { iteration: 4, deltaE: 380.8553959527 },
     { iteration: 6, deltaE: 151.0666257163 },
@@ -41,7 +41,7 @@ const FALLBACK: ScfData = {
     { iteration: 45, deltaE: 2.262e-07 },
     { iteration: 59, deltaE: 1.6e-09 },
   ],
-  threshold: 1e-5,
+  threshold: 1e-8,
 };
 
 export function SCFPlot({
@@ -81,13 +81,15 @@ export function SCFPlot({
   return (
     <PlotContainer ariaLabel={ko ? "전자 밀도를 다시 계산할수록 줄어드는 에너지 변화" : "Energy change decreasing as the electron density is recalculated"}>
       {({ height, innerWidth, innerHeight, margin, font }) => {
-        const chart = (data.trajectory?.length ? data.trajectory : data.deltaE.map((deltaE, index) => ({
+        // Iteration 1 has no prior energy, so its deltaE is null: it keeps its x slot and is not drawn.
+        const chart: { iteration: number; deltaE: number | null }[] = (data.trajectory?.length ? data.trajectory : data.deltaE.map((deltaE, index) => ({
           iteration: index + 1,
           deltaE,
         }))).map((point) => ({
           iteration: point.iteration,
-          deltaE: Math.max(1e-12, point.deltaE),
+          deltaE: point.deltaE === null ? null : Math.max(1e-12, point.deltaE),
         }));
+        const drawn = chart.flatMap((point) => (point.deltaE === null ? [] : [point.deltaE]));
         const xScale = scaleLinear().domain([1, chart.length]).range([0, innerWidth]);
         // The top of the axis comes from the data, not a constant. Held at 10 it cut the run's
         // first decades off the chart: scf.json reaches 1275.84 Ha and 19 of its 59 points are
@@ -95,11 +97,12 @@ export function SCFPlot({
         // exactly the "one large early excursion" the step's own prose points at. The floor
         // stays fixed because the low end is already clamped at 1e-12 above.
         const yScale = scaleLog()
-          .domain([1e-10, Math.max(10, ...chart.map((point) => point.deltaE))])
+          .domain([1e-10, Math.max(10, ...drawn)])
           .range([innerHeight, 0]);
-        const path = line<{ iteration: number; deltaE: number }>()
+        const path = line<{ iteration: number; deltaE: number | null }>()
+          .defined((d) => d.deltaE !== null)
           .x((_, index) => xScale(index + 1))
-          .y((d) => yScale(d.deltaE))(chart) || "";
+          .y((d) => yScale(d.deltaE as number))(chart) || "";
         const thresholdY = yScale(data.threshold);
         const activeX = xScale(activeIndex + 1);
 
@@ -112,6 +115,7 @@ export function SCFPlot({
               <line x1={activeX} y1={0} x2={activeX} y2={innerHeight} stroke={accentColor} strokeOpacity={0.33} strokeWidth={1.1} strokeDasharray="4,4" />
               <path d={path} fill="none" stroke={accentColor} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
               {chart.map((point, index) => {
+                if (point.deltaE === null) return null;
                 const x = xScale(index + 1);
                 const y = yScale(point.deltaE);
                 const isActive = index === activeIndex;
@@ -127,7 +131,16 @@ export function SCFPlot({
                   />
                 );
               })}
-              <text x={activeX} y={innerHeight + 22} textAnchor="middle" fill={accentColor} fontSize={font.tick} fontWeight={600}>
+              {/* Anchored toward the plot near either end: centred on the first or last point it
+                  ran past the svg edge and was clipped to "curren". */}
+              <text
+                x={activeX}
+                y={innerHeight + 22}
+                textAnchor={activeX > innerWidth - 32 ? "end" : activeX < 32 ? "start" : "middle"}
+                fill={accentColor}
+                fontSize={font.tick}
+                fontWeight={600}
+              >
                 {ko ? "현재" : "current"}
               </text>
             </g>
@@ -136,7 +149,7 @@ export function SCFPlot({
             {
               x: margin.left + innerWidth / 2,
               y: height - font.axisLabel * 0.8,
-              text: ko ? "반복 계산" : "Repeated calculation",
+              text: ko ? "밀도 갱신" : "Density update",
               align: "middle",
               color: PLOT_COLORS.axisLabel,
               fontSize: font.axisLabel,
@@ -144,18 +157,22 @@ export function SCFPlot({
             {
               x: font.axisLabel * 0.95,
               y: margin.top + innerHeight / 2,
-              text: ko ? "에너지 변화" : "Energy change",
+              text: ko ? "에너지 변화(로그 눈금)" : "Energy change (log scale)",
               align: "middle",
               rotate: -90,
               color: PLOT_COLORS.axisLabel,
               fontSize: font.axisLabel,
             },
+            // Inside the plot, just above the dashed line at its left end. The right margin is about
+            // 22px, so a label placed past the plot was cut at the rail edge; the left end of this
+            // row is empty because the curve is still decades above it there.
             {
-              x: margin.left + innerWidth + 6,
-              y: margin.top + thresholdY,
-              text: ko ? "종료 기준" : "target",
+              x: margin.left + 8,
+              y: margin.top + thresholdY - font.annotation,
+              text: ko ? "계산 종료 기준" : "stopping threshold",
               align: "start",
-              color: "#ef4444",
+              // The line's red measures 3.7:1 as text on the light card; the darker red holds 6.3:1.
+              color: "light-dark(#b91c1c, #ef4444)",
               fontSize: font.annotation,
               className: "font-semibold",
             },

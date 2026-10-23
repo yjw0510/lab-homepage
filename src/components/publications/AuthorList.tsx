@@ -1,5 +1,4 @@
-// Published records spell the name out; in-progress manuscripts keep the CV's initials.
-const PI_NAMES = new Set(["Ji Woong Yu", "J. W. Yu"]);
+const PI_NAME = "Ji Woong Yu";
 
 export function AuthorList({
   authors,
@@ -16,9 +15,10 @@ export function AuthorList({
   const firstSet = new Set(firstAuthors);
   const corrSet = new Set(correspondingAuthors);
 
-  // Derive PI role for parenthetical suffix
-  const piIsFirst = authors.some((a) => PI_NAMES.has(a) && firstSet.has(a));
-  const piIsCorr = authors.some((a) => PI_NAMES.has(a) && corrSet.has(a));
+  // PI role, printed in parentheses right after the PI's own name so it cannot read as the
+  // role of whoever is listed last.
+  const piIsFirst = firstSet.has(PI_NAME);
+  const piIsCorr = corrSet.has(PI_NAME);
   let piRole: string | undefined;
   // Generated editorial annotation, not bibliographic data, so it localizes. Author names,
   // titles and journals stay as published; this sentence is the site talking.
@@ -26,41 +26,47 @@ export function AuthorList({
     if (ko) {
       piRole = `${firstSet.size > 1 ? "공동 제1저자" : "제1저자"} 겸 ${corrSet.size > 1 ? "공동 교신저자" : "교신저자"}`;
     } else {
-      const coFirst = firstSet.size > 1 ? "Co-first" : "First";
+      const coFirst = firstSet.size > 1 ? "co-first" : "first";
       const coCorr = corrSet.size > 1 ? "co-corresponding" : "corresponding";
       piRole = `${coFirst} & ${coCorr} author`;
     }
   } else if (piIsFirst) {
     piRole = ko
       ? (firstSet.size > 1 ? "공동 제1저자" : "제1저자")
-      : (firstSet.size > 1 ? "Co-first author" : "First author");
+      : (firstSet.size > 1 ? "co-first author" : "first author");
   } else if (piIsCorr) {
     piRole = ko
       ? (corrSet.size > 1 ? "공동 교신저자" : "교신저자")
-      : (corrSet.size > 1 ? "Co-corresponding author" : "Corresponding author");
+      : (corrSet.size > 1 ? "co-corresponding author" : "corresponding author");
   }
 
   return (
     <>
       {authors.map((author, i) => {
-        const isPI = PI_NAMES.has(author);
+        const isPI = author === PI_NAME;
         const isFirst = firstSet.has(author);
         const isCorr = corrSet.has(author);
         const separator = i < authors.length - 1 ? ", " : "";
 
         return (
           <span key={i}>
+            {/* A name or the role note never breaks inside itself; breaks fall between them. */}
             <span
-              className={`${isPI ? "type-lead text-lv-mlff-text" : ""} ${isFirst ? "underline" : ""}`}
+              className={`whitespace-nowrap ${isPI ? "type-lead text-lv-mlff-text" : ""} ${isFirst ? "underline" : ""}`}
             >
               {author}
               {isCorr ? "*" : ""}
             </span>
+            {isPI && piRole && (
+              <>
+                {" "}
+                <span className="whitespace-nowrap">({piRole})</span>
+              </>
+            )}
             {separator}
           </span>
         );
       })}
-      {piRole && <span> ({piRole})</span>}
     </>
   );
 }

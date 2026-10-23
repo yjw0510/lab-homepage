@@ -28,6 +28,11 @@ export function RecruitmentBanner({ dict }: { dict: Dictionary }) {
         ))}
       </div>
 
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        <span className="font-[600] text-foreground">{r.fields}:</span>{" "}
+        {r.fieldsText}
+      </p>
+
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-muted-foreground">
         <p className="font-[600] text-foreground">{r.howToApply}</p>
         <p>
@@ -45,10 +50,6 @@ export function RecruitmentBanner({ dict }: { dict: Dictionary }) {
           >
             {siteConfig.email}
           </a>
-        </p>
-        <p>
-          <span className="font-[600] text-foreground">{r.fields}:</span>{" "}
-          {r.fieldsText}
         </p>
       </div>
     </div>

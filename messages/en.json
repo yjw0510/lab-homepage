@@ -7,17 +7,19 @@
     "news": "News",
     "funding": "Funding",
     "contact": "Contact",
-    "topics": "Research Topics"
+    "topics": "Research Topics",
+    "mainLabel": "Main",
+    "skipToContent": "Skip to content"
   },
   "topics": {
     "title": "Research Topics",
-    "subtitle": "We use molecular simulation, theory, and machine learning to connect molecular motion and arrangement with the behavior of salt solutions, polymer-coated nanoparticles, glasses, and gels."
+    "subtitle": "We use molecular simulation, theory, and machine learning to trace chemical reactions and connect molecular motion and arrangement with the behavior of nanoparticles, polymers, aqueous solutions, glasses, and gels."
   },
   "home": {
-    "exploreMultiscale": "Explore Research",
+    "exploreMultiscale": "Explore research",
     "joinLab": "Join the lab",
     "recentPublications": "Recent Publications",
-    "recentPublicationsSubtitle": "",
+    "recentPublicationsSubtitle": "Underlined names are first authors; an asterisk (*) marks corresponding authors.",
     "viewAllPublications": "View all publications",
     "labNews": "Lab News",
     "labNewsSubtitle": "",
@@ -32,13 +34,25 @@
     "title": "Publications",
     "subtitle": "Publications on molecular modeling, soft materials, and solution chemistry.",
     "filterByYear": "Filter by Year",
-    "filterByTag": "Filter by Tag",
+    "filterByTag": "Filter by Topic",
     "allYears": "All Years",
-    "allTags": "All Tags",
+    "allTags": "All Topics",
     "noResults": "No publications match the current filters.",
     "preprint": "Preprint",
+    "authorKey": "Underlined names are first authors; an asterisk (*) marks corresponding authors.",
+    "summaryHeading": "Summary",
+    "publishedTitle": "Published Papers",
+    "topicLabels": {
+      "self-assembly": "Self-assembly",
+      "polymer-simulation": "Polymer simulation",
+      "aqueous-solution": "Aqueous chemistry",
+      "reaction-mlff": "Reactions",
+      "glass": "Glass dynamics",
+      "hydrogel": "Hydrogels",
+      "misc": "Collaborations"
+    },
     "manuscripts": {
-      "title": "Manuscripts in Progress",
+      "title": "Work in Progress",
       "workingTitle": "working title",
       "status": {
         "underReview": "Under review",
@@ -52,7 +66,8 @@
     "subtitle": "The researchers behind Yu Lab's molecular modeling work.",
     "pi": "Principal Investigator",
     "labMembers": "Lab Members",
-    "noMembers": "New members will appear here as they join."
+    "noMembers": "The lab opened in March 2026 and is recruiting graduate students and undergraduate researchers.",
+    "joinLink": "Join the lab"
   },
   "news": {
     "title": "News",
@@ -61,7 +76,7 @@
   },
   "funding": {
     "title": "Funding",
-    "subtitle": "Research programs supporting our work in molecular modeling and materials chemistry.",
+    "subtitle": "Grants that support the lab's research.",
     "active": "Active",
     "completed": "Completed",
     "noGrants": "Funding information will be updated soon."
@@ -80,13 +95,12 @@
     "experience": "Experience",
     "awards": "Honors",
     "publications": "Selected Publications",
-    "skills": "Technical Skills",
     "professional": "Professional Activities"
   },
   "recruitment": {
     "title": "Join the lab",
     "msPhdLabel": "MS / PhD Students",
-    "msPhdStatus": "Opening soon",
+    "msPhdStatus": "Now recruiting",
     "postdocLabel": "Postdoctoral Researchers",
     "postdocStatus": "Opening soon",
     "undergradLabel": "Undergraduate Researchers",
@@ -95,12 +109,11 @@
     "howToApplyText": "Send your CV and a short note about a research question that interests you. If one of our papers connects to that question, mention it. We welcome applicants who are new to computational chemistry.",
     "undergradApplyText": "Send a short introduction and tell us what you would like to learn or investigate. We will discuss a suitable starting project when we meet. We welcome beginners in simulation and coding.",
     "fields": "Fields",
-    "fieldsText": "Chemistry, chemical engineering, physics, materials science, computer science, and related fields."
+    "fieldsText": "Chemistry, chemical engineering, physics, materials science, computer science, and related majors."
   },
   "footer": {
     "quickLinks": "Quick Links",
-    "contact": "Contact",
-    "allRights": "All rights reserved."
+    "contact": "Contact"
   },
   "common": {
     "backTo": "Back to",

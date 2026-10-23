@@ -22,19 +22,19 @@ function toggleClass(active: boolean): string {
 
 export function PublicationFilter({
   years,
-  tags,
+  topics,
   selectedYear,
-  selectedTag,
+  selectedTopic,
   onYearChange,
-  onTagChange,
+  onTopicChange,
   labels,
 }: {
   years: number[];
-  tags: string[];
+  topics: { id: string; label: string }[];
   selectedYear: number | null;
-  selectedTag: string | null;
+  selectedTopic: string | null;
   onYearChange: (year: number | null) => void;
-  onTagChange: (tag: string | null) => void;
+  onTopicChange: (topic: string | null) => void;
   labels: PublicationFilterLabels;
 }) {
   return (
@@ -66,7 +66,7 @@ export function PublicationFilter({
         ))}
       </div>
 
-      {/* Tag filter */}
+      {/* Research-topic filter */}
       <div
         role="group"
         aria-label={labels.filterByTag}
@@ -74,21 +74,21 @@ export function PublicationFilter({
       >
         <button
           type="button"
-          onClick={() => onTagChange(null)}
-          aria-pressed={selectedTag === null}
-          className={toggleClass(selectedTag === null)}
+          onClick={() => onTopicChange(null)}
+          aria-pressed={selectedTopic === null}
+          className={toggleClass(selectedTopic === null)}
         >
           {labels.allTags}
         </button>
-        {tags.map((tag) => (
+        {topics.map((topic) => (
           <button
-            key={tag}
+            key={topic.id}
             type="button"
-            onClick={() => onTagChange(tag === selectedTag ? null : tag)}
-            aria-pressed={selectedTag === tag}
-            className={toggleClass(selectedTag === tag)}
+            onClick={() => onTopicChange(topic.id === selectedTopic ? null : topic.id)}
+            aria-pressed={selectedTopic === topic.id}
+            className={toggleClass(selectedTopic === topic.id)}
           >
-            {tag}
+            {topic.label}
           </button>
         ))}
       </div>

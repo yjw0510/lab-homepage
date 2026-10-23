@@ -19,34 +19,42 @@ import {
   MOBILE_SCENE_HEIGHT,
   MULTISCALE_TYPE,
 } from "./visualRules";
-import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
+import type { AllAtomForceFieldTerm } from "./allatom/allAtomPagePolicy";
+import type { DftOutputMode } from "./overlays/DftMechanism";
 
 const TOTAL_RESEARCH_STEPS = LEVELS.reduce((sum, level) => sum + level.steps, 0);
 const STEP_HOLD_PROGRESS = 0.8;
 
-function getInteractionHint(sceneKey: string | undefined, lang: string) {
+// A hint may only point at a control that is on the reader's screen. The all-atom interaction
+// tiles live in the mechanism band, which only the phone composition renders, so on desktop
+// that hint sent the reader looking for a diagram that was not there.
+function getInteractionHint(sceneKey: string | undefined, lang: string, isMobile: boolean) {
   const isKorean = lang === "ko";
-  const hints: Record<string, { en: string; ko: string }> = {
+  const hints: Record<string, { en: string; ko: string; mobileOnly?: true }> = {
     M2_mapping: {
-      en: "Watch one chain become a row of beads. The next page shows how many such chains move together.",
-      ko: "사슬 하나가 비드로 바뀌는 과정을 살펴보세요. 다음 장에서는 여러 사슬이 함께 움직이는 모습을 보여 줍니다.",
+      en: "Watch the double helix become a row of beads. The next page follows 100 bead chains moving together.",
+      ko: "이중 나선이 비드 한 줄로 바뀌는 과정을 살펴보세요. 다음 장에서는 비드 사슬 100개가 함께 움직이는 모습을 보여 줍니다.",
     },
     A3_forcefield: {
-      en: "Select one interaction in the diagram to see what it contributes.",
-      ko: "도식에서 상호작용 하나를 골라 어떤 역할을 하는지 살펴보세요.",
-    },
-    A6_observables: {
-      en: "Select a measurement to connect one trajectory frame with its signal and full distribution.",
-      ko: "측정값을 골라 궤적의 한 장면이 전체 신호와 분포로 이어지는 과정을 살펴보세요.",
+      en: "Pick an interaction below the scene to see what it does.",
+      ko: "장면 아래에서 상호작용 하나를 골라 역할을 확인해 보세요.",
+      mobileOnly: true,
     },
     D4_scf: {
-      en: "Move the control to compare each electron-density snapshot with its energy change.",
-      ko: "조절기를 움직여 전자 밀도 장면과 그때의 에너지 변화를 함께 비교해 보세요.",
+      en: "Drag the slider to step through the density updates and follow each one on the energy chart.",
+      ko: "슬라이더를 움직여 밀도 갱신을 한 단계씩 넘기며 에너지 그래프와 함께 보세요.",
     },
   };
   const hint = sceneKey ? hints[sceneKey] : undefined;
-  return hint ? (isKorean ? hint.ko : hint.en) : undefined;
+  if (!hint || (hint.mobileOnly && !isMobile)) return undefined;
+  return isKorean ? hint.ko : hint.en;
 }
+
+const DFT_OUTPUT_MODES: Array<{ id: DftOutputMode; en: string; ko: string }> = [
+  { id: "density", en: "Electron density", ko: "전자 밀도" },
+  { id: "homo", en: "HOMO", ko: "HOMO" },
+  { id: "lumo", en: "LUMO", ko: "LUMO" },
+];
 
 declare global {
   interface Window {
@@ -90,7 +98,10 @@ export function MultiscalePinned({
   const cameraActionsRef = useRef<ResearchCameraActions | null>(null);
   const [dftSnapshots, setDftSnapshots] = useState<Array<{ index: number; iteration: number; label: string }>>([]);
   const [dftStatus, setDftStatus] = useState<string>("");
-  const [dftCyclePaused, setDftCyclePaused] = useState(false);
+  // The reader's pick on the outputs page. Until there is one the stage cycles the three surfaces.
+  const [dftOutputOverride, setDftOutputOverride] = useState<DftOutputMode | null>(null);
+  // First snapshot whose energy change is below the run's own stopping threshold.
+  const [scfConvergedFrom, setScfConvergedFrom] = useState(0);
   const [manualScfIndex, setManualScfIndex] = useState<number | null>(null);
   // Where the SCF sequence actually is. The stage owns the sequence, so the slider has to be told
   // rather than derive it; before this it sat on the first tick through the whole animation.
@@ -106,8 +117,6 @@ export function MultiscalePinned({
   }, []);
   const [allAtomHoveredTerm, setAllAtomHoveredTerm] = useState<AllAtomForceFieldTerm | null>(null);
   const [allAtomLockedTerm, setAllAtomLockedTerm] = useState<AllAtomForceFieldTerm | null>(null);
-  const [allAtomHoveredReadout, setAllAtomHoveredReadout] = useState<AllAtomReadoutId | null>(null);
-  const [allAtomLockedReadout, setAllAtomLockedReadout] = useState<AllAtomReadoutId | null>(null);
   const [cameraMenuOpen, setCameraMenuOpen] = useState(false);
 
   const scrollState = useMemo(
@@ -133,8 +142,7 @@ export function MultiscalePinned({
     setScfPlaying(true);
     setAllAtomHoveredTerm(null);
     setAllAtomLockedTerm(null);
-    setAllAtomHoveredReadout(null);
-    setAllAtomLockedReadout(null);
+    setDftOutputOverride(null);
   }, []);
 
   const goNext = useCallback(() => goToStep(currentStep + 1), [currentStep, goToStep]);
@@ -205,14 +213,22 @@ export function MultiscalePinned({
       .then((response) => response.json())
       .then((next) => {
         if (Array.isArray(next?.snapshots)) {
-          setDftSnapshots(
-            next.snapshots.filter(
-              (entry: { index?: number; iteration?: number; label?: string }) =>
-                typeof entry?.index === "number" &&
-                typeof entry?.iteration === "number" &&
-                typeof entry?.label === "string",
-            ),
+          const snapshots = next.snapshots.filter(
+            (entry: { index?: number; iteration?: number; label?: string }) =>
+              typeof entry?.index === "number" &&
+              typeof entry?.iteration === "number" &&
+              typeof entry?.label === "string",
           );
+          // Where the run itself says it converged, so the slider's state label follows the
+          // calculation rather than fixed thirds of the track. A run that never got below its
+          // threshold is never called converged.
+          const threshold = typeof next?.threshold === "number" ? next.threshold : null;
+          const trajectory: Array<{ deltaE?: number }> = Array.isArray(next?.trajectory) ? next.trajectory : [];
+          const converged = threshold === null
+            ? -1
+            : trajectory.findIndex((entry) => typeof entry?.deltaE === "number" && Math.abs(entry.deltaE) < threshold);
+          setScfConvergedFrom(converged >= 0 ? converged : snapshots.length);
+          setDftSnapshots(snapshots);
         }
       })
       .catch(() => {});
@@ -224,7 +240,6 @@ export function MultiscalePinned({
   const stepConfig = choreography.steps[effectiveScrollState.step];
   const isAllAtomLevel = effectiveScrollState.level === "allatom";
   const isAllAtomForceFieldStep = isAllAtomLevel && stepConfig?.sceneKey === "A3_forcefield";
-  const isAllAtomReadoutStep = isAllAtomLevel && stepConfig?.sceneKey === "A6_observables";
   const isDftScfStep = effectiveScrollState.level === "dft" && stepConfig?.sceneKey === "D4_scf";
   const defaultScfIndex = useMemo(() => {
     if (!dftSnapshots.length || effectiveScrollState.level !== "dft") return 0;
@@ -239,25 +254,13 @@ export function MultiscalePinned({
 
   const effectiveScfIndex = isDftScfStep ? scfIndex : defaultScfIndex;
   const showDftScfSlider = isDftScfStep && dftSnapshots.length > 1;
-  // Each DFT page runs on its own timer, so which one the caption's play/pause reaches depends on
-  // the page: the SCF sequence here, the density -> HOMO -> LUMO walk on the outputs page.
-  const dftPlayback = isDftScfStep
-    ? {
-        paused: !scfPlaying,
-        toggle: () => setScfPlaying((playing) => !playing),
-        title: scfPlaying
-          ? (lang === "ko" ? "이 밀도 갱신에서 멈춤" : "Hold this density update")
-          : (lang === "ko" ? "밀도 갱신 이어서 재생" : "Resume density updates"),
-      }
-    : {
-        paused: dftCyclePaused,
-        toggle: () => setDftCyclePaused((paused) => !paused),
-        title: dftCyclePaused
-          ? (lang === "ko" ? "자동 전환 재개" : "Resume cycling")
-          : (lang === "ko" ? "이 표면에서 멈춤" : "Hold this surface"),
-      };
+  const scfPlaybackTitle = scfPlaying
+    ? (lang === "ko" ? "이 밀도 갱신에서 멈춤" : "Hold this density update")
+    : (lang === "ko" ? "밀도 갱신 이어서 재생" : "Resume density updates");
+  const isDftOutputStep = effectiveScrollState.level === "dft" && stepConfig?.sceneKey === "D6_outputs";
+  // The stage reports which surface is drawn, including the ones its own cycle moved to.
+  const dftOutputMode: DftOutputMode = dftStatus === "HOMO" ? "homo" : dftStatus === "LUMO" ? "lumo" : "density";
   const activeAllAtomTerm = isAllAtomForceFieldStep ? (allAtomLockedTerm ?? allAtomHoveredTerm) : null;
-  const activeAllAtomReadout = isAllAtomReadoutStep ? (allAtomLockedReadout ?? allAtomHoveredReadout) : null;
 
   const getStepContext = (globalStep: number) => {
     if (globalStep < 0 || globalStep >= TOTAL_RESEARCH_STEPS) return null;
@@ -266,7 +269,7 @@ export function MultiscalePinned({
       const levelChoreography = CHOREOGRAPHY[levelConfig.id];
       if (remaining < levelChoreography.steps.length) {
         const config = levelChoreography.steps[remaining];
-        return config.title[lang as "en" | "ko"] ?? config.title.en;
+        return { title: config.title[lang as "en" | "ko"] ?? config.title.en, levelId: levelConfig.id };
       }
       remaining -= levelChoreography.steps.length;
     }
@@ -278,7 +281,7 @@ export function MultiscalePinned({
   const stepTitles = choreography.steps.map(
     (config) => config.title[lang as "en" | "ko"] ?? config.title.en,
   );
-  const interactionHint = getInteractionHint(stepConfig?.sceneKey, lang);
+  const interactionHint = getInteractionHint(stepConfig?.sceneKey, lang, isMobile);
 
   const canGoNext = currentStep < TOTAL_RESEARCH_STEPS - 1;
   const canGoPrev = currentStep > 0;
@@ -304,6 +307,7 @@ export function MultiscalePinned({
     equationKey: stepConfig.equationKey ?? choreography.equationKey,
     lang,
     scfActiveIndexOverride: showDftScfSlider ? effectiveScfIndex : undefined,
+    scfConvergedFrom,
     onNext: goNext,
     onPrev: goPrev,
     canGoNext,
@@ -317,10 +321,16 @@ export function MultiscalePinned({
     },
     onLevelSwitch: goToLevel,
     stepTitles,
-    previousStepTitle: previousStepContext ?? undefined,
-    nextStepTitle: nextStepContext ?? undefined,
+    previousStepTitle: previousStepContext?.title,
+    nextStepTitle: nextStepContext?.title,
+    nextStepLevel: nextStepContext?.levelId,
     interactionHint,
   } as const;
+
+  // Fit and Reset run the same code on the meso stage (base zoom, default view), so Fit is hidden
+  // there. On DFT and all-atom, Fit re-frames at base zoom and keeps the direction the reader has
+  // turned the scene to; Reset also restores the scheduled view. MLFF keeps its Reset-only toolbar.
+  const showFitAction = effectiveScrollState.level === "allatom" || effectiveScrollState.level === "dft";
 
   const sceneTitleKey = `${effectiveScrollState.level}-${effectiveScrollState.step}`;
   // Desktop only; the mobile branch passes the title through as a string prop instead.
@@ -340,13 +350,13 @@ export function MultiscalePinned({
       >
         <div className="type-mono-meta mb-1.5 flex items-center justify-between gap-4 text-[0.78125rem] text-muted-foreground">
           <span className={LEVEL_CHROME[level.id].text}>{level.label[lang as "en" | "ko"] ?? level.label.en}</span>
-          <span>{String(activeGlobalStep + 1).padStart(2, "0")} / {String(TOTAL_RESEARCH_STEPS).padStart(2, "0")}</span>
+          <span className="shrink-0 whitespace-nowrap">{String(activeGlobalStep + 1).padStart(2, "0")} / {String(TOTAL_RESEARCH_STEPS).padStart(2, "0")}</span>
         </div>
-        <h3
+        <h2
           className={`type-heading text-foreground ${MULTISCALE_TYPE.sceneTitle}`}
         >
           {stepConfig?.title?.[lang as "en" | "ko"] ?? stepConfig?.title?.en ?? ""}
-        </h3>
+        </h2>
       </div>
     </div>
   );
@@ -365,17 +375,15 @@ export function MultiscalePinned({
       MOBILE_SCENE_HEIGHT[stepConfig.sceneKey] ?? DEFAULT_MOBILE_SCENE_HEIGHT;
 
     return (
+      // The page wrapper pulls the instrument up under the masthead, and pt-16 brings the status
+      // row back out from under it. The row used to be `sticky top-16` instead, but this shell's
+      // overflow-x-hidden makes it a scroll container, so the row never stuck to the viewport:
+      // it only sat 64px below its place in the flow and covered the top 64px of the scene.
       <div
-        className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground"
+        className="min-h-[100dvh] overflow-x-hidden bg-background pt-16 text-foreground"
         data-testid="multiscale-stage-shell"
       >
-        <h1 className="sr-only">
-          {lang === "ko"
-            ? "멀티스케일 분자 시뮬레이션, 전자 계산에서 재료의 집단 거동까지"
-            : "Multiscale molecular simulation, from electron calculations to collective material behavior"}
-        </h1>
-
-        <div className="sticky top-16 z-30">
+        <div className="relative z-30">
           <MobileStatusRow
             scrollState={effectiveScrollState}
             level={level}
@@ -389,8 +397,8 @@ export function MultiscalePinned({
             onLevelSwitch={goToLevel}
             lang={lang}
             stepTitles={stepTitles}
-            previousStepTitle={previousStepContext ?? undefined}
-            nextStepTitle={nextStepContext ?? undefined}
+            previousStepTitle={previousStepContext?.title}
+            nextStepTitle={nextStepContext?.title}
             scfLabel={scfLabel}
             sceneTitle={stepConfig?.title?.[lang as "en" | "ko"] ?? stepConfig?.title?.en}
             levelId={level.id}
@@ -408,15 +416,12 @@ export function MultiscalePinned({
             isMobile={isMobile}
             mobileSceneHeight={mobileSceneHeight}
             onAllAtomTermChange={setAllAtomLockedTerm}
-            onAllAtomReadoutChange={setAllAtomLockedReadout}
             actionsRef={cameraActionsRef}
             dftManualSnapshotIndex={manualScfIndexActive}
             onDftStatusChange={setDftStatus}
-            dftCyclePaused={dftCyclePaused}
             dftScfPlaying={scfPlaying}
             onDftScfIndexChange={reportScfIndex}
             allAtomActiveTerm={activeAllAtomTerm}
-            allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
             sceneKey={stepConfig.sceneKey}
             reducedMotion={reducedMotion}
@@ -433,6 +438,7 @@ export function MultiscalePinned({
             <SceneLegend
               scrollState={effectiveScrollState}
               lang={lang}
+              dftOutputMode={dftOutputMode}
               className="pointer-events-auto absolute bottom-3 left-3 w-[9.5rem]"
             />
             {effectiveScrollState.level !== "mlff" ? (
@@ -440,6 +446,7 @@ export function MultiscalePinned({
                 <MobileViewerToolbar
                   cameraActionsRef={cameraActionsRef}
                   lang={lang}
+                  showFit={showFitAction}
                   isOpen={cameraMenuOpen}
                   onToggle={() => setCameraMenuOpen((v) => !v)}
                 />
@@ -464,13 +471,38 @@ export function MultiscalePinned({
     );
   }
 
+  const isMlffLevel = effectiveScrollState.level === "mlff";
+  const cameraActions = [
+    {
+      key: "zoomIn",
+      label: "+",
+      icon: ZoomIn,
+      title: lang === "ko" ? "확대" : "Zoom in",
+    },
+    {
+      key: "zoomOut",
+      label: "−",
+      icon: ZoomOut,
+      title: lang === "ko" ? "축소" : "Zoom out",
+    },
+    ...(showFitAction
+      ? [{
+          key: "fit",
+          label: lang === "ko" ? "맞춤" : "Fit",
+          icon: Maximize2,
+          title: lang === "ko" ? "장면 맞춤" : "Fit scene",
+        }]
+      : []),
+    {
+      key: "reset",
+      label: lang === "ko" ? "재설정" : "Reset",
+      icon: RotateCcw,
+      title: lang === "ko" ? "시점 재설정" : "Reset view",
+    },
+  ];
+
   return (
     <div className="flex items-center justify-center overflow-hidden bg-background pt-16 text-foreground" style={{ height: "100dvh" }}>
-      <h1 className="sr-only">
-        {lang === "ko"
-          ? "멀티스케일 분자 시뮬레이션, 전자 계산에서 재료의 집단 거동까지"
-          : "Multiscale molecular simulation, from electron calculations to collective material behavior"}
-      </h1>
       <div
         data-testid="multiscale-stage-shell"
         className="multiscale-hires-frame overflow-hidden"
@@ -483,15 +515,14 @@ export function MultiscalePinned({
             actionsRef={cameraActionsRef}
             dftManualSnapshotIndex={manualScfIndexActive}
             onDftStatusChange={setDftStatus}
-            dftCyclePaused={dftCyclePaused}
             dftScfPlaying={scfPlaying}
             onDftScfIndexChange={reportScfIndex}
+            dftOutputModeOverride={dftOutputOverride}
             allAtomActiveTerm={activeAllAtomTerm}
-            allAtomActiveReadout={activeAllAtomReadout}
             lang={lang}
             sceneKey={stepConfig.sceneKey}
             reducedMotion={reducedMotion}
-            hideMechanism={effectiveScrollState.level !== "mlff"}
+            hideMechanism={!isMlffLevel}
           />
 
           {/* Title card and camera controls share one row rather than being two
@@ -500,80 +531,95 @@ export function MultiscalePinned({
               card wraps into whatever is left. */}
           <div className="pointer-events-none absolute inset-x-6 top-6 z-10 flex items-start justify-between gap-4 sm:inset-x-8 sm:top-8">
             {sceneTitleCard}
-            {effectiveScrollState.level !== "mlff" ? (
-          <div
-            className="pointer-events-auto grid shrink-0 grid-cols-2 gap-2"
-            data-testid="multiscale-camera-controls"
-          >
-            {[
-              {
-                key: "zoomIn",
-                label: "+",
-                icon: ZoomIn,
-                title: lang === "ko" ? "확대" : "Zoom in",
-              },
-              {
-                key: "zoomOut",
-                label: "−",
-                icon: ZoomOut,
-                title: lang === "ko" ? "축소" : "Zoom out",
-              },
-              {
-                key: "fit",
-                label: lang === "ko" ? "맞춤" : "Fit",
-                icon: Maximize2,
-                title: lang === "ko" ? "장면 맞춤" : "Fit scene",
-              },
-              {
-                key: "reset",
-                label: lang === "ko" ? "재설정" : "Reset",
-                icon: RotateCcw,
-                title: lang === "ko" ? "시점 재설정" : "Reset view",
-              },
-            ].map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.key}
-                  type="button"
-                  className="flex h-11 min-w-11 items-center justify-center gap-2 border border-border-strong bg-surface-raised px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                  title={action.title}
-                  aria-label={action.title}
-                  onClick={() => {
-                    cameraActionsRef.current?.[action.key as keyof ResearchCameraActions]?.();
-                  }}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">{action.label}</span>
-                </button>
-              );
-            })}
-            <SceneLegend scrollState={effectiveScrollState} lang={lang} className="col-span-2" />
-            {/* Both DFT pages run on their own: one walks the SCF iterations, the other walks
-                density -> HOMO -> LUMO. So on both, the caption naming what is on screen is also
-                the control that holds it there and starts it again. */}
-            {effectiveScrollState.level === "dft" && dftStatus ? (
-              <button
-                type="button"
-                onClick={() => dftPlayback.toggle()}
-                className="col-span-2 flex h-11 items-center justify-center gap-2 border
-                           border-border-strong bg-surface-raised px-3 text-sm font-semibold
-                           tabular-nums text-foreground transition-colors hover:bg-muted"
-                data-testid="dft-scene-status"
-                title={dftPlayback.title}
+            {!isMlffLevel ? (
+              <div
+                className="pointer-events-auto grid shrink-0 grid-cols-2 gap-2"
+                data-testid="multiscale-camera-controls"
               >
-                {dftPlayback.paused ? <Play className="h-4 w-4 shrink-0" />
-                                    : <Pause className="h-4 w-4 shrink-0" />}
-                {dftStatus}
-              </button>
-            ) : null}
-          </div>
+                {cameraActions.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <button
+                      key={action.key}
+                      type="button"
+                      className={`flex h-11 min-w-11 items-center justify-center gap-2 border border-border-strong bg-surface-raised px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted ${
+                        action.key === "reset" && !showFitAction ? "col-span-2" : ""
+                      }`}
+                      title={action.title}
+                      aria-label={action.title}
+                      onClick={() => {
+                        cameraActionsRef.current?.[action.key as keyof ResearchCameraActions]?.();
+                      }}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="hidden sm:inline">{action.label}</span>
+                    </button>
+                  );
+                })}
+                {/* The SCF page runs its iterations on its own, so the caption naming the one on
+                    screen is also the control that holds it there and starts it again. */}
+                {isDftScfStep && dftStatus ? (
+                  <button
+                    type="button"
+                    onClick={() => setScfPlaying((playing) => !playing)}
+                    className="col-span-2 flex h-11 items-center justify-center gap-2 border
+                               border-border-strong bg-surface-raised px-3 text-sm font-semibold
+                               tabular-nums text-foreground transition-colors hover:bg-muted"
+                    data-testid="dft-scene-status"
+                    title={scfPlaybackTitle}
+                  >
+                    {scfPlaying ? <Pause className="h-4 w-4 shrink-0" />
+                                : <Play className="h-4 w-4 shrink-0" />}
+                    {dftStatus}
+                  </button>
+                ) : null}
+                {/* The outputs page asks the reader to compare HOMO and LUMO, so the reader picks
+                    the surface. Until they do, the stage keeps walking density -> HOMO -> LUMO, and
+                    the pressed button follows it. Above the legend, which appears only for the
+                    orbitals, so the legend coming and going never moves the buttons. */}
+                {isDftOutputStep ? (
+                  <div
+                    role="group"
+                    aria-label={lang === "ko" ? "표시할 표면" : "Surface shown"}
+                    className="col-span-2 flex border border-border-strong bg-surface-raised"
+                    data-testid="dft-output-selector"
+                  >
+                    {DFT_OUTPUT_MODES.map((mode) => {
+                      const active = dftOutputMode === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => setDftOutputOverride(mode.id)}
+                          className={`flex h-11 flex-1 items-center justify-center whitespace-nowrap border-l border-border-strong px-3 text-sm transition-colors first:border-l-0 ${
+                            active
+                              ? "bg-lv-dft-wash font-semibold text-lv-dft-text"
+                              : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }`}
+                        >
+                          {lang === "ko" ? mode.ko : mode.en}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                <SceneLegend
+                  scrollState={effectiveScrollState}
+                  lang={lang}
+                  dftOutputMode={dftOutputMode}
+                  className="col-span-2"
+                />
+              </div>
             ) : null}
           </div>
         </div>
 
+        {/* The desktop branch renders only from 900px, where the rail always sits beside the
+            stage, so it always takes the left rule. Below xl it used to take a top rule instead,
+            which left no edge between scene and text and doubled the rule under the masthead. */}
         <div
-          className="min-h-0 border-t border-border bg-surface-sunken xl:border-l xl:border-t-0"
+          className="min-h-0 border-l border-border bg-surface-sunken"
           data-testid="multiscale-right-rail-panel"
         >
           <RightRail

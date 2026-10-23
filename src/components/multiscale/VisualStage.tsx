@@ -7,7 +7,8 @@ import { AllAtomHybridStage } from "./allatom/AllAtomHybridStage";
 import { MlffSchematicStage } from "./mlff/MlffSchematicStage";
 import { MolstarDftStage } from "./molstar/MolstarDftStage";
 import type { ResearchCameraActions } from "./molstar/shared";
-import type { AllAtomForceFieldTerm, AllAtomReadoutId } from "./allatom/allAtomPagePolicy";
+import type { AllAtomForceFieldTerm } from "./allatom/allAtomPagePolicy";
+import type { DftOutputMode } from "./overlays/DftMechanism";
 
 export type { ResearchCameraActions } from "./molstar/shared";
 
@@ -17,33 +18,30 @@ export function VisualStage({
   actionsRef,
   dftManualSnapshotIndex,
   onDftStatusChange,
-  dftCyclePaused,
   dftScfPlaying,
   onDftScfIndexChange,
+  dftOutputModeOverride,
   allAtomActiveTerm,
-  allAtomActiveReadout,
   lang = "en",
   sceneKey,
   reducedMotion = false,
   hideMechanism = false,
   mobileSceneHeight,
   onAllAtomTermChange,
-  onAllAtomReadoutChange,
 }: {
   scrollState: ScrollState;
   isMobile: boolean;
   /** Definite height for the scene on a phone; the mechanism band below it flows. */
   mobileSceneHeight?: number;
   onAllAtomTermChange?: (term: AllAtomForceFieldTerm) => void;
-  onAllAtomReadoutChange?: (readout: AllAtomReadoutId) => void;
   actionsRef?: MutableRefObject<ResearchCameraActions | null>;
   dftManualSnapshotIndex?: number | null;
   onDftStatusChange?: (status: string) => void;
-  dftCyclePaused?: boolean;
   dftScfPlaying?: boolean;
   onDftScfIndexChange?: (index: number) => void;
+  /** The surface the reader picked on the DFT outputs page; null leaves the stage cycling. */
+  dftOutputModeOverride?: DftOutputMode | null;
   allAtomActiveTerm?: AllAtomForceFieldTerm | null;
-  allAtomActiveReadout?: AllAtomReadoutId | null;
   lang?: string;
   sceneKey?: string;
   reducedMotion?: boolean;
@@ -86,12 +84,10 @@ export function VisualStage({
           mobileSceneHeight={mobileSceneHeight}
           {...molstarProps}
           activeTerm={allAtomActiveTerm ?? null}
-          activeReadout={allAtomActiveReadout ?? null}
           reducedMotion={reducedMotion}
           lang={lang}
           hideMechanism={hideMechanism}
           onTermChange={onAllAtomTermChange}
-          onReadoutChange={onAllAtomReadoutChange}
         />
       );
     case "dft":
@@ -101,9 +97,9 @@ export function VisualStage({
           {...molstarProps}
           manualSnapshotIndex={dftManualSnapshotIndex}
           onStatusChange={onDftStatusChange}
-          cyclePaused={dftCyclePaused}
           scfPlaying={dftScfPlaying}
           onScfIndexChange={onDftScfIndexChange}
+          outputModeOverride={dftOutputModeOverride ?? null}
           lang={lang}
           sceneKey={sceneKey}
           reducedMotion={reducedMotion}

@@ -5,13 +5,17 @@ import { usePathname } from "next/navigation";
 import { ExternalLink } from "@/components/ui/ExternalLink";
 import type { Publication } from "@/types/publication";
 import { AuthorList } from "./AuthorList";
+import { keepCompounds } from "./keepCompounds";
 
 export function PublicationCard({
   publication,
   lang,
+  topics = [],
 }: {
   publication: Publication;
   lang?: string;
+  /** Localized research-topic labels for the bracket line. */
+  topics?: string[];
 }) {
   // Fallback for consumers that do not pass lang yet (home RecentPublications).
   const pathname = usePathname();
@@ -26,7 +30,6 @@ export function PublicationCard({
     issue,
     pages,
     doi,
-    tags,
     firstAuthors,
     correspondingAuthors,
   } = publication;
@@ -35,14 +38,14 @@ export function PublicationCard({
   // locale, so the untranslated-English gate skips this subtree.
   return (
     <article data-bibliographic className="border-t border-border py-5 transition-colors hover:bg-muted/50">
-      <h3 className="type-heading break-keep text-[16.5px] leading-snug">
+      <h4 className="type-heading break-keep text-[16.5px] leading-snug">
         <Link
           href={`/${resolvedLang}/publications/${slug}`}
           className="inline py-1 text-foreground transition-colors hover:text-accent-ink"
         >
-          {title}
+          {keepCompounds(title)}
         </Link>
-      </h3>
+      </h4>
 
       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
         <AuthorList
@@ -77,9 +80,9 @@ export function PublicationCard({
         )}
       </p>
 
-      {tags.length > 0 && (
+      {topics.length > 0 && (
         <p className="type-mono-meta mt-2 text-[11px] text-muted-foreground">
-          {tags.map((tag) => `[${tag}]`).join(" ")}
+          {topics.map((topic) => `[${topic}]`).join(" ")}
         </p>
       )}
     </article>

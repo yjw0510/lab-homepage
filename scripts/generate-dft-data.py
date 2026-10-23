@@ -262,10 +262,10 @@ iterations = [i + 1 for i in frames]
 labels = [f"Iter {n}" for n in iterations]
 
 energies = json.load(open(ENERGIES))["energies"]
-# delta_e[k] is the change arriving at iteration k + 2. Iteration 1 has no prior energy, so it
-# reports the first change there is rather than a number invented for it.
+# delta_e[k] is the change arriving at iteration k + 2.
+# Iteration 1 has no prior energy (ORCA prints Delta-E 0.00e+00 there), so its change is null and is not drawn.
 delta_e = [round(abs(energies[i + 1] - energies[i]), 10) for i in range(len(energies) - 1)]
-delta_for_iteration = [delta_e[max(0, min(n - 2, len(delta_e) - 1))] for n in iterations]
+delta_for_iteration = [None if n == 1 else delta_e[min(n - 2, len(delta_e) - 1)] for n in iterations]
 
 # Every density matrix in the run has exactly this rank, and it is also where HOMO sits.
 occupied = int(np.sum(data["occ"] > 0))
@@ -368,7 +368,8 @@ with open(os.path.join(OUT_DIR, "scf.json"), "w") as file:
                        for n, d in zip(iterations, delta_for_iteration)],
         "snapshots": [{"index": slot, "iteration": n, "label": labels[slot]}
                       for slot, n in enumerate(iterations)],
-        "threshold": 1e-5,
+        # ORCA TolE (02_orca/slow.out: Energy Change TolE 1.000e-08 Eh). 1e-5 there is the one-electron energy tolerance, not the total-energy change plotted here.
+        "threshold": 1e-8,
         "converged": True,
         "iterations": len(delta_e),
     }, file)

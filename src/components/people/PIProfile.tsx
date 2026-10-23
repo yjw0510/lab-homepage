@@ -11,6 +11,8 @@ export function PIProfile({ person, lang }: { person: Person; lang: string }) {
   const title = (ko && person.titleKo) || person.title;
   const departments = (ko && person.departmentsKo) || person.departments;
   const university = (ko && person.universityKo) || person.university;
+  const primaryName = (ko && person.nameKo) || person.name;
+  const secondaryName = ko ? person.name : person.nameKo;
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-12">
       {/* Photo or initials fallback */}
@@ -20,7 +22,7 @@ export function PIProfile({ person, lang }: { person: Person; lang: string }) {
             <ExportedImage
               src={person.photo}
               basePath={BASE_PATH}
-              alt={person.name}
+              alt={primaryName}
               width={192}
               height={256}
               className="block h-auto w-full"
@@ -40,10 +42,10 @@ export function PIProfile({ person, lang }: { person: Person; lang: string }) {
 
       <div className="md:col-span-9">
         <h3 className="type-heading text-[21px] text-foreground">
-          {person.name}
-          {person.nameKo && (
+          {primaryName}
+          {secondaryName && secondaryName !== primaryName && (
             <span className="ml-2 font-[430] text-muted-foreground">
-              {person.nameKo}
+              {secondaryName}
             </span>
           )}
         </h3>
@@ -60,6 +62,16 @@ export function PIProfile({ person, lang }: { person: Person; lang: string }) {
               )}
           <span className="block">{university}</span>
         </div>
+
+        {person.bio && (
+          <p
+            className={`mt-5 break-keep leading-relaxed text-foreground ${
+              ko ? "max-w-[34rem]" : "max-w-[65ch]"
+            }`}
+          >
+            {(ko && person.bioKo) || person.bio}
+          </p>
+        )}
 
         {/* Links */}
         <div className="type-mono-meta mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-[12px]">

@@ -31,7 +31,7 @@ export default async function LocaleLayout({
     <AppShell lang={lang}>
       <ThemeProvider>
         <Navbar lang={lang} dict={dict} />
-        <main className="flex-1">{children}</main>
+        <main id="main" tabIndex={-1} className="flex-1">{children}</main>
         <Footer lang={lang} dict={dict} />
       </ThemeProvider>
     </AppShell>

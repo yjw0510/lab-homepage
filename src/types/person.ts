@@ -13,6 +13,7 @@ export interface Person {
   orcid?: string;
   photo?: string;
   bio?: string;
+  bioKo?: string;
   researchInterests?: string[];
   enrollmentYear?: number;
   links?: {

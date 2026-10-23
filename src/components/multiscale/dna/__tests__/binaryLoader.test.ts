@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decodeFloat32, getTrajectoryFrame, reshapeToVec3 } from "../binaryLoader";
+import { decodeFloat32, decodeQuantizedUint16, getTrajectoryFrame, reshapeToVec3 } from "../binaryLoader";
 
 describe("decodeFloat32", () => {
   it("returns Float32Array from ArrayBuffer", () => {
@@ -15,6 +15,17 @@ describe("decodeFloat32", () => {
     const result = decodeFloat32(new ArrayBuffer(0));
     expect(result).toBeInstanceOf(Float32Array);
     expect(result.length).toBe(0);
+  });
+});
+
+describe("decodeQuantizedUint16", () => {
+  it("maps grid values back to nanometres", () => {
+    const source = new Uint16Array([0, 1, 65535]);
+    const result = decodeQuantizedUint16(source.buffer, -12.4, 24.8 / 65535);
+    expect(result).toBeInstanceOf(Float32Array);
+    expect(result[0]).toBeCloseTo(-12.4, 5);
+    expect(result[1]).toBeCloseTo(-12.4 + 24.8 / 65535, 5);
+    expect(result[2]).toBeCloseTo(12.4, 4);
   });
 });
 
