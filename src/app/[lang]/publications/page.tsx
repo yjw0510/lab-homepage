@@ -5,7 +5,7 @@ import { ManuscriptList } from "@/components/publications/ManuscriptList";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { manuscripts } from "../../../../data/manuscripts";
 import { getAllPublications, getAllYears } from "@/lib/publications";
-import { getAllTopics, getTopicsForPublication } from "@/lib/topics";
+import { AB_INITIO_LABEL, getAllTopics, getLabelIdsForPublication } from "@/lib/topics";
 import { getDictionary, hasLocale } from "../dictionaries";
 
 export async function generateMetadata({
@@ -38,11 +38,15 @@ export default async function PublicationsPage({
   // single-paper, and partly application domains; topics match the Research Topics page.
   const topicLabels: Record<string, string> = dict.publications.topicLabels;
   const topicsBySlug = Object.fromEntries(
-    publications.map((p) => [p.slug, getTopicsForPublication(p).map((t) => t.id)]),
+    publications.map((p) => [p.slug, getLabelIdsForPublication(p)]),
   );
-  const topics = getAllTopics()
-    .filter((t) => publications.some((p) => topicsBySlug[p.slug].includes(t.id)))
-    .map((t) => ({ id: t.id, label: topicLabels[t.id] ?? (lang === "ko" ? t.titleKo : t.title) }));
+  const topics = [
+    ...getAllTopics().map((t) => ({
+      id: t.id,
+      label: topicLabels[t.id] ?? (lang === "ko" ? t.titleKo : t.title),
+    })),
+    { id: AB_INITIO_LABEL, label: topicLabels[AB_INITIO_LABEL] },
+  ].filter((t) => publications.some((p) => topicsBySlug[p.slug].includes(t.id)));
 
   return (
     <div className="py-20 sm:py-28">

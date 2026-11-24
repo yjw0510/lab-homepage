@@ -60,3 +60,15 @@ export function getTopicPaperCounts(
   }
   return counts;
 }
+
+/**
+ * Publication-list label for ab initio (DFT, TD-DFT) papers. It names the method, so it is
+ * kept apart from the research topics: a paper tagged "Ab Initio" shows this label in place
+ * of its topic's, and the Research Topics page does not list it.
+ */
+export const AB_INITIO_LABEL = "ab-initio";
+
+export function getLabelIdsForPublication(pub: Publication): string[] {
+  if (pub.tags.includes("Ab Initio")) return [AB_INITIO_LABEL];
+  return getTopicsForPublication(pub).map((t) => t.id);
+}

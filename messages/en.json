@@ -47,6 +47,7 @@
       "polymer-simulation": "Polymer simulation",
       "aqueous-solution": "Aqueous chemistry",
       "reaction-mlff": "Reactions",
+      "ab-initio": "Ab initio calculations",
       "glass": "Glass dynamics",
       "hydrogel": "Hydrogels",
       "misc": "Collaborations"

@@ -10,7 +10,7 @@ import {
 } from "@/lib/markdown";
 import { AuthorList } from "@/components/publications/AuthorList";
 import { keepCompounds } from "@/components/publications/keepCompounds";
-import { getTopicsForPublication } from "@/lib/topics";
+import { getAllTopics, getLabelIdsForPublication } from "@/lib/topics";
 import { getDictionary, hasLocale, locales } from "../../dictionaries";
 
 export function generateStaticParams() {
@@ -57,9 +57,10 @@ export default async function PublicationDetailPage({
     title === "Abstract" ? dict.publications.summaryHeading : title;
 
   const topicLabels: Record<string, string> = dict.publications.topicLabels;
-  const topicNames = getTopicsForPublication(pub).map(
-    (t) => topicLabels[t.id] ?? (lang === "ko" ? t.titleKo : t.title),
-  );
+  const topicNames = getLabelIdsForPublication(pub).map((id) => {
+    const topic = getAllTopics().find((t) => t.id === id);
+    return topicLabels[id] ?? (lang === "ko" ? topic?.titleKo : topic?.title) ?? id;
+  });
 
   const sections = parseMarkdownSections(pub.content || "").map((section) =>
     lang === "ko" && section.title === "Abstract" && pub.abstractKo
