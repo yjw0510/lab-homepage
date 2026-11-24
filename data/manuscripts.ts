@@ -6,13 +6,6 @@ import type { Manuscript } from "@/types/publication";
 // no first author, the first-listed author is taken as first author.
 export const manuscripts: Manuscript[] = [
   {
-    title: "Insertion free energies and depletion interactions in polymer-particle mixtures",
-    authors: ["Bae-Yeun Ha", "Daeseong Yong", "Ji Woong Yu", "Changbong Hyeon"],
-    firstAuthors: ["Bae-Yeun Ha"],
-    correspondingAuthors: ["Bae-Yeun Ha", "Changbong Hyeon"],
-    status: "underReview",
-  },
-  {
     title: "Nuclear quantum effects enhance diffusion in supercooled ammonia through accelerated pyramidal inversion",
     authors: ["Minwoo Kim", "Hido Woo", "Taeyong Park", "Ji Woong Yu", "Won Bo Lee"],
     firstAuthors: ["Minwoo Kim"],
